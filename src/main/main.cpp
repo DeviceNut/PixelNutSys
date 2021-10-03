@@ -1,0 +1,247 @@
+/*
+Copyright (c) 2021, Greg de Valois
+Software License Agreement (MIT License)
+See license.txt for the terms of this license.
+*/
+
+#include "main.h"
+#include "flash.h"
+#include "controls.h"
+
+#include <NeoPixelShow.h>
+
+extern void SetupLED(void);
+extern void SetupDBG(void);
+extern void LoadCurPattern();
+
+byte codePatterns = 0;            // number of internal patterns
+bool doUpdate = true;             // false to not update display
+
+#if !CLIENT_APP
+byte curPattern = 1;              // current pattern (1..codePatterns)
+char curPatStr[STRLEN_PATTERNS];  // current pattern string
+
+// create empty base class handler
+CustomCode customcode;
+CustomCode *pCustomCode = &customcode;
+#endif
+
+#if PIXELS_APA
+#include <SPI.h>
+SPISettings spiSettings(SPI_SETTINGS_FREQ, MSBFIRST, SPI_MODE0);
+PixelValOrder pixorder = {2,1,0}; // mapping of (RGB) to (BRG) for APA102
+#else
+PixelValOrder pixorder = {1,0,2}; // mapping of (RGB) to (GRB) for WS2812B
+NeoPixelShow *neoPixels[STRAND_COUNT];
+#endif
+PixelNutSupport pixelNutSupport = PixelNutSupport((GetMsecsTime)millis, &pixorder);
+
+PixelNutEngine *pixelNutEngines[STRAND_COUNT];
+PixelNutEngine *pPixelNutEngine; // pointer to current engine
+
+static uint16_t pixelBytes[STRAND_COUNT];
+static byte *pixelArrays[STRAND_COUNT];
+
+#if DEBUG_OUTPUT
+#warning("Debug mode is enabled")
+#endif
+
+void DisplayConfiguration(void)
+{
+  #if DEBUG_OUTPUT
+
+  byte pixcounts[] = PIXEL_COUNTS;
+  char numstr[20];
+  char strcounts[100];
+  strcounts[0] = 0;
+  for (int i = 0; i < STRAND_COUNT; ++i)
+  {
+    itoa(pixcounts[i], numstr, 10);
+    strcat(strcounts, numstr);
+    strcat(strcounts, " ");
+  }
+
+  DBGOUT((F("Configuration:")));
+  DBGOUT((F("  MAX_BRIGHTNESS         = %d"), MAX_BRIGHTNESS));
+  DBGOUT((F("  DELAY_OFFSET           = %d"), DELAY_OFFSET));
+  DBGOUT((F("  DELAY_RANGE            = %d"), DELAY_RANGE));
+  DBGOUT((F("  STRAND_COUNT           = %d"), STRAND_COUNT));
+  DBGOUT((F("  PIXEL_COUNTS           = %s"), strcounts));
+  DBGOUT((F("  STRLEN_PATTERNS        = %d"), STRLEN_PATTERNS));
+  DBGOUT((F("  DEV_PATTERNS           = %d"), DEV_PATTERNS));
+  DBGOUT((F("  CLIENT_APP             = %d"), CLIENT_APP));
+  DBGOUT((F("  NUM_PLUGIN_TRACKS      = %d"), NUM_PLUGIN_TRACKS));
+  DBGOUT((F("  NUM_PLUGIN_LAYERS      = %d"), NUM_PLUGIN_LAYERS));
+  DBGOUT((F("  FLASHOFF_PATTERN_START = %d"), FLASHOFF_PATTERN_START));
+  DBGOUT((F("  FLASHOFF_PATTERN_END   = %d"), FLASHOFF_PATTERN_END));
+  DBGOUT((F("  EEPROM_FREE_BYTES      = %d"), EEPROM_FREE_BYTES));
+
+  #if defined(ESP32)
+  esp_chip_info_t sysinfo;
+  esp_chip_info(&sysinfo);
+  DBGOUT(("ESP32 Board:"));
+  DBGOUT(("  SDK Version=%s", esp_get_idf_version()));
+  DBGOUT(("  ModelRev=%d.%d", sysinfo.model, sysinfo.revision));
+  DBGOUT(("  Cores=%d", sysinfo.cores));
+  DBGOUT(("  Heap=%d bytes", esp_get_free_heap_size()));
+  #endif
+
+  #endif
+}
+
+void ShowPixels(int index)
+{
+  #if PIXELS_APA
+  byte *ptr = pixelArrays[index];
+  int count = pixelCounts[index];
+
+  digitalWrite(PIXEL_PINS[index], LOW); // enable this strand
+  SPI.beginTransaction(spiSettings);
+
+  // 4 byte start-frame marker
+  for (int i = 0; i < 4; i++) SPI.transfer(0x00);
+
+  for (int i = 0; i < count; ++i)
+  {
+    SPI.transfer(0xFF);
+    for (int j = 0; j < 3; j++) SPI.transfer(*ptr++);
+  }
+
+  SPI.endTransaction();
+  digitalWrite(PIXEL_PINS[index], HIGH); // disable this strand
+
+  #else
+  neoPixels[index]->show(pixelArrays[index], pixelBytes[index]);
+  #endif
+}
+
+void setup()
+{
+  SetupLED(); // status LED: indicate in setup now
+  SetupDBG(); // setup/wait for debug monitor
+  // Note: cannot use debug output until above is called,
+  // meaning DBGOUT() cannot be used in static constructors.
+  DBGOUT((F("Hello PixelNut!")));
+
+  #if EEPROM_FORMAT
+  FlashFormat(); // format entire EEPROM
+  pCustomCode->flash(); // custom flash handling
+  ErrorHandler(0, 3, true);
+  #endif
+
+  #if PIXELS_APA
+  for (int i = 0; i < STRAND_COUNT; ++i) // config chip select pins
+  {
+    pinMode(PIXEL_PINS[i], OUTPUT);
+    digitalWrite(PIXEL_PINS[i], HIGH);
+  }
+  SPI.begin(); // initialize SPI library
+  #endif
+
+  DisplayConfiguration(); // Display configuration settings
+
+  SetupBrightControls();  // Setup any physical controls present
+  SetupDelayControls();
+  SetupEModeControls();
+  SetupColorControls();
+  SetupCountControls();
+  SetupTriggerControls();
+  SetupPatternControls();
+
+  #if DEV_PATTERNS
+  CountPatterns(); // have internal stored patterns
+  #endif
+
+  byte pixcounts[] = PIXEL_COUNTS;
+  byte pinnums[] = PIXEL_PINS;
+
+  // alloc arrays, turn off pixels, init patterns
+  for (int i = 0; i < STRAND_COUNT; ++i)
+  {
+    pixelBytes[i] = pixcounts[i]*3;
+    DBGOUT((F("Allocating %d bytes for pixel array, strand=%d"), pixelBytes[i], i));
+
+    pixelArrays[i] = (byte*)calloc(pixelBytes[i], sizeof(byte));
+    if (pixelArrays[i] == NULL)
+    {
+      DBGOUT((F("Alloc failed for pixel array, strand=%d"), i));
+      ErrorHandler(1, 0, true);
+    }
+
+    #if !PIXELS_APA
+    neoPixels[i] = new NeoPixelShow(pinnums[i]);
+    if (neoPixels[i] == NULL)
+    {
+      DBGOUT((F("Alloc failed for neopixel class, strand=%d"), i));
+      ErrorHandler(1, 0, true);
+    }
+    #if defined(ESP32)
+    if (!neoPixels[i]->rmtInit(i, pixelBytes[i])) // this crashes if pin isn't set correctly
+    {
+      DBGOUT((F("Alloc failed for RMT data, strand=%d"), i));
+      ErrorHandler(1, 0, true);
+    }
+    #endif
+    #endif // PIXELS_APA
+
+    ShowPixels(i); // turn off pixels
+
+    pixelNutEngines[i] = new PixelNutEngine(pixelArrays[i], pixcounts[i],
+                                PIXEL_OFFSET, true, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS);
+
+    if ((pixelNutEngines[i] == NULL) || (pixelNutEngines[i]->pDrawPixels == NULL))
+    {
+      DBGOUT((F("Failed to alloc pixel engine buffers, strand=%d"), i));
+      ErrorHandler(2, PixelNutEngine::Status_Error_Memory, true);
+    }
+    pPixelNutEngine = pixelNutEngines[i];
+
+    FlashSetStrand(i);
+    FlashStartup();  // get curPattern and settings from flash, set engine properties
+
+    #if CLIENT_APP
+    char cmdstr[STRLEN_PATTERNS];
+    FlashGetStr(cmdstr);    // get pattern string previously stored in flash
+    ExecPattern(cmdstr);    // load pattern into the engine: ready to be displayed
+    #else
+    LoadCurPattern();       // load pattern string corresponding to pattern number
+    #endif
+  }
+
+  FlashSetStrand(0); // always start on first strand
+  pPixelNutEngine = pixelNutEngines[0];
+
+  pCustomCode->setup();   // custom initialization here
+
+  #if defined(ESP32)
+  randomSeed(esp_random()); // should be called after BLE/WiFi started
+  #else
+  // set seed to value read from unconnected analog port
+  randomSeed(analogRead(APIN_SEED));
+  #endif
+
+  BlinkStatusLED(0, 2);  // indicate success
+  DBGOUT((F("** Setup complete **")));
+}
+
+void loop()
+{
+  pCustomCode->loop(); // custom processing here
+
+  // check physical controls for changes
+  CheckBrightControls();
+  CheckDelayControls();
+  CheckEModeControls();
+  CheckColorControls();
+  CheckCountControls();
+  CheckTriggerControls();
+  CheckPatternControls();
+
+  // if enabled: display new pixel values if anything has changed
+  if (doUpdate)
+  {
+    for (int i = 0; i < STRAND_COUNT; ++i)
+      if (pixelNutEngines[i]->updateEffects())
+        ShowPixels(i);
+  }
+}

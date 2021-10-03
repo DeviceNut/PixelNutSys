@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "PixelNutSys",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"xlocmon": "cpp"
+		}
+	}
+}

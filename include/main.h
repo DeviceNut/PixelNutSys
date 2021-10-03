@@ -1,0 +1,50 @@
+/*
+Copyright (c) 2021, Greg de Valois
+Software License Agreement (MIT License)
+See license.txt for the terms of this license.
+*/
+
+#pragma once
+
+#include <stdlib.h>
+#include <Arduino.h>
+#include <NeoPixelShow.h>
+
+#if !defined(DEBUG_OUTPUT)
+#define DEBUG_OUTPUT 1 // 1 to compile serial console debugging code
+#endif
+
+#include "config.h"
+#include "custom.h"
+
+#include "PixelNutSupport.h"
+#include "PixelNutPlugin.h"
+#include "PixelNutEngine.h"
+
+extern byte codePatterns;
+extern bool doUpdate;
+#if !CLIENT_APP
+extern byte curPattern;
+extern char curPatStr[];
+#endif
+
+extern CustomCode *pCustomCode;
+extern PixelNutEngine *pixelNutEngines[STRAND_COUNT];
+extern PixelNutEngine *pPixelNutEngine;
+
+extern void BlinkStatusLED(uint16_t slow, uint16_t fast);
+extern void ErrorHandler(short slow, short fast, bool dostop);
+
+extern void ExecAppCmd(char *cmdstr);
+extern void ExecPattern(char *pattern);
+
+#if DEV_PATTERNS
+extern const char* const devPatCmds[];
+extern void CountPatterns(void);
+#if CLIENT_APP
+extern const char* const devPatNames[];
+extern const char* const devPatDesc[];
+#endif
+#elif !CLIENT_APP
+#error("Must have device patterns if no client");
+#endif
