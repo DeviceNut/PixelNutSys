@@ -68,15 +68,8 @@ void ExecAppCmd(char *instr)
     }
     case '.': // start/stop saving a pattern into flash
     {
-      char pattern[STRLEN_PATTERNS];
-
-      if ( saveStrIndex >= 0)  // end sequence
-      {
-        saveStrIndex = -1;
-        pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
-        FlashGetStr(pattern);
-        ExecPattern(pattern);
-      }
+      if (saveStrIndex >= 0)  // end sequence
+          saveStrIndex = -1;
       else saveStrIndex = 0; // begin sequence
       break;
     }
