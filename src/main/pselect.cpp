@@ -25,7 +25,7 @@ void CountPatterns(void)
     strcpy_P(curPatStr, devPatCmds[i]);
     DBGOUT((F("  %2d: \"%s\""), i+1, curPatStr));
     #else
-    DBGOUT((F("  %2d: %s"), i+1, devPatNames));
+    DBGOUT((F("  %2d: %s"), i+1, devPatNames[i]));
     #endif
   }
 
