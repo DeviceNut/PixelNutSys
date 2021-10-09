@@ -7,6 +7,10 @@ See license.txt for the terms of this license.
 
 #pragma once
 
+#if !defined(DEBUG_OUTPUT)
+#define DEBUG_OUTPUT 1 // 1 to compile serial console debugging code
+#endif
+
 #if DEBUG_OUTPUT // defined either in main.h or in particular source file
 #define DBG(x) x
 #define DBGOUT(x) MsgFormat x
@@ -37,7 +41,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 
 // for device plugins and patterns:
-#define DEV_PATTERNS            0           // 1 to add device patterns
+#define DEV_PATTERNS            1           // 1 to add device patterns
 #define DEV_PLUGINS             0           // 1 to add device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
 #define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
@@ -74,11 +78,12 @@ extern void MsgFormat(const char *fmtstr, ...);
 */
 
 // for use with external client: only one can be set:
-#define BLE_ESP32               0           // using BLE on ESP32
-#define WIFI_MQTT               1           // using MQTT over WiFi
-#define WIFI_SOFTAP             0           // using WiFi SoftAP
+#define BLE_ESP32               0           // BLE on ESP32 only
+#define WIFI_MQTT               1           // MQTT over WiFi
+#define WIFI_SOFTAP             0           // SoftAP over WiFi
+#define COM_SERIAL              0           // serial over COM
 
-#if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP)
+#if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
 #define MAXLEN_DEVICE_NAME      16          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized

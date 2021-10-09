@@ -10,10 +10,6 @@ See license.txt for the terms of this license.
 #include <Arduino.h>
 #include <NeoPixelShow.h>
 
-#if !defined(DEBUG_OUTPUT)
-#define DEBUG_OUTPUT 1 // 1 to compile serial console debugging code
-#endif
-
 #include "config.h"
 #include "custom.h"
 
