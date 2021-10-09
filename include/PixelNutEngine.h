@@ -110,46 +110,50 @@ protected:
   int8_t delayOffset = 0;                         // additional delay to add to each effect (msecs)
                                                 // this is kept to be +/- 'DELAY_RANGE'
 
-  typedef struct ATTR_PACKED // 18-20 bytes
+  typedef struct ATTR_PACKED // 22-24 bytes
   {
-                                                // random auto triggering information:
-    uint32_t trigTimeMsecs;                     // time of next trigger in msecs (0 if not set yet)
-    uint16_t trigCount;                         // number of times to trigger (-1 to repeat forever)
-    uint16_t trigDelayMin;                      // min amount of delay before next trigger in seconds
-    uint16_t trigDelayRange;                    // range of delay values possible (min...min+range)
+    PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
+    byte track;                                 // index into properties stack for plugin
+    bool disable;                               // true to disable this layer
 
-                                                // these apply to both auto and manual triggering:
+                                                // apply to both auto and manual triggering:
     short trigForce;                            // amount of force to apply (-1 for random)
     bool trigActive;                            // true if this layer has been triggered at least once
     bool trigExtern;                            // true if external triggering is enabled for this layer
     byte trigSource;                            // what other layer can trigger this layer (255 for none)
 
-    byte track;                                 // index into properties stack for plugin
-    PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
+                                                // auto triggering information:
+    bool trigAutomatic;                         // true to enable auto triggering
+    int16_t trigNumber;                         // number of times to trigger (-1 to repeat forever)
+    uint16_t trigCounter;                       // current trigger countdown counter
+    uint16_t trigDelayMin;                      // min amount of delay before next trigger in seconds
+    uint16_t trigDelayRange;                    // range of delay values possible (min...min+range)
+    uint32_t trigTimeMsecs;                     // time of next trigger in msecs, calculated from:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED // 28-30 bytes
+  typedef struct ATTR_PACKED // 26-28 bytes
   {
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
     byte *pRedrawBuff;                          // allocated buffer or NULL for postdraw effects
 
     PixelNutSupport::DrawProps draw;            // redraw properties for this plugin
 
-    byte layer;                                 // index into layer stack to redraw effect
     byte ctrlBits;                              // bits to control setting property values
-    byte disable;                               // non-zero to disable controls
+    byte layer;                                 // index into layer stack to redraw effect
+    byte lcount;                                // number of layers in this track
+    bool disable;                               // true to disable entire track
   }
   PluginTrack; // defines properties for each drawing plugin
 
   PluginLayer *pluginLayers;                    // plugin layers that creates effect
   short maxPluginLayers;                        // max number of layers possible
-  short indexLayerStack  = -1;                  // index into the plugin layers stack
-  short indexTrackEnable = -1;                  // higher indices are not yet activated
+  short indexLayerStack = -1;                   // index into the plugin layers stack
 
   PluginTrack *pluginTracks;                    // plugin tracks that have properties
   short maxPluginTracks;                        // max number of tracks possible
   short indexTrackStack = -1;                   // index into the plugin properties stack
+  short indexTrackEnable = -1;                  // higher indices are not yet activated
 
   uint32_t timePrevUpdate = 0;                  // time of previous call to update
 
@@ -169,7 +173,7 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
-  Status NewPluginLayer(int plugin);
+  Status NewPluginLayer(int plugin, bool doadd);
 
   void CheckAutoTrigger(bool rollover);
 };
