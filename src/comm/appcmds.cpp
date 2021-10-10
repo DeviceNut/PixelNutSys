@@ -35,14 +35,6 @@ static char* skipNumber(char *instr)
   return instr;
 }
 
-void AddNumToStr(char *outstr, int value)
-{
-  char numstr[10];
-  itoa(value, numstr, 10);
-  strcat(outstr, numstr);
-  strcat(outstr, " ");
-}
-
 void ExecAppCmd(char *instr)
 {
   DBGOUT((F("CmdExec: \"%s\""), instr));
@@ -77,31 +69,40 @@ void ExecAppCmd(char *instr)
     {
       char outstr[STRLEN_PATTERNS];
 
-      #if (STRAND_COUNT > 1)
-      if (instr[1] == 'S') // send info about segments
+      if (instr[1] == 'S') // send info about each strand
       {
+        byte pixcounts[] = PIXEL_COUNTS;
+        int curstrand = FlashSetStrand(0);
+
         for (int i = 0; i < STRAND_COUNT; ++i)
         {
           FlashSetStrand(i);
 
-          outstr[0] = 0;
-          for (int j = 0; j < FLASH_SEG_LENGTH; ++j)
-            AddNumToStr(outstr, FlashGetValue(j));
+          uint16_t hue = FlashGetValue(FLASH_SEG_XT_HUE) + (FlashGetValue(FLASH_SEG_XT_HUE+1) << 8);
 
-          DBGOUT((F("FlashVals[%d]: %s"), i, outstr));
+          sprintf(outstr, "%d %d %d %d\n%d %d %d %d %d",
+                        pixcounts[i],
+                        FlashGetValue(FLASH_SEG_BRIGHTNESS),
+                        (int8_t)FlashGetValue(FLASH_SEG_DELAYMSECS),
+                        FlashGetValue(FLASH_SEG_FIRSTPOS),
 
+                        FlashGetValue(FLASH_SEG_XT_MODE),
+                        hue,
+                        FlashGetValue(FLASH_SEG_XT_WHT),
+                        FlashGetValue(FLASH_SEG_XT_CNT),
+                        FlashGetValue(FLASH_SEG_FORCE));
+          pCustomCode->sendReply(outstr);
+
+          FlashGetStr(outstr);
           pCustomCode->sendReply(outstr);
         }
 
-        FlashSetStrand(0); // MUST start with strand 0
+        FlashSetStrand(curstrand); // restore current strand
         break;
       }
-      #endif
-
-      #if DEV_PATTERNS
-      if (instr[1] == 'P') // about internal patterns
+      else if (instr[1] == 'P') // about internal patterns
       {
-        DBGOUT((F("Patterns:  %d"), codePatterns));
+        #if DEV_PATTERNS
 
         for (int i = 0; i < codePatterns; ++i)
         {
@@ -109,60 +110,39 @@ void ExecAppCmd(char *instr)
           pCustomCode->sendReply((char*)devPatDesc[i]);
           pCustomCode->sendReply((char*)devPatCmds[i]);
         }
+        #endif
         break;
       }
-      #endif
-
-      #if DEV_PLUGINS
-      if (instr[1] == 'G') // about internal plugins
+      else if (instr[1] == 'G') // about internal plugins
       {
+        #if DEV_PLUGINS
         // TODO: send info on each built-in plugin
+        #endif
         break;
       }
-      #endif
-
-      if (instr[1] != 0)
+      else if (instr[1] == 0) // nothing after ?
+      {
+        sprintf(outstr, "P!!\n%d %d %d %d %d %d", 
+                        STRAND_COUNT, STRLEN_PATTERNS,
+                        NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS,
+                        codePatterns, 0); // custom plugin count TODO
+        pCustomCode->sendReply(outstr);
+      }
+      else
       {
         DBGOUT((F("Unknown ? modifier: %c"), instr[1]));
         pCustomCode->sendReply((char*)"?");
         break; // don't return false for error
       }
+      break;
+    }
+    case '*': // store current pattern to flash
+    {
+      //char outstr[STRLEN_PATTERNS];
 
-      char reply[1000]; // FIXME?
-      char *rstr = reply;
-      byte pixcounts[] = PIXEL_COUNTS;
+      // TODO: generate pattern string
+      //FlashSetStr(outstr, 0); // save to flash
 
-      sprintf(rstr, "P!!\n%d %d %d %d %d %d\n", 
-                      STRAND_COUNT, STRLEN_PATTERNS, codePatterns, 0, // custom plugin count TODO
-                      NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS);
-      rstr += strlen(rstr);
-
-      int curstrand = FlashSetStrand(0);
-
-      for (int i = 0; i < STRAND_COUNT; ++i)
-      {
-        FlashSetStrand(i);
-        FlashGetStr(outstr);
-
-        uint16_t hue = FlashGetValue(FLASH_SEG_XT_HUE) + (FlashGetValue(FLASH_SEG_XT_HUE+1) << 8);
-
-        sprintf(rstr, "%d %d %d %d\n%d %d %d %d %d\n%s",
-                      pixcounts[i],
-                      FlashGetValue(FLASH_SEG_BRIGHTNESS),
-                      (int8_t)FlashGetValue(FLASH_SEG_DELAYMSECS),
-                      FlashGetValue(FLASH_SEG_FIRSTPOS),
-
-                      FlashGetValue(FLASH_SEG_XT_MODE),
-                      hue,
-                      FlashGetValue(FLASH_SEG_XT_WHT),
-                      FlashGetValue(FLASH_SEG_XT_CNT),
-                      FlashGetValue(FLASH_SEG_FORCE),
-                      outstr);
-        rstr += strlen(rstr);
-      }
-      pCustomCode->sendReply(reply);
-
-      FlashSetStrand(curstrand); // restore current strand
       break;
     }
     case '#': // client is switching physical segments
