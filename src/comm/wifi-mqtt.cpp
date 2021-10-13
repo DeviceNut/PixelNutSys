@@ -44,13 +44,15 @@ See license.txt for the terms of this license.
 
 *****************************************************************************************/
 
-#define MQTT_TOPIC_COMMAND    "PixelNut/Cmd/" // + name
 #define MQTT_TOPIC_NOTIFY     "PixelNut/Notify"
+#define MQTT_TOPIC_COMMAND    "PixelNut/Cmd/" // + name
 #define MQTT_TOPIC_REPLY      "PixelNut/Reply"
-#define MAXLEN_DEVICE_IPSTR   15 // aaa.bbb.ccc.ddd
-#define MSECS_CONNECT_PUB     2000 // msecs between connect publishes
+
 #define STR_CONNECT_SEPARATOR ","
 #define STRLEN_SEPARATOR      1
+
+#define MAXLEN_DEVICE_IPSTR   15 // aaa.bbb.ccc.ddd
+#define MSECS_CONNECT_PUB     2000 // msecs between connect publishes
 
 class WiFiMqtt : public CustomCode
 {

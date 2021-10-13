@@ -9,7 +9,6 @@
 // Only the destructor and the gettype functions must be implemented in a derived class
 // (although to do anything interesting one of other functions needs to be overriden too).
 
-                                        // these are mutually exclusive:
 #define PLUGIN_TYPE_REDRAW        0x01  // creates pixel values from settings, else
                                         // alters those effect settings before drawing
 
