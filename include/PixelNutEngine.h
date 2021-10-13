@@ -39,15 +39,14 @@ public:
   // Constructor: init location/length of the pixels to be drawn, 
   // the first pixel to start drawing and the direction of drawing,
   // and the maximum effect layers and tracks that can be supported.
-  // num_layers/tracks *must not* be greater than MAX_TRACK_LAYER.
   PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
                  uint16_t first_pixel=0, bool goupwards=true,
-                 short num_layers=4, short num_tracks=3);
+                 byte num_layers=4, byte num_tracks=3);
 
   void setMaxBrightness(byte percent) { pcentBright = percent; }
   byte getMaxBrightness() { return pcentBright; }
 
-  void setDelayOffset(byte msecs) { delayOffset = msecs; }
+  void setDelayOffset(int8_t msecs) { delayOffset = msecs; }
   int8_t getDelayOffset() { return delayOffset; }
 
   void setFirstPosition(uint16_t pixpos)
@@ -90,40 +89,66 @@ public:
   // Called by the above and DoTrigger(), CheckAutoTrigger(), allows override
   virtual void triggerLayer(byte layer, short force);
 
-  // Parses and executes a command string, returning a status code.
+  // Parses and executes a pattern command string, returning a status code.
   // An empty string (or one with only spaces), is ignored.
   virtual Status execCmdStr(char *cmdstr);
 
-  // Pops off all layers from the stack
-  virtual void clearStack(void);
+  virtual void clearStack(void); // Pops off all layers from the stack
 
   // Updates current effect: returns true if the pixels have changed and should be redisplayed.
   virtual bool updateEffects(void);
+
+  // creates command string from currently running pattern
+  bool makeCmdStr(char *cmdstr, int maxlen);
 
   // Private to the PixelNutSupport class and main application.
   byte *pDrawPixels; // current pixel buffer to draw into or display
   // Note: test this for NULL after constructor to check if successful!
 
+  // default values for propertes and control settings:
+  #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
+  #define DEF_DELAYMSECS    0
+  #define DEF_DEGREESHUE    0
+  #define DEF_PCENTWHITE    0
+  #define DEF_PCENTCOUNT    50
+  #define DEF_UPWARDS       true
+  #define DEF_PIXOWRITE     true
+  #define DEF_FORCEVAL      (MAX_FORCE_VALUE/2)
+  #define DEF_TRIG_COUNT    -1 // repeat forever
+  #define DEF_TRIG_DELAY    1  // delay 1 sec
+  #define DEF_TRIG_RANGE    0  // range from 0
+  #define DEF_TRIG_LAYER    MAX_BYTE_VALUE
+
 protected:
+
+  // saves what triggering is enabled
+  enum TrigTypeBit
+  {
+    TrigTypeBit_AtStart      = 1,   // manual trigger ("T" command)
+    TrigTypeBit_External     = 2,   // external source ("I" command)
+    TrigTypeBit_Automatic    = 4,   // auto triggering ("R" command)
+  };
 
   byte pcentBright = MAX_PERCENTAGE;            // max percent brightness to apply to each effect
   int8_t delayOffset = 0;                         // additional delay to add to each effect (msecs)
                                                 // this is kept to be +/- 'DELAY_RANGE'
 
-  typedef struct ATTR_PACKED // 22-24 bytes
+  typedef struct ATTR_PACKED // 24-26 bytes
   {
     PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
-    byte track;                                 // index into properties stack for plugin
-    bool disable;                               // true to disable this layer
+    byte iplugin;                               // plugin ID value (0 is placeholder)
+    bool redraw;                                // true if plugin is drawing else filter
+    byte track;                                 // index into tracks for plugin properties
+    bool disable;                               // true to disable this layer (mute)
 
                                                 // apply to both auto and manual triggering:
+    byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
+    bool trigActive;                            // true if layer has been triggered at least once
     short trigForce;                            // amount of force to apply (-1 for random)
-    bool trigActive;                            // true if this layer has been triggered at least once
-    bool trigExtern;                            // true if external triggering is enabled for this layer
-    byte trigSource;                            // what other layer can trigger this layer (255 for none)
+    byte trigLayer;                             // layer that can trigger this layer (255 for none)
+    byte reserved;
 
                                                 // auto triggering information:
-    bool trigAutomatic;                         // true to enable auto triggering
     int16_t trigNumber;                         // number of times to trigger (-1 to repeat forever)
     uint16_t trigCounter;                       // current trigger countdown counter
     uint16_t trigDelayMin;                      // min amount of delay before next trigger in seconds
@@ -134,15 +159,15 @@ protected:
 
   typedef struct ATTR_PACKED // 26-28 bytes
   {
+    PixelNutSupport::DrawProps draw;            // drawing properties for this track
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
-    byte *pRedrawBuff;                          // allocated buffer or NULL for postdraw effects
 
-    PixelNutSupport::DrawProps draw;            // redraw properties for this plugin
-
-    byte ctrlBits;                              // bits to control setting property values
+    byte ctrlBits;                              // controls setting properties (ExtControlBit_xx)
     byte layer;                                 // index into layer stack to redraw effect
     byte lcount;                                // number of layers in this track
-    bool disable;                               // true to disable entire track
+    byte reserved;
+
+    byte *pRedrawBuff;                          // allocated buffer
   }
   PluginTrack; // defines properties for each drawing plugin
 
@@ -159,7 +184,6 @@ protected:
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goUpwards = true;                        // true to draw from start to end, else reverse
-  short curForce = MAX_FORCE_VALUE/2;           // saves last settings to use on new patterns
   
   uint16_t numPixels;                           // total number of pixels in output display
   byte *pDisplayPixels;                         // pointer to actual output display pixels
@@ -173,7 +197,9 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
-  Status NewPluginLayer(int plugin, bool doadd);
+  Status AddPluginLayer(int plugin);
+  Status ModPluginLayer(int plugin, short layer);
+  void DelPluginLayer(short track, short layer);
 
   void CheckAutoTrigger(bool rollover);
 };

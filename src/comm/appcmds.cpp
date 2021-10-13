@@ -93,12 +93,14 @@ void ExecAppCmd(char *instr)
                         FlashGetValue(FLASH_SEG_FORCE));
           pCustomCode->sendReply(outstr);
 
-          FlashGetStr(outstr);
+          // returns empty string on error
+          if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATTERNS))
+            ErrorHandler(4, 1, false); // blink for error and continue
+
           pCustomCode->sendReply(outstr);
         }
 
         FlashSetStrand(curstrand); // restore current strand
-        break;
       }
       else if (instr[1] == 'P') // about internal patterns
       {
@@ -111,14 +113,12 @@ void ExecAppCmd(char *instr)
           pCustomCode->sendReply((char*)devPatCmds[i]);
         }
         #endif
-        break;
       }
       else if (instr[1] == 'G') // about internal plugins
       {
         #if DEV_PLUGINS
         // TODO: send info on each built-in plugin
         #endif
-        break;
       }
       else if (instr[1] == 0) // nothing after ?
       {
@@ -128,21 +128,19 @@ void ExecAppCmd(char *instr)
                         codePatterns, 0); // custom plugin count TODO
         pCustomCode->sendReply(outstr);
       }
-      else
-      {
-        DBGOUT((F("Unknown ? modifier: %c"), instr[1]));
-        pCustomCode->sendReply((char*)"?");
-        break; // don't return false for error
-      }
+      else { DBGOUT((F("Unknown ? modifier: %c"), instr[1])); }
+
       break;
     }
     case '*': // store current pattern to flash
     {
-      //char outstr[STRLEN_PATTERNS];
+      char outstr[STRLEN_PATTERNS];
 
-      // TODO: generate pattern string
-      //FlashSetStr(outstr, 0); // save to flash
+      // stores empty string on error
+      if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATTERNS))
+        ErrorHandler(4, 1, false); // blink for error and continue
 
+      FlashSetStr(outstr, 0);
       break;
     }
     case '#': // client is switching physical segments
