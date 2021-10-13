@@ -57,23 +57,23 @@ public:
       {
         if (pdraw->pixCount == 1)
         {
-          skip = 0;
-          draw = pixLength;
+          draw = 0;
+          skip = pixLength;
         }
         else if (pdraw->pixCount == pixLength)
         {
-          skip = pixLength;
-          draw = 0;
+          draw = pixLength;
+          skip = 0;
         }
         else if (pdraw->pixCount > (pixLength - pdraw->pixCount))
         {
-          skip = pdraw->pixCount / (pixLength - pdraw->pixCount);
-          draw = 1;
+          draw = pdraw->pixCount / (pixLength - pdraw->pixCount);
+          skip = 1;
         }
         else
         {
-          draw = (pixLength - pdraw->pixCount) / pdraw->pixCount;
-          skip = 1;
+          draw = 1;
+          skip = (pixLength - pdraw->pixCount) / pdraw->pixCount;
         }
 
         //pixelNutSupport.msgFormat(F("Twinkle: draw=%d skip=%d"), draw, skip);
