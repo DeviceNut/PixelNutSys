@@ -40,7 +40,7 @@ public:
   // the first pixel to start drawing and the direction of drawing,
   // and the maximum effect layers and tracks that can be supported.
   PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
-                 uint16_t first_pixel=0, bool goupwards=true,
+                 uint16_t first_pixel=0, bool backwards=false,
                  byte num_layers=4, byte num_tracks=3);
 
   void setMaxBrightness(byte percent) { pcentBright = percent; }
@@ -105,28 +105,29 @@ public:
   byte *pDrawPixels; // current pixel buffer to draw into or display
   // Note: test this for NULL after constructor to check if successful!
 
+protected:
+
   // default values for propertes and control settings:
   #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
   #define DEF_DELAYMSECS    0
   #define DEF_DEGREESHUE    0
   #define DEF_PCENTWHITE    0
   #define DEF_PCENTCOUNT    50
-  #define DEF_UPWARDS       true
-  #define DEF_PIXOWRITE     true
+  #define DEF_BACKWARDS     false
+  #define DEF_PIXORVALS     false
   #define DEF_FORCEVAL      (MAX_FORCE_VALUE/2)
-  #define DEF_TRIG_COUNT    -1 // repeat forever
-  #define DEF_TRIG_DELAY    1  // delay 1 sec
-  #define DEF_TRIG_RANGE    0  // range from 0
-  #define DEF_TRIG_LAYER    MAX_BYTE_VALUE
-
-protected:
+  #define DEF_TRIG_FOREVER  0  // repeat forever
+  #define DEF_TRIG_OFFSET   0
+  #define DEF_TRIG_RANGE    0
+  #define SETVAL_IF_NONZERO(var,val) {if (val != 0) var = val;}
 
   // saves what triggering is enabled
   enum TrigTypeBit
   {
-    TrigTypeBit_AtStart      = 1,   // manual trigger ("T" command)
-    TrigTypeBit_External     = 2,   // external source ("I" command)
-    TrigTypeBit_Automatic    = 4,   // auto triggering ("R" command)
+    TrigTypeBit_AtStart      = 1,   // starting trigger ("T" command)
+    TrigTypeBit_External     = 2,   // external source  ("I" command)
+    TrigTypeBit_Internal     = 4,   // internal source  ("A" command)
+    TrigTypeBit_Repeating    = 8,   // auto-repeating   ("R" command)
   };
 
   byte pcentBright = MAX_PERCENTAGE;            // max percent brightness to apply to each effect
@@ -141,19 +142,19 @@ protected:
     byte track;                                 // index into tracks for plugin properties
     bool disable;                               // true to disable this layer (mute)
 
-                                                // apply to both auto and manual triggering:
     byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
-    bool trigActive;                            // true if layer has been triggered at least once
+    bool trigActive;                            // true once layer has been triggered once
     short trigForce;                            // amount of force to apply (-1 for random)
-    byte trigLayer;                             // layer that can trigger this layer (255 for none)
+
+    byte trigLayer;                             // layer that can trigger this layer
     byte reserved;
 
-                                                // auto triggering information:
-    int16_t trigNumber;                         // number of times to trigger (-1 to repeat forever)
-    uint16_t trigCounter;                       // current trigger countdown counter
-    uint16_t trigDelayMin;                      // min amount of delay before next trigger in seconds
-    uint16_t trigDelayRange;                    // range of delay values possible (min...min+range)
-    uint32_t trigTimeMsecs;                     // time of next trigger in msecs, calculated from:
+                                                // repeat triggering:
+    int16_t trigRepCount;                       // number of times to trigger (0 to repeat forever)
+    uint16_t trigDnCounter;                     // current trigger countdown counter
+    uint32_t trigTimeMsecs;                     // next trigger time in msecs, calculated from:
+    uint16_t trigRepOffset;                     // min delay offset before next trigger in seconds
+    uint16_t trigRepRange;                      // range of delay values possible (min...min+range)
   }
   PluginLayer; // defines each layer of effect plugin
 
@@ -183,7 +184,7 @@ protected:
   uint32_t timePrevUpdate = 0;                  // time of previous call to update
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
-  bool goUpwards = true;                        // true to draw from start to end, else reverse
+  bool goBackwards = false;                     // false to draw from start to end, else reverse
   
   uint16_t numPixels;                           // total number of pixels in output display
   byte *pDisplayPixels;                         // pointer to actual output display pixels

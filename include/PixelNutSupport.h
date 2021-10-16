@@ -69,8 +69,8 @@ public:
 
       byte msecsDelay;            // determines msecs delay after each redraw
 
-      bool goUpwards;             // direction of drawing (pixel index)
-      bool pixOverwrite;         // whether pixels overwrites or are OR'ed
+      bool goBackwards;           // direction of drawing (true for end-to-start)
+      bool pixOrValues;           // whether pixels overwrite or are OR'ed
   }
   DrawProps; // defines properties used in drawing an effect
 

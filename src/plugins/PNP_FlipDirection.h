@@ -16,7 +16,7 @@
 //
 // Properties Affected:
 //
-//    goUpwards - current drawing direction.
+//    goBackwards - current drawing direction.
 //
 
 class PNP_FlipDirection : public PixelNutPlugin
@@ -29,6 +29,6 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    pdraw->goUpwards = !pdraw->goUpwards;
+    pdraw->goBackwards = !pdraw->goBackwards;
   }
 };

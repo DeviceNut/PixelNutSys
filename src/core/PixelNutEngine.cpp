@@ -18,7 +18,7 @@ extern PluginFactory *pPluginFactory; // use externally declared pointer to inst
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PixelNutEngine::PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
-                               uint16_t first_pixel, bool goupwards,
+                               uint16_t first_pixel, bool backwards,
                                byte num_layers, byte num_tracks)
 {
   // NOTE: cannot call DBGOUT here if statically constructed
@@ -26,7 +26,7 @@ PixelNutEngine::PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
   pDisplayPixels  = ptr_pixels;
   numPixels       = num_pixels;
   firstPixel      = first_pixel;
-  goUpwards       = goupwards;
+  goBackwards     = backwards;
 
   maxPluginLayers = (short)num_layers;
   maxPluginTracks = (short)num_tracks;
@@ -157,34 +157,36 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   {
     ++indexTrackStack; // create another effect track
     PluginTrack *pTrack = &pluginTracks[indexTrackStack];
-    memset(pTrack, 0, sizeof(PluginTrack));
+    memset(pTrack, 0, sizeof(PluginTrack)); // set all to 0
 
     pTrack->layer = indexLayerStack;
-    // Note: all other trigger parameters are initialized to 0
 
     // initialize track drawing properties to default values
-    pTrack->draw.pixLen        = numPixels;       // set initial window (start was memset)
-    pTrack->draw.pcentBright   = DEF_PCENTBRIGHT;
-    pTrack->draw.msecsDelay    = DEF_DELAYMSECS;
-    pTrack->draw.degreeHue     = DEF_DEGREESHUE;
-    pTrack->draw.pcentWhite    = DEF_PCENTWHITE;
-    pTrack->draw.pixCount      = pixelNutSupport.mapValue(DEF_PCENTCOUNT, 0, MAX_PERCENTAGE, 1, numPixels);
-    pTrack->draw.goUpwards     = DEF_UPWARDS;
-    pTrack->draw.pixOverwrite  = DEF_PIXOWRITE;
-    pixelNutSupport.makeColorVals(&pTrack->draw); // create RGB values
+    PixelNutSupport::DrawProps *pProps = &pTrack->draw;
+    pTrack->draw.pixLen = numPixels; // set initial window
+    pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT, 0, MAX_PERCENTAGE, 1, numPixels);
+
+    SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
+    SETVAL_IF_NONZERO(pProps->msecsDelay,  DEF_DELAYMSECS);
+    SETVAL_IF_NONZERO(pProps->degreeHue,   DEF_DEGREESHUE);
+    SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
+    SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
+    SETVAL_IF_NONZERO(pProps->pixOrValues, DEF_PIXORVALS);
+
+    pixelNutSupport.makeColorVals(pProps); // create RGB values
   }
 
   PluginLayer *pLayer = &pluginLayers[indexLayerStack];
-  pLayer->pPlugin         = pPlugin;
-  pLayer->iplugin         = iplugin;
-  pLayer->redraw          = dodraw;
-  pLayer->track           = indexTrackStack;
-  pLayer->trigLayer       = MAX_BYTE_VALUE; // disabled
-  pLayer->trigForce       = DEF_FORCEVAL;
-  pLayer->trigNumber      = DEF_TRIG_COUNT;
-  pLayer->trigDelayMin    = DEF_TRIG_DELAY;
-  pLayer->trigDelayRange  = DEF_TRIG_RANGE;
-  // Note: all other trigger parameters are initialized to 0
+  pLayer->pPlugin = pPlugin;
+  pLayer->iplugin = iplugin;
+  pLayer->redraw  = dodraw;
+  pLayer->track   = indexTrackStack;
+
+  SETVAL_IF_NONZERO(pLayer->trigForce,     DEF_FORCEVAL);
+  SETVAL_IF_NONZERO(pLayer->trigRepCount,  DEF_TRIG_FOREVER);
+  SETVAL_IF_NONZERO(pLayer->trigRepOffset, DEF_TRIG_OFFSET);
+  SETVAL_IF_NONZERO(pLayer->trigRepRange,  DEF_TRIG_RANGE);
+  // all other parameters have been initialized to 0 with memset
 
   DBGOUT((F("Append plugin: #%d type=0x%02X redraw=%d track=%d layer=%d"),
           iplugin, ptype, dodraw, indexTrackStack, indexLayerStack));
@@ -310,17 +312,17 @@ void PixelNutEngine::CheckAutoTrigger(bool rollover)
     if (pluginLayers[i].track > indexTrackEnable) break; // not enabled yet
 
     // just always reset trigger time after rollover event
-    if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Automatic))
+    if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
       pluginLayers[i].trigTimeMsecs = timePrevUpdate;
 
-    if ((pluginLayers[i].trigType & TrigTypeBit_Automatic)               && // auto-triggering set
-       (pluginLayers[i].trigCounter || (pluginLayers[i].trigNumber < 0)) && // have count (or infinite)
+    if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               && // auto-triggering set
+       (pluginLayers[i].trigDnCounter || (pluginLayers[i].trigRepCount < 0)) && // have count (or infinite)
        (pluginLayers[i].trigTimeMsecs <= timePrevUpdate))                   // and time has expired
     {
       DBGOUT((F("AutoTrigger: prevtime=%lu msecs=%lu delay=%u+%u number=%d counter=%d"),
                 timePrevUpdate, pluginLayers[i].trigTimeMsecs,
-                pluginLayers[i].trigDelayMin, pluginLayers[i].trigDelayRange,
-                pluginLayers[i].trigNumber, pluginLayers[i].trigCounter));
+                pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
+                pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
 
       short force = ((pluginLayers[i].trigForce >= 0) ? 
                       pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
@@ -328,11 +330,11 @@ void PixelNutEngine::CheckAutoTrigger(bool rollover)
       triggerLayer(i, force);
 
       pluginLayers[i].trigTimeMsecs = timePrevUpdate +
-          (1000 * random(pluginLayers[i].trigDelayMin,
-                        (pluginLayers[i].trigDelayMin +
-                        pluginLayers[i].trigDelayRange+1)));
+          (1000 * random(pluginLayers[i].trigRepOffset,
+                        (pluginLayers[i].trigRepOffset +
+                        pluginLayers[i].trigRepRange+1)));
 
-      if (pluginLayers[i].trigCounter > 0) --pluginLayers[i].trigCounter;
+      if (pluginLayers[i].trigDnCounter > 0) --pluginLayers[i].trigDnCounter;
     }
   }
 }
@@ -345,8 +347,8 @@ void PixelNutEngine::triggerForce(short force)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
     {
-      if (pluginLayers[i].trigNumber > 0)
-          pluginLayers[i].trigCounter = pluginLayers[i].trigNumber;
+      if (pluginLayers[i].trigRepCount > 0)
+          pluginLayers[i].trigDnCounter = pluginLayers[i].trigRepCount;
 
       triggerLayer(i, force);
     }
@@ -362,8 +364,8 @@ void PixelNutEngine::triggerForce(byte layer, short force, PixelNutSupport::Draw
         (pluginLayers[i].trigType & TrigTypeBit_External) &&
         (pluginLayers[i].trigLayer == layer)) // assume MAX_BYTE_VALUE never valid
     {
-      if (pluginLayers[i].trigNumber > 0)
-          pluginLayers[i].trigCounter = pluginLayers[i].trigNumber;
+      if (pluginLayers[i].trigRepCount > 0)
+          pluginLayers[i].trigDnCounter = pluginLayers[i].trigRepCount;
 
       triggerLayer(i, force);
     }
@@ -564,48 +566,46 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'J': // offset into output display of the track by percent
         {
-          pdraw->pixStart = (GetNumValue(cmd+1, 0, MAX_PERCENTAGE) * (numPixels-1)) / MAX_PERCENTAGE;
+          int pcent = GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          pdraw->pixStart = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 0, numPixels-1);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'K': // number of pixels in the track by percent
         {
-          pdraw->pixLen = ((GetNumValue(cmd+1, 0, MAX_PERCENTAGE) * (numPixels-1)) / MAX_PERCENTAGE) + 1;
+          int pcent = GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
-        case 'H': // color Hue degrees property ("H" has no effect)
+        case 'B': // percent brightness property ("B" sets default value)
         {
-          pdraw->degreeHue = GetNumValue(cmd+1, pdraw->degreeHue, MAX_DEGREES_HUE);
+          pdraw->pcentBright = GetNumValue(cmd+1, DEF_PCENTBRIGHT, MAX_PERCENTAGE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'W': // percent Whiteness property ("W" has no effect)
+        case 'D': // drawing delay ("D" sets default value)
         {
-          pdraw->pcentWhite = GetNumValue(cmd+1, pdraw->pcentWhite, MAX_PERCENTAGE);
+          pdraw->msecsDelay = GetNumValue(cmd+1, DEF_DELAYMSECS, MAX_DELAY_VALUE);
+          break;
+        }
+        case 'H': // color Hue degrees property ("H" sets default value)
+        {
+          pdraw->degreeHue = GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'B': // percent brightness property ("B" has no effect)
+        case 'W': // percent Whiteness property ("W" sets default value)
         {
-          pdraw->pcentBright = GetNumValue(cmd+1, pdraw->pcentBright, MAX_PERCENTAGE);
+          pdraw->pcentWhite = GetNumValue(cmd+1, DEF_PCENTWHITE, MAX_PERCENTAGE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'C': // pixel count property ("C" has no effect)
+        case 'C': // pixel count property ("C" sets default value)
         {
-          short curvalue = ((pdraw->pixCount * MAX_PERCENTAGE) / numPixels);
-          short percent = GetNumValue(cmd+1, curvalue, MAX_PERCENTAGE);
-          //DBGOUT((F("CurCount: %d==%d%% numPixels=%d"), pdraw->pixCount, curvalue, numPixels));
-
-          // map value into a pixel count, dependent on the actual number of pixels
+          short percent = GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
           pdraw->pixCount = pixelNutSupport.mapValue(percent, 0, MAX_PERCENTAGE, 1, numPixels);
-          DBGOUT((F("PixCount: %d==%d%%"), pdraw->pixCount, percent));
-          break;
-        }
-        case 'D': // drawing delay ("D" has no effect)
-        {
-          pdraw->msecsDelay = GetNumValue(cmd+1, pdraw->msecsDelay, MAX_DELAY_VALUE);
+          DBGOUT((F("PixCount: %d%% => %d"), percent, pdraw->pixCount));
           break;
         }
         case 'Q': // extern control bits ("Q" has no effect)
@@ -639,14 +639,14 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           }
           break;
         }
-        case 'U': // drawing direction ("U" to reverse, "U1" for default: go up)
+        case 'U': // go backwards ("U" for true, else sets value)
         {
-          pdraw->goUpwards = GetBoolValue(cmd+1, false);
+          pdraw->goBackwards = !GetBoolValue(cmd+1, !DEF_BACKWARDS);
           break;
         }
-        case 'V': // oVerwrite pixels ("V" to merge, "V1" for default: overwrite)
+        case 'V': // OR's pixels Values ("V" for true, else sets value)
         {
-          pdraw->pixOverwrite = GetBoolValue(cmd+1, false);
+          pdraw->pixOrValues = !GetBoolValue(cmd+1, !DEF_PIXORVALS);
           break;
         }
         case 'F': // force value to be used by trigger ("F" means random force)
@@ -654,56 +654,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "F" (clip to 0-MAX_FORCE_VALUE)
                pluginLayers[curlayer].trigForce = GetNumValue(cmd+1, 0, MAX_FORCE_VALUE);
           else pluginLayers[curlayer].trigForce = -1; // get random value each time
-          break;
-        }
-        case 'N': // auto trigger counter ("N" or "N0" means forever, same as not specifying at all)
-                  // (this count does NOT include the initial trigger from the "T" command)
-                  // note that this count gets reset upon each trigger (if not -1)
-                  // (clip to 0-MAX_WORD_VALUE)
-        {
-          pluginLayers[curlayer].trigNumber = GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
-          if (!pluginLayers[curlayer].trigNumber) pluginLayers[curlayer].trigNumber = -1;
-          else pluginLayers[curlayer].trigCounter = pluginLayers[curlayer].trigNumber;
-          break;
-        }
-        case 'O': // minimum auto-triggering time ("O", "O0", "O1" all get set to default(1sec))
-        {
-          uint16_t min = GetNumValue(cmd+1, 1, MAX_WORD_VALUE); // clip to 0-MAX_WORD_VALUE, default is 1
-          pluginLayers[curlayer].trigDelayMin = min ? min : 1;
-          break;
-        }
-        case 'R': // range of trigger time ("R" means "R0" - default)
-        {
-          pluginLayers[curlayer].trigDelayRange = GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
-          break;
-        }
-        case 'M': // sets automatic trigger ("M0" to disable)
-        {
-          if (GetBoolValue(cmd+1, true))
-          {
-            pluginLayers[curlayer].trigType |= TrigTypeBit_Automatic;
-            pluginLayers[curlayer].trigTimeMsecs = pixelNutSupport.getMsecs() +
-                (1000 * random(pluginLayers[curlayer].trigDelayMin,
-                              (pluginLayers[curlayer].trigDelayMin + pluginLayers[curlayer].trigDelayRange+1)));
-
-            DBGOUT((F("AutoTrigger: layer=%d delay=%u+%u number=%d counter=%d force=%d"), curlayer,
-                      pluginLayers[curlayer].trigDelayMin, pluginLayers[curlayer].trigDelayRange,
-                      pluginLayers[curlayer].trigNumber, pluginLayers[curlayer].trigCounter,
-                      pluginLayers[curlayer].trigForce));
-          }
-          else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Automatic;
-        }
-        case 'A': // assign effect layer as trigger source ("A" to disable)
-        {
-          pluginLayers[curlayer].trigLayer = GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
-          DBGOUT((F("Triggering assigned to layer %d"), pluginLayers[curlayer].trigLayer));
-          break;
-        }
-        case 'I': // external triggering enable ('I0' to disable)
-        {
-          if (GetBoolValue(cmd+1, true))
-               pluginLayers[curlayer].trigType |=  TrigTypeBit_External;
-          else pluginLayers[curlayer].trigType &= ~TrigTypeBit_External;
           break;
         }
         case 'T': // trigger plugin layer ('T0' to disable)
@@ -716,6 +666,53 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             triggerLayer(curlayer, force); // trigger immediately
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_AtStart;
+          break;
+        }
+        case 'I': // external triggering enable ('I0' to disable)
+        {
+          if (GetBoolValue(cmd+1, true))
+               pluginLayers[curlayer].trigType |=  TrigTypeBit_External;
+          else pluginLayers[curlayer].trigType &= ~TrigTypeBit_External;
+          break;
+        }
+        case 'A': // assign effect layer as trigger source ("A" to disable)
+        {
+          if (isdigit(*(cmd+1))) // there is a value after "A"
+          {
+            pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
+            pluginLayers[curlayer].trigLayer = GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
+            DBGOUT((F("Triggering assigned to layer %d"), pluginLayers[curlayer].trigLayer));
+          }
+          else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Internal;
+          break;
+        }
+        case 'R': // sets repeat trigger ("R" to disable, "R0" for forever count, else "R<count>")
+        {
+          if (isdigit(*(cmd+1))) // there is a value after "A"
+          {
+            pluginLayers[curlayer].trigType |= TrigTypeBit_Repeating;
+            pluginLayers[curlayer].trigRepCount = GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
+            pluginLayers[curlayer].trigDnCounter = pluginLayers[curlayer].trigRepCount;
+
+            pluginLayers[curlayer].trigTimeMsecs = pixelNutSupport.getMsecs() +
+                (1000 * random(pluginLayers[curlayer].trigRepOffset,
+                              (pluginLayers[curlayer].trigRepOffset + pluginLayers[curlayer].trigRepRange+1)));
+
+            DBGOUT((F("RepeatTrig: layer=%d offset=%u+%u range=%d count=%d force=%d"), curlayer,
+                      pluginLayers[curlayer].trigRepOffset, pluginLayers[curlayer].trigRepRange,
+                      pluginLayers[curlayer].trigRepCount, pluginLayers[curlayer].trigForce));
+          }
+          else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Repeating;
+          break;
+        }
+        case 'O': // repeat trigger offset time ("O" sets default value)
+        {
+          pluginLayers[curlayer].trigRepOffset = GetNumValue(cmd+1, DEF_TRIG_OFFSET, MAX_WORD_VALUE);
+          break;
+        }
+        case 'N': // range of trigger time ("N" sets default value)
+        {
+          pluginLayers[curlayer].trigRepRange = GetNumValue(cmd+1, DEF_TRIG_RANGE, MAX_WORD_VALUE);
           break;
         }
         case 'G': // Go: activate newly added effect tracks
@@ -783,13 +780,15 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
     {
       if (pdraw->pixStart != 0)
       {
-        sprintf(str, "J%d ", pdraw->pixStart);
+        int pcent = pixelNutSupport.mapValue(pdraw->pixStart, 0, numPixels-1, 0, MAX_PERCENTAGE);
+        sprintf(str, "J%d ", pcent);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
       if (pdraw->pixLen != numPixels)
       {
-        sprintf(str, "K%d ", pdraw->pixLen);
+        int pcent = pixelNutSupport.mapValue(pdraw->pixLen, 1, numPixels, 0, MAX_PERCENTAGE);
+        sprintf(str, "K%d ", pcent);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
@@ -818,8 +817,7 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
       }
 
       int pcent = ((pdraw->pixCount * MAX_PERCENTAGE) / numPixels);
-      int count = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
-      if (pdraw->pixCount != count)
+      if (pcent != DEF_PCENTCOUNT)
       {
         sprintf(str, "C%d ", pcent);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
@@ -831,13 +829,13 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      if (pdraw->goUpwards != DEF_UPWARDS)
+      if (pdraw->goBackwards != DEF_BACKWARDS)
       {
         sprintf(str, "U ");
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      if (pdraw->pixOverwrite != DEF_PIXOWRITE)
+      if (pdraw->pixOrValues != DEF_PIXORVALS)
       {
         sprintf(str, "V ");
         if (!addstr(&cmdstr, str, &addlen)) goto error;
@@ -851,34 +849,9 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
 
-    if (pLayer->trigNumber != DEF_TRIG_COUNT)
+    if (pLayer->trigType & TrigTypeBit_AtStart)
     {
-      if (pLayer->trigNumber < 0) sprintf(str, "N ");
-      else sprintf(str, "N%d ", pLayer->trigNumber);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigDelayMin != DEF_TRIG_DELAY)
-    {
-      sprintf(str, "O%d ", pLayer->trigDelayMin);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigDelayRange != DEF_TRIG_RANGE)
-    {
-      sprintf(str, "R%d ", pLayer->trigDelayRange);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigType & TrigTypeBit_Automatic)
-    {
-      sprintf(str, "M ");
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigLayer != DEF_TRIG_LAYER)
-    {
-      sprintf(str, "A%d ", pLayer->trigLayer);
+      sprintf(str, "T ");
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
 
@@ -888,12 +861,32 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
 
-    if (pLayer->trigType & TrigTypeBit_AtStart)
+    if (pLayer->trigType & TrigTypeBit_Internal)
     {
-      sprintf(str, "T ");
+      sprintf(str, "A%d ", pLayer->trigLayer);
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
-    
+
+    if (pLayer->trigType & TrigTypeBit_Repeating)
+    {
+      if (pLayer->trigRepCount != DEF_TRIG_FOREVER)
+           sprintf(str, "R ");
+      else sprintf(str, "R%d ", pLayer->trigRepCount);
+      if (!addstr(&cmdstr, str, &addlen)) goto error;
+
+      if (pLayer->trigRepOffset != DEF_TRIG_OFFSET)
+      {
+        sprintf(str, "O%d ", pLayer->trigRepOffset);
+        if (!addstr(&cmdstr, str, &addlen)) goto error;
+      }
+
+      if (pLayer->trigRepRange != DEF_TRIG_RANGE)
+      {
+        sprintf(str, "N%d ", pLayer->trigRepRange);
+        if (!addstr(&cmdstr, str, &addlen)) goto error;
+      }
+    }
+
     DBGOUT((F("Make: track=%d layer=%d plugin=%d str=\"%s\""), pLayer->track, i, pLayer->iplugin, basestr));
   }
 
@@ -991,14 +984,14 @@ bool PixelNutEngine::updateEffects(void)
 
       short pixlast = numPixels-1;
       short pixstart = firstPixel + pTrack->draw.pixStart;
-      //DBGOUT((F("%d PixStart: %d == %d+%d"), pTrack->draw.goUpwards, pixstart, firstPixel, pTrack->draw.pixStart));
+      //DBGOUT((F("%d PixStart: %d == %d+%d"), pTrack->draw.goBackwards, pixstart, firstPixel, pTrack->draw.pixStart));
       if (pixstart > pixlast) pixstart -= (pixlast+1);
 
       short pixend = pixstart + pTrack->draw.pixLen - 1;
-      //DBGOUT((F("%d PixEnd:  %d == %d+%d-1"), pTrack->draw.goUpwards, pixend, pixstart, pTrack->draw.pixLen));
+      //DBGOUT((F("%d PixEnd:  %d == %d+%d-1"), pTrack->draw.goBackwards, pixend, pixstart, pTrack->draw.pixLen));
       if (pixend > pixlast) pixend -= (pixlast+1);
 
-      short pix = (pTrack->draw.goUpwards ? pixstart : pixend);
+      short pix = (pTrack->draw.goBackwards ? pixend : pixstart);
       short x = pix * 3;
       short y = pTrack->draw.pixStart * 3;
 
@@ -1012,7 +1005,7 @@ bool PixelNutEngine::updateEffects(void)
       {
         //DBGOUT((F(">> start.end=%d.%d pix=%d x=%d y=%d"), pixstart, pixend, pix, x, y));
 
-        if (!pTrack->draw.pixOverwrite)
+        if (pTrack->draw.pixOrValues)
         {
           // combine contents of buffer window with actual pixel array
           pDisplayPixels[x+0] |= pTrack->pRedrawBuff[y+0];
@@ -1028,7 +1021,7 @@ bool PixelNutEngine::updateEffects(void)
           pDisplayPixels[x+2] = pTrack->pRedrawBuff[y+2];
         }
 
-        if (pTrack->draw.goUpwards)
+        if (!pTrack->draw.goBackwards)
         {
           if (pix == pixend) break;
 
