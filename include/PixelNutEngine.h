@@ -86,7 +86,7 @@ public:
   // Used by plugins to trigger based on the effect layer, enabled by the "A" command.
   void triggerForce(byte layer, short force, PixelNutSupport::DrawProps *pdraw);
 
-  // Called by the above and DoTrigger(), CheckAutoTrigger(), allows override
+  // Called by the above and DoTrigger(), RepeatTriger(), allows override
   virtual void triggerLayer(byte layer, short force);
 
   // Parses and executes a pattern command string, returning a status code.
@@ -202,7 +202,7 @@ protected:
   Status ModPluginLayer(int plugin, short layer);
   void DelPluginLayer(short track, short layer);
 
-  void CheckAutoTrigger(bool rollover);
+  void RepeatTriger(bool rollover);
 };
 
 class PluginFactory

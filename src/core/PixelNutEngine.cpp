@@ -128,7 +128,6 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   // determine if must allocate buffer for track, or is a filter plugin
   int ptype = pPlugin->gettype();
   bool dodraw = (ptype & PLUGIN_TYPE_REDRAW);
-  DBGOUT((F("plugin=%d pytpe=%d"), iplugin, ptype));
 
   // check if:
   // a filter plugin and there is at least one redraw plugin, or
@@ -305,7 +304,7 @@ void PixelNutEngine::triggerLayer(byte layer, short force)
 }
 
 // internal: check for any automatic triggering
-void PixelNutEngine::CheckAutoTrigger(bool rollover)
+void PixelNutEngine::RepeatTriger(bool rollover)
 {
   for (int i = 0; i <= indexLayerStack; ++i) // for each plugin layer
   {
@@ -316,10 +315,10 @@ void PixelNutEngine::CheckAutoTrigger(bool rollover)
       pluginLayers[i].trigTimeMsecs = timePrevUpdate;
 
     if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               && // auto-triggering set
-       (pluginLayers[i].trigDnCounter || (pluginLayers[i].trigRepCount < 0)) && // have count (or infinite)
-       (pluginLayers[i].trigTimeMsecs <= timePrevUpdate))                   // and time has expired
+        (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) && // have count (or infinite)
+        (pluginLayers[i].trigTimeMsecs <= timePrevUpdate))                  // and time has expired
     {
-      DBGOUT((F("AutoTrigger: prevtime=%lu msecs=%lu delay=%u+%u number=%d counter=%d"),
+      DBGOUT((F("RepeatTrigger: prevtime=%lu msecs=%lu offset=%u range=%d counts=%d:%d"),
                 timePrevUpdate, pluginLayers[i].trigTimeMsecs,
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
                 pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
@@ -361,8 +360,8 @@ void PixelNutEngine::triggerForce(byte layer, short force, PixelNutSupport::Draw
   for (int i = 0; i <= indexLayerStack; ++i)
   {
     if (!pluginLayers[i].disable &&
-        (pluginLayers[i].trigType & TrigTypeBit_External) &&
-        (pluginLayers[i].trigLayer == layer)) // assume MAX_BYTE_VALUE never valid
+        (pluginLayers[i].trigType & TrigTypeBit_Internal) &&
+        (pluginLayers[i].trigLayer == layer))
     {
       if (pluginLayers[i].trigRepCount > 0)
           pluginLayers[i].trigDnCounter = pluginLayers[i].trigRepCount;
@@ -698,7 +697,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
                 (1000 * random(pluginLayers[curlayer].trigRepOffset,
                               (pluginLayers[curlayer].trigRepOffset + pluginLayers[curlayer].trigRepRange+1)));
 
-            DBGOUT((F("RepeatTrig: layer=%d offset=%u+%u range=%d count=%d force=%d"), curlayer,
+            DBGOUT((F("RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
                       pluginLayers[curlayer].trigRepOffset, pluginLayers[curlayer].trigRepRange,
                       pluginLayers[curlayer].trigRepCount, pluginLayers[curlayer].trigForce));
           }
@@ -910,7 +909,7 @@ bool PixelNutEngine::updateEffects(void)
   bool rollover = (timePrevUpdate > time);
   timePrevUpdate = time;
 
-  CheckAutoTrigger(rollover);
+  RepeatTriger(rollover);
 
   // first have any redraw effects that are ready draw into its own buffers...
 
