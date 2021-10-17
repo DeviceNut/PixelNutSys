@@ -36,11 +36,8 @@ NeoPixelShow *neoPixels[STRAND_COUNT];
 #endif
 PixelNutSupport pixelNutSupport = PixelNutSupport((GetMsecsTime)millis, &pixorder);
 
-PixelNutEngine *pixelNutEngines[STRAND_COUNT];
+PixelNutEngine pixelNutEngines[STRAND_COUNT];
 PixelNutEngine *pPixelNutEngine; // pointer to current engine
-
-static uint16_t pixelBytes[STRAND_COUNT];
-static byte *pixelArrays[STRAND_COUNT];
 
 #if DEBUG_OUTPUT
 #warning("Debug mode is enabled")
@@ -89,13 +86,17 @@ void DisplayConfiguration(void)
   #endif
 }
 
+static byte pinnums[] = PIXEL_PINS;
+static byte pixcounts[] = PIXEL_COUNTS;
+
 void ShowPixels(int index)
 {
-  #if PIXELS_APA
-  byte *ptr = pixelArrays[index];
-  int count = pixelCounts[index];
+  byte *ppix = pixelNutEngines[index].pDrawPixels;
 
-  digitalWrite(PIXEL_PINS[index], LOW); // enable this strand
+  #if PIXELS_APA
+  int count = pixelNutEngines[index].numPixels;
+
+  digitalWrite(pinnums[index], LOW); // enable this strand
   SPI.beginTransaction(spiSettings);
 
   // 4 byte start-frame marker
@@ -104,14 +105,14 @@ void ShowPixels(int index)
   for (int i = 0; i < count; ++i)
   {
     SPI.transfer(0xFF);
-    for (int j = 0; j < 3; j++) SPI.transfer(*ptr++);
+    for (int j = 0; j < PIXEL_BYTES; j++) SPI.transfer(*ppix++);
   }
 
   SPI.endTransaction();
-  digitalWrite(PIXEL_PINS[index], HIGH); // disable this strand
+  digitalWrite(pinnums[index], HIGH); // disable this strand
 
   #else
-  neoPixels[index]->show(pixelArrays[index], pixelBytes[index]);
+  neoPixels[index]->show(ppix, pixcounts[index]*PIXEL_BYTES);
   #endif
 }
 
@@ -131,8 +132,8 @@ void setup()
   #if PIXELS_APA
   for (int i = 0; i < STRAND_COUNT; ++i) // config chip select pins
   {
-    pinMode(PIXEL_PINS[i], OUTPUT);
-    digitalWrite(PIXEL_PINS[i], HIGH);
+    pinMode(pinnums[i], OUTPUT);
+    digitalWrite(pinnums[i], HIGH);
   }
   SPI.begin(); // initialize SPI library
   #endif
@@ -151,20 +152,13 @@ void setup()
   CountPatterns(); // have internal stored patterns
   #endif
 
-  byte pixcounts[] = PIXEL_COUNTS;
-  byte pinnums[] = PIXEL_PINS;
-
   // alloc arrays, turn off pixels, init patterns
   for (int i = 0; i < STRAND_COUNT; ++i)
   {
-    pixelBytes[i] = pixcounts[i]*3;
-    DBGOUT((F("Allocating %d bytes for pixel array, strand=%d"), pixelBytes[i], i));
-
-    pixelArrays[i] = (byte*)calloc(pixelBytes[i], sizeof(byte));
-    if (pixelArrays[i] == NULL)
+    if (!pixelNutEngines[i].init(pixcounts[i], PIXEL_BYTES, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS, PIXEL_OFFSET))
     {
-      DBGOUT((F("Alloc failed for pixel array, strand=%d"), i));
-      ErrorHandler(1, 0, true);
+      DBGOUT((F("Failed to initialize pixel engine, strand=%d"), i));
+      ErrorHandler(2, PixelNutEngine::Status_Error_Memory, true);
     }
 
     #if !PIXELS_APA
@@ -175,7 +169,8 @@ void setup()
       ErrorHandler(1, 0, true);
     }
     #if defined(ESP32)
-    if (!neoPixels[i]->rmtInit(i, pixelBytes[i])) // this crashes if pin isn't set correctly
+    // crashes if pin isn't set correctly
+    if (!neoPixels[i]->rmtInit(i, pixelNutEngines[i].pixelBytes))
     {
       DBGOUT((F("Alloc failed for RMT data, strand=%d"), i));
       ErrorHandler(1, 0, true);
@@ -183,20 +178,11 @@ void setup()
     #endif
     #endif // PIXELS_APA
 
+    pPixelNutEngine = &pixelNutEngines[i];
     ShowPixels(i); // turn off pixels
 
-    pixelNutEngines[i] = new PixelNutEngine(pixelArrays[i], pixcounts[i],
-                                PIXEL_OFFSET, false, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS);
-
-    if ((pixelNutEngines[i] == NULL) || (pixelNutEngines[i]->pDrawPixels == NULL))
-    {
-      DBGOUT((F("Failed to alloc pixel engine buffers, strand=%d"), i));
-      ErrorHandler(2, PixelNutEngine::Status_Error_Memory, true);
-    }
-    pPixelNutEngine = pixelNutEngines[i];
-
     FlashSetStrand(i);
-    FlashStartup();  // get curPattern and settings from flash, set engine properties
+    FlashStartup();   // get curPattern and settings from flash, set engine properties
 
     #if CLIENT_APP
     char cmdstr[STRLEN_PATTERNS];
@@ -208,7 +194,7 @@ void setup()
   }
 
   FlashSetStrand(0); // always start on first strand
-  pPixelNutEngine = pixelNutEngines[0];
+  pPixelNutEngine = &pixelNutEngines[0];
 
   pCustomCode->setup();   // custom initialization here
   //pCustomCode->sendReply((char*)"<Reboot>");
@@ -241,7 +227,7 @@ void loop()
   if (doUpdate)
   {
     for (int i = 0; i < STRAND_COUNT; ++i)
-      if (pixelNutEngines[i]->updateEffects())
+      if (pixelNutEngines[i].updateEffects())
         ShowPixels(i);
   }
 }

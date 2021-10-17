@@ -25,7 +25,7 @@ extern char curPatStr[];
 #endif
 
 extern CustomCode *pCustomCode;
-extern PixelNutEngine *pixelNutEngines[STRAND_COUNT];
+extern PixelNutEngine pixelNutEngines[STRAND_COUNT];
 extern PixelNutEngine *pPixelNutEngine;
 
 extern void BlinkStatusLED(uint16_t slow, uint16_t fast);

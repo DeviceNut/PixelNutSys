@@ -36,12 +36,13 @@ public:
     ExtControlBit_All        = 7    // all bits ORed together
   };
 
-  // Constructor: init location/length of the pixels to be drawn, 
+  // initializer: set number and length of the pixels to be drawn, 
   // the first pixel to start drawing and the direction of drawing,
   // and the maximum effect layers and tracks that can be supported.
-  PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
-                 uint16_t first_pixel=0, bool backwards=false,
-                 byte num_layers=4, byte num_tracks=3);
+  // returns false if failed (not enough memory)
+  bool init(uint16_t num_pixels, byte pixel_bytes,
+            byte num_layers, byte num_tracks,
+            uint16_t first_pixel=0, bool backwards=false);
 
   void setMaxBrightness(byte percent) { pcentBright = percent; }
   byte getMaxBrightness() { return pcentBright; }
@@ -102,8 +103,9 @@ public:
   bool makeCmdStr(char *cmdstr, int maxlen);
 
   // Private to the PixelNutSupport class and main application.
-  byte *pDrawPixels; // current pixel buffer to draw into or display
-  // Note: test this for NULL after constructor if unsuccessful!
+  byte *pDrawPixels;    // current pixel buffer to draw into or display
+  uint16_t numPixels;   // number of pixels in output buffer
+  uint16_t pixelBytes;  // total bytes in for all pixels
 
 protected:
 
@@ -186,7 +188,7 @@ protected:
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goBackwards = false;                     // false to draw from start to end, else reverse
   
-  uint16_t numPixels;                           // total number of pixels in output display
+  byte numBytesPerPixel;                        // number of bytes needed for each pixel
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 
   bool externPropMode = false;                  // true to allow external control of properties

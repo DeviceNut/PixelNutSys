@@ -49,6 +49,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 // these depend on what hardware is used and how it is wired:
 #define STRAND_COUNT            1           // physically separate strands
+#define PIXEL_BYTES             3           // number of bytes per pixel
 #define PIXEL_COUNTS            { 16 }      // pixel counts for each strand
 #define PIXEL_PINS              { 21 }      // pin selects for each strand
 #define DPIN_LED                13          // on-board R-LED for error status (Adafruit Feather)

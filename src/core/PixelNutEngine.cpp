@@ -14,30 +14,31 @@
 extern PluginFactory *pPluginFactory; // use externally declared pointer to instance
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Constructor: initialize class variables, allocate memory for layer/track stacks
+// initialize class variables, allocate memory for layer/track stacks and pixel buffer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PixelNutEngine::PixelNutEngine(byte *ptr_pixels, uint16_t num_pixels,
-                               uint16_t first_pixel, bool backwards,
-                               byte num_layers, byte num_tracks)
+bool PixelNutEngine::init(uint16_t num_pixels, byte pixel_bytes,
+                          byte num_layers, byte num_tracks,
+                          uint16_t first_pixel, bool backwards)
 {
-  // NOTE: cannot call DBGOUT here if statically constructed
+  pluginLayers   = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
+  pluginTracks   = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
+  pDisplayPixels = (byte*)calloc(num_pixels, pixel_bytes);
 
-  pDisplayPixels  = ptr_pixels;
-  numPixels       = num_pixels;
-  firstPixel      = first_pixel;
-  goBackwards     = backwards;
+  if ((pluginLayers == NULL) || (pluginTracks == NULL) || (pDisplayPixels == NULL))
+    return false;
+
+  numPixels         = num_pixels;
+  numBytesPerPixel  = pixel_bytes;
+  pixelBytes        = num_pixels * pixel_bytes;
+  firstPixel        = first_pixel;
+  goBackwards       = backwards;
 
   maxPluginLayers = (short)num_layers;
   maxPluginTracks = (short)num_tracks;
 
-  pluginLayers = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
-  pluginTracks = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
-
-  if ((ptr_pixels == NULL) || (num_pixels == 0) ||
-    (pluginLayers == NULL) || (pluginTracks == NULL))
-       pDrawPixels = NULL; // caller must test for this
-  else pDrawPixels = pDisplayPixels;
+  pDrawPixels = pDisplayPixels;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +110,7 @@ void PixelNutEngine::clearStack(void)
   indexTrackStack  = -1;
 
   // clear all pixels too
-  memset(pDisplayPixels, 0, (numPixels*3));
+  memset(pDisplayPixels, 0, pixelBytes);
 }
 
 // return false if unsuccessful for any reason
@@ -195,7 +196,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
 
   if (dodraw) // wait to do this until after any memory allocation in plugin
   {
-    int numbytes = numPixels*3;
+    int numbytes = pixelBytes;
     byte *p = (byte*)malloc(numbytes);
 
     if (p == NULL)
@@ -234,7 +235,7 @@ PixelNutEngine::Status PixelNutEngine::ModPluginLayer(int iplugin, short layer)
   pPlugin->begin(layer, numPixels);
 
   // must clear buffer to remove current drawn pixels
-  memset(pluginTracks[pLayer->track].pRedrawBuff, 0, numPixels*3);
+  memset(pluginTracks[pLayer->track].pRedrawBuff, 0, pixelBytes);
 
   // reset trigger state, then check if should trigger now
   pLayer->trigActive = false;
@@ -261,7 +262,7 @@ void PixelNutEngine::DelPluginLayer(short track, short layer)
     if (pluginTracks[track].pRedrawBuff != NULL)
     {
       // must clear buffer to remove current drawn pixels
-      memset(pluginTracks[track].pRedrawBuff, 0, numPixels*3);
+      memset(pluginTracks[track].pRedrawBuff, 0, pixelBytes);
     }
   }
 }
@@ -968,7 +969,7 @@ bool PixelNutEngine::updateEffects(void)
   if (doshow)
   {
     // merge all buffers whether just redrawn or not if anyone of them changed
-    memset(pDisplayPixels, 0, (numPixels*3)); // must clear display buffer first
+    memset(pDisplayPixels, 0, (pixelBytes)); // must clear display buffer first
 
     pTrack = pluginTracks;
     for (int i = 0; i <= indexTrackStack; ++i, ++pTrack) // for each plugin that can redraw
@@ -1041,7 +1042,7 @@ bool PixelNutEngine::updateEffects(void)
           if (pix <= 0) // wrap around to end of strip
           {
             pix = pixlast;
-            x = (pixlast * 3);
+            x = (pixlast * numBytesPerPixel);
           }
           else
           {
@@ -1050,7 +1051,7 @@ bool PixelNutEngine::updateEffects(void)
           }
         }
 
-        if (y >= (pixlast*3)) y = 0;
+        if (y >= (pixlast * numBytesPerPixel)) y = 0;
         else y += 3;
       }
     }
