@@ -121,7 +121,6 @@ void setup()
   SetupDBG(); // setup/wait for debug monitor
   // Note: cannot use debug output until above is called,
   // meaning DBGOUT() cannot be used in static constructors.
-  DBGOUT((F("Hello PixelNut!")));
 
   #if EEPROM_FORMAT
   FlashFormat(); // format entire EEPROM
@@ -187,7 +186,7 @@ void setup()
     ShowPixels(i); // turn off pixels
 
     pixelNutEngines[i] = new PixelNutEngine(pixelArrays[i], pixcounts[i],
-                                PIXEL_OFFSET, true, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS);
+                                PIXEL_OFFSET, false, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS);
 
     if ((pixelNutEngines[i] == NULL) || (pixelNutEngines[i]->pDrawPixels == NULL))
     {

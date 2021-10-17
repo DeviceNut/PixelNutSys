@@ -103,7 +103,7 @@ public:
 
   // Private to the PixelNutSupport class and main application.
   byte *pDrawPixels; // current pixel buffer to draw into or display
-  // Note: test this for NULL after constructor to check if successful!
+  // Note: test this for NULL after constructor if unsuccessful!
 
 protected:
 
