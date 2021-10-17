@@ -160,7 +160,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED // 26-28 bytes
+  typedef struct ATTR_PACKED // 24 bytes
   {
     PixelNutSupport::DrawProps draw;            // drawing properties for this track
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
@@ -169,8 +169,6 @@ protected:
     byte layer;                                 // index into layer stack to redraw effect
     byte lcount;                                // number of layers in this track
     byte reserved;
-
-    byte *pRedrawBuff;                          // allocated buffer
   }
   PluginTrack; // defines properties for each drawing plugin
 
@@ -187,7 +185,8 @@ protected:
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goBackwards = false;                     // false to draw from start to end, else reverse
-  
+
+  byte *pTrackBuffers;                          // array of pixel buffers for each track
   byte numBytesPerPixel;                        // number of bytes needed for each pixel
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 

@@ -21,16 +21,21 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte pixel_bytes,
                           byte num_layers, byte num_tracks,
                           uint16_t first_pixel, bool backwards)
 {
-  pluginLayers   = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
-  pluginTracks   = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
-  pDisplayPixels = (byte*)calloc(num_pixels, pixel_bytes);
+  pixelBytes = num_pixels * pixel_bytes;
 
-  if ((pluginLayers == NULL) || (pluginTracks == NULL) || (pDisplayPixels == NULL))
+  pluginLayers  = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
+  pluginTracks  = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
+  pTrackBuffers = (byte *)malloc(num_tracks * pixelBytes);
+
+  pDisplayPixels = (byte*)malloc(pixelBytes);
+  memset(pDisplayPixels, 0, pixelBytes);
+
+  if ((pluginLayers  == NULL) || (pluginTracks   == NULL) ||
+      (pTrackBuffers == NULL) || (pDisplayPixels == NULL))
     return false;
 
   numPixels         = num_pixels;
   numBytesPerPixel  = pixel_bytes;
-  pixelBytes        = num_pixels * pixel_bytes;
   firstPixel        = first_pixel;
   goBackwards       = backwards;
 
@@ -96,13 +101,6 @@ void PixelNutEngine::clearStack(void)
       delete pluginLayers[j].pPlugin;
     }
     indexLayerStack -= count;
-
-    // then the track buffer
-    if (pluginTracks[i].pRedrawBuff != NULL)
-    {
-      DBGOUT((F("Freeing pixel buffer: track=%d"), indexTrackStack));
-      free(pluginTracks[i].pRedrawBuff);
-    }
   }
 
   indexTrackEnable = -1;
@@ -194,25 +192,10 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   // begin new plugin, but will not be drawn until triggered
   pPlugin->begin(indexLayerStack, numPixels);
 
-  if (dodraw) // wait to do this until after any memory allocation in plugin
+  if (dodraw)
   {
-    int numbytes = pixelBytes;
-    byte *p = (byte*)malloc(numbytes);
-
-    if (p == NULL)
-    {
-      DBGOUT((F("!!! Memory alloc for %d bytes failed !!!"), numbytes));
-      DBGOUT((F("Restoring stack and deleting plugin")));
-
-      --indexTrackStack;
-      --indexLayerStack;
-      delete pPlugin;
-      return Status_Error_Memory;
-    }
-    DBG( else DBGOUT((F("Allocated %d bytes for pixel buffer"), numbytes)); )
-
-    memset(p, 0, numbytes);
-    pluginTracks[indexTrackStack].pRedrawBuff = p;
+    // must clear buffer to remove current drawn pixels
+    memset(&pTrackBuffers[pLayer->track * pixelBytes], 0, pixelBytes);
   }
 
   return Status_Success;
@@ -235,7 +218,7 @@ PixelNutEngine::Status PixelNutEngine::ModPluginLayer(int iplugin, short layer)
   pPlugin->begin(layer, numPixels);
 
   // must clear buffer to remove current drawn pixels
-  memset(pluginTracks[pLayer->track].pRedrawBuff, 0, pixelBytes);
+  memset(&pTrackBuffers[pLayer->track * pixelBytes], 0, pixelBytes);
 
   // reset trigger state, then check if should trigger now
   pLayer->trigActive = false;
@@ -259,11 +242,8 @@ void PixelNutEngine::DelPluginLayer(short track, short layer)
     delete pLayer->pPlugin;
     pLayer->pPlugin = NULL;
 
-    if (pluginTracks[track].pRedrawBuff != NULL)
-    {
-      // must clear buffer to remove current drawn pixels
-      memset(pluginTracks[track].pRedrawBuff, 0, pixelBytes);
-    }
+    // must clear buffer to remove current drawn pixels
+    memset(&pTrackBuffers[pLayer->track * pixelBytes], 0, pixelBytes);
   }
 }
 
@@ -292,7 +272,7 @@ void PixelNutEngine::triggerLayer(byte layer, short force)
   }
 
   byte *dptr = pDrawPixels;
-  pDrawPixels = (pLayer->redraw ? pTrack->pRedrawBuff : NULL); // prevent drawing if not filter effect
+  pDrawPixels = (pLayer->redraw ? &pTrackBuffers[track * pixelBytes] : NULL); // prevent drawing if not filter effect
   pLayer->pPlugin->trigger(this, &pTrack->draw, force);
   pDrawPixels = dptr; // restore to the previous value
 
@@ -954,7 +934,7 @@ bool PixelNutEngine::updateEffects(void)
     if (externPropMode) RestorePropVals(pTrack, pixCount, degreeHue, pcentWhite);
 
     // now the main drawing effect is executed for this track
-    pDrawPixels = pTrack->pRedrawBuff; // switch to drawing buffer
+    pDrawPixels = &pTrackBuffers[i * pixelBytes]; // switch to drawing buffer
     pLayer->pPlugin->nextstep(this, &pTrack->draw);
     pDrawPixels = pDisplayPixels; // restore to default (display buffer)
 
@@ -969,7 +949,7 @@ bool PixelNutEngine::updateEffects(void)
   if (doshow)
   {
     // merge all buffers whether just redrawn or not if anyone of them changed
-    memset(pDisplayPixels, 0, (pixelBytes)); // must clear display buffer first
+    memset(pDisplayPixels, 0, pixelBytes); // must clear display buffer first
 
     pTrack = pluginTracks;
     for (int i = 0; i <= indexTrackStack; ++i, ++pTrack) // for each plugin that can redraw
@@ -992,11 +972,11 @@ bool PixelNutEngine::updateEffects(void)
       if (pixend > pixlast) pixend -= (pixlast+1);
 
       short pix = (pTrack->draw.goBackwards ? pixend : pixstart);
-      short x = pix * 3;
-      short y = pTrack->draw.pixStart * 3;
+      short x = pix * numBytesPerPixel;
+      short y = pTrack->draw.pixStart * numBytesPerPixel;
 
+      byte *ppix = &pTrackBuffers[i * pixelBytes];
       /*
-      byte *p = pTrack->pRedrawBuff;
       DBGOUT((F("Input pixels:")));
       for (int i = 0; i < numPixels; ++i)
         DBGOUT((F("  %d.%d.%d"), *p++, *p++, *p++));
@@ -1008,17 +988,17 @@ bool PixelNutEngine::updateEffects(void)
         if (pTrack->draw.pixOrValues)
         {
           // combine contents of buffer window with actual pixel array
-          pDisplayPixels[x+0] |= pTrack->pRedrawBuff[y+0];
-          pDisplayPixels[x+1] |= pTrack->pRedrawBuff[y+1];
-          pDisplayPixels[x+2] |= pTrack->pRedrawBuff[y+2];
+          pDisplayPixels[x+0] |= ppix[y+0];
+          pDisplayPixels[x+1] |= ppix[y+1];
+          pDisplayPixels[x+2] |= ppix[y+2];
         }
-        else if ((pTrack->pRedrawBuff[y+0] != 0) ||
-                 (pTrack->pRedrawBuff[y+1] != 0) ||
-                 (pTrack->pRedrawBuff[y+2] != 0))
+        else if ((ppix[y+0] != 0) ||
+                 (ppix[y+1] != 0) ||
+                 (ppix[y+2] != 0))
         {
-          pDisplayPixels[x+0] = pTrack->pRedrawBuff[y+0];
-          pDisplayPixels[x+1] = pTrack->pRedrawBuff[y+1];
-          pDisplayPixels[x+2] = pTrack->pRedrawBuff[y+2];
+          pDisplayPixels[x+0] = ppix[y+0];
+          pDisplayPixels[x+1] = ppix[y+1];
+          pDisplayPixels[x+2] = ppix[y+2];
         }
 
         if (!pTrack->draw.goBackwards)
