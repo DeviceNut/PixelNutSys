@@ -759,7 +759,7 @@ static bool addstr(char **pcmdstr, char *addstr, int* pmaxlen)
 // forms command string from current track/layer stacks
 bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 {
-  DBG( char *basestr = cmdstr; )
+  char *basestr = cmdstr;
   int addlen = maxlen;
   char str[20];
   *cmdstr = 0;
