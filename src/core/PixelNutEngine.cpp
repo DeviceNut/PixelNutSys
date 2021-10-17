@@ -17,11 +17,11 @@ extern PluginFactory *pPluginFactory; // use externally declared pointer to inst
 // initialize class variables, allocate memory for layer/track stacks and pixel buffer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool PixelNutEngine::init(uint16_t num_pixels, byte pixel_bytes,
+bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
                           byte num_layers, byte num_tracks,
                           uint16_t first_pixel, bool backwards)
 {
-  pixelBytes = num_pixels * pixel_bytes;
+  pixelBytes = num_pixels * num_bytes;
 
   pluginLayers  = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
   pluginTracks  = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
@@ -35,7 +35,7 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte pixel_bytes,
     return false;
 
   numPixels         = num_pixels;
-  numBytesPerPixel  = pixel_bytes;
+  numBytesPerPixel  = num_bytes;
   firstPixel        = first_pixel;
   goBackwards       = backwards;
 
@@ -59,7 +59,7 @@ static bool GetBoolValue(char *str, bool nullval)
 }
 
 // returns -1 if no value, or not in range 0-'maxval'
-static int GetNumValue(char *str, int maxval)
+static short GetNumValue(char *str, int maxval)
 {
   if ((str == NULL) || !isdigit(*str)) return -1;
   int newval = atoi(str);
@@ -70,7 +70,7 @@ static int GetNumValue(char *str, int maxval)
 
 // clips values to range 0-'maxval'
 // returns 'curval' if no value is specified
-static int GetNumValue(char *str, int curval, int maxval) // FIXME: use signed values
+static short GetNumValue(char *str, int curval, int maxval) // FIXME: use signed values
 {
   if ((str == NULL) || !isdigit(*str)) return curval;
   int newval = atoi(str);
@@ -534,56 +534,56 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'X': // offset into output display of the track by pixel index
         {
-          pdraw->pixStart = GetNumValue(cmd+1, 0, numPixels-1);
+          pdraw->pixStart = (uint16_t)GetNumValue(cmd+1, 0, numPixels-1);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'Y': // number of pixels in the track by pixel index
         {
-          pdraw->pixLen = GetNumValue(cmd+1, 0, numPixels);
+          pdraw->pixLen = (uint16_t)GetNumValue(cmd+1, 0, numPixels);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'J': // offset into output display of the track by percent
         {
-          int pcent = GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
           pdraw->pixStart = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 0, numPixels-1);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'K': // number of pixels in the track by percent
         {
-          int pcent = GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
           pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'B': // percent brightness property ("B" sets default value)
         {
-          pdraw->pcentBright = GetNumValue(cmd+1, DEF_PCENTBRIGHT, MAX_PERCENTAGE);
+          pdraw->pcentBright = (byte)GetNumValue(cmd+1, DEF_PCENTBRIGHT, MAX_PERCENTAGE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
         case 'D': // drawing delay ("D" sets default value)
         {
-          pdraw->msecsDelay = GetNumValue(cmd+1, DEF_DELAYMSECS, MAX_DELAY_VALUE);
+          pdraw->msecsDelay = (byte)GetNumValue(cmd+1, DEF_DELAYMSECS, MAX_DELAY_VALUE);
           break;
         }
         case 'H': // color Hue degrees property ("H" sets default value)
         {
-          pdraw->degreeHue = GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
+          pdraw->degreeHue = (byte)GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
         case 'W': // percent Whiteness property ("W" sets default value)
         {
-          pdraw->pcentWhite = GetNumValue(cmd+1, DEF_PCENTWHITE, MAX_PERCENTAGE);
+          pdraw->pcentWhite = (byte)GetNumValue(cmd+1, DEF_PCENTWHITE, MAX_PERCENTAGE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
         case 'C': // pixel count property ("C" sets default value)
         {
-          short percent = GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
+          uint16_t percent = (uint16_t)GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
           pdraw->pixCount = pixelNutSupport.mapValue(percent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F("PixCount: %d%% => %d"), percent, pdraw->pixCount));
           break;
@@ -660,7 +660,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
             pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
-            pluginLayers[curlayer].trigLayer = GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
+            pluginLayers[curlayer].trigLayer = (byte)GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
             DBGOUT((F("Triggering assigned to layer %d"), pluginLayers[curlayer].trigLayer));
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Internal;
@@ -671,7 +671,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
             pluginLayers[curlayer].trigType |= TrigTypeBit_Repeating;
-            pluginLayers[curlayer].trigRepCount = GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
+            pluginLayers[curlayer].trigRepCount = (uint16_t)GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
             pluginLayers[curlayer].trigDnCounter = pluginLayers[curlayer].trigRepCount;
 
             pluginLayers[curlayer].trigTimeMsecs = pixelNutSupport.getMsecs() +
@@ -687,12 +687,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'O': // repeat trigger offset time ("O" sets default value)
         {
-          pluginLayers[curlayer].trigRepOffset = GetNumValue(cmd+1, DEF_TRIG_OFFSET, MAX_WORD_VALUE);
+          pluginLayers[curlayer].trigRepOffset = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_OFFSET, MAX_WORD_VALUE);
           break;
         }
         case 'N': // range of trigger time ("N" sets default value)
         {
-          pluginLayers[curlayer].trigRepRange = GetNumValue(cmd+1, DEF_TRIG_RANGE, MAX_WORD_VALUE);
+          pluginLayers[curlayer].trigRepRange = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_RANGE, MAX_WORD_VALUE);
           break;
         }
         case 'G': // Go: activate newly added effect tracks

@@ -152,7 +152,7 @@ protected:
     byte reserved;
 
                                                 // repeat triggering:
-    int16_t trigRepCount;                       // number of times to trigger (0 to repeat forever)
+    uint16_t trigRepCount;                      // number of times to trigger (0 to repeat forever)
     uint16_t trigDnCounter;                     // current trigger countdown counter
     uint32_t trigTimeMsecs;                     // next trigger time in msecs, calculated from:
     uint16_t trigRepOffset;                     // min delay offset before next trigger in seconds
