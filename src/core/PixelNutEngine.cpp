@@ -272,7 +272,8 @@ void PixelNutEngine::triggerLayer(byte layer, short force)
   }
 
   byte *dptr = pDrawPixels;
-  pDrawPixels = (pLayer->redraw ? &pTrackBuffers[track * pixelBytes] : NULL); // prevent drawing if not filter effect
+  // prevent drawing if not filter effect
+  pDrawPixels = (pLayer->redraw ? &pTrackBuffers[track * pixelBytes] : NULL);
   pLayer->pPlugin->trigger(this, &pTrack->draw, force);
   pDrawPixels = dptr; // restore to the previous value
 
@@ -326,12 +327,7 @@ void PixelNutEngine::triggerForce(short force)
   {
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
-    {
-      if (pluginLayers[i].trigRepCount > 0)
-          pluginLayers[i].trigDnCounter = pluginLayers[i].trigRepCount;
-
       triggerLayer(i, force);
-    }
   }
 }
 
@@ -341,14 +337,9 @@ void PixelNutEngine::triggerForce(byte layer, short force, PixelNutSupport::Draw
   for (int i = 0; i <= indexLayerStack; ++i)
   {
     if (!pluginLayers[i].disable &&
-        (pluginLayers[i].trigType & TrigTypeBit_Internal) &&
-        (pluginLayers[i].trigLayer == layer))
-    {
-      if (pluginLayers[i].trigRepCount > 0)
-          pluginLayers[i].trigDnCounter = pluginLayers[i].trigRepCount;
-
+        (pluginLayers[i].trigLayer == layer) &&
+        (pluginLayers[i].trigType & TrigTypeBit_Internal))
       triggerLayer(i, force);
-    }
   }
 }
 
@@ -571,7 +562,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'H': // color Hue degrees property ("H" sets default value)
         {
-          pdraw->degreeHue = (byte)GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
+          pdraw->degreeHue = (uint16_t)GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
@@ -619,14 +610,14 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           }
           break;
         }
-        case 'U': // go backwards ("U" for true, else sets value)
+        case 'U': // go backwards ("U" for not default, else sets value)
         {
-          pdraw->goBackwards = !GetBoolValue(cmd+1, !DEF_BACKWARDS);
+          pdraw->goBackwards = GetBoolValue(cmd+1, !DEF_BACKWARDS);
           break;
         }
-        case 'V': // OR's pixels Values ("V" for true, else sets value)
+        case 'V': // OR's pixels Values ("V" for not default, else sets value)
         {
-          pdraw->pixOrValues = !GetBoolValue(cmd+1, !DEF_PIXORVALS);
+          pdraw->pixOrValues = GetBoolValue(cmd+1, !DEF_PIXORVALS);
           break;
         }
         case 'F': // force value to be used by trigger ("F" means random force)
@@ -666,12 +657,20 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Internal;
           break;
         }
-        case 'R': // sets repeat trigger ("R" to disable, "R0" for forever count, else "R<count>")
+        case 'R': // sets repeat trigger ("R0" to disable, "R" for forever count, else "R<count>")
         {
-          if (isdigit(*(cmd+1))) // there is a value after "A"
+          bool enable = true;
+
+          if (isdigit(*(cmd+1))) // there is a value after "R"
+          {
+            uint16_t value = (uint16_t)GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
+            if (value == 0) enable = false;
+            else pluginLayers[curlayer].trigRepCount = value;
+          }
+
+          if (enable)
           {
             pluginLayers[curlayer].trigType |= TrigTypeBit_Repeating;
-            pluginLayers[curlayer].trigRepCount = (uint16_t)GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
             pluginLayers[curlayer].trigDnCounter = pluginLayers[curlayer].trigRepCount;
 
             pluginLayers[curlayer].trigTimeMsecs = pixelNutSupport.getMsecs() +
@@ -849,7 +848,7 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 
     if (pLayer->trigType & TrigTypeBit_Repeating)
     {
-      if (pLayer->trigRepCount != DEF_TRIG_FOREVER)
+      if (pLayer->trigRepCount == DEF_TRIG_FOREVER)
            sprintf(str, "R ");
       else sprintf(str, "R%d ", pLayer->trigRepCount);
       if (!addstr(&cmdstr, str, &addlen)) goto error;
