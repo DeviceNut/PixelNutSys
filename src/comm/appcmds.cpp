@@ -58,13 +58,6 @@ void ExecAppCmd(char *instr)
       else { DBGOUT((F("Unknown command: %s"), instr)); }
       break;
     }
-    case '.': // start/stop saving a pattern into flash
-    {
-      if (saveStrIndex >= 0)  // end sequence
-          saveStrIndex = -1;
-      else saveStrIndex = 0; // begin sequence
-      break;
-    }
     case '?': // sends reply with configuration strings
     {
       char outstr[STRLEN_PATTERNS];
