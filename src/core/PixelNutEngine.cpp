@@ -300,8 +300,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) && // have count (or infinite)
         (pluginLayers[i].trigTimeMsecs <= timePrevUpdate))                  // and time has expired
     {
-      DBGOUT((F("RepeatTrigger: prevtime=%lu msecs=%lu offset=%u range=%d counts=%d:%d"),
-                timePrevUpdate, pluginLayers[i].trigTimeMsecs,
+      DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
                 pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
 
@@ -906,8 +905,6 @@ bool PixelNutEngine::updateEffects(void)
     // update the time if it's rolled over, then check if time to draw
     if (rollover) pTrack->msTimeRedraw = timePrevUpdate;
     if (pTrack->msTimeRedraw > timePrevUpdate) continue;
-
-    //DBGOUT((F("redraw buffer: track=%d msecs=%lu"), i, pTrack->msTimeRedraw));
 
     short pixCount = 0;
     short degreeHue = 0;
