@@ -153,9 +153,9 @@ void CallbackMqtt(char* topic, byte* message, unsigned int msglen)
     if (msglen <= 0) return;
   }
 
-  if (msglen < STRLEN_PATTERNS) // msglen doesn't include terminator
+  if (msglen < STRLEN_PATSTR) // msglen doesn't include terminator
   {
-    char instr[STRLEN_PATTERNS];
+    char instr[STRLEN_PATSTR];
     strncpy(instr, (char*)message, msglen);
     instr[msglen] = 0;
 

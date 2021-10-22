@@ -35,7 +35,7 @@ public:
 
   bool isConnected = false;
 
-  char queueStrs[MAXNUM_QSTRS][STRLEN_PATTERNS] = {};
+  char queueStrs[MAXNUM_QSTRS][STRLEN_PATSTR] = {};
   int queueHead = 0;
   int queueTail = 0;
 
@@ -102,7 +102,7 @@ class CharCallbacks: public BLECharacteristicCallbacks
 
         DBGOUT(("BLE queue index=%d", qindex));
         qcurstr = bleEsp32.queueStrs[bleEsp32.queueTail];
-        qcurlen = STRLEN_PATTERNS-1;
+        qcurlen = STRLEN_PATSTR-1;
       }
 
       char *pnext = strchr(instr, '\n');

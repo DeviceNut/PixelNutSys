@@ -19,9 +19,9 @@ bool doUpdate = true;             // false to not update display
 
 #if !CLIENT_APP
 byte curPattern = 1;              // current pattern (1..codePatterns)
-char curPatStr[STRLEN_PATTERNS];  // current pattern string
+char curPatStr[STRLEN_PATSTR];  // current pattern string
 
-// create empty base class handler
+// create empty base class
 CustomCode customcode;
 CustomCode *pCustomCode = &customcode;
 #endif
@@ -64,7 +64,8 @@ void DisplayConfiguration(void)
   DBGOUT((F("  DELAY_RANGE            = %d"), DELAY_RANGE));
   DBGOUT((F("  STRAND_COUNT           = %d"), STRAND_COUNT));
   DBGOUT((F("  PIXEL_COUNTS           = %s"), strcounts));
-  DBGOUT((F("  STRLEN_PATTERNS        = %d"), STRLEN_PATTERNS));
+  DBGOUT((F("  STRLEN_PATSTR          = %d"), STRLEN_PATSTR));
+  DBGOUT((F("  STRLEN_PATNAME         = %d"), STRLEN_PATNAME));
   DBGOUT((F("  DEV_PATTERNS           = %d"), DEV_PATTERNS));
   DBGOUT((F("  CLIENT_APP             = %d"), CLIENT_APP));
   DBGOUT((F("  NUM_PLUGIN_TRACKS      = %d"), NUM_PLUGIN_TRACKS));
@@ -185,7 +186,7 @@ void setup()
     FlashStartup();   // get curPattern and settings from flash, set engine properties
 
     #if CLIENT_APP
-    char cmdstr[STRLEN_PATTERNS];
+    char cmdstr[STRLEN_PATSTR];
     FlashGetStr(cmdstr);    // get pattern string previously stored in flash
     ExecPattern(cmdstr);    // load pattern into the engine: ready to be displayed
     #else

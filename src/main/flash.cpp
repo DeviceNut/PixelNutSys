@@ -83,7 +83,7 @@ void FlashGetStr(char *str)
 {
   for (int i = 0; ; ++i)
   {
-    if ((i >= (STRLEN_PATTERNS-1)) ||
+    if ((i >= (STRLEN_PATSTR-1)) ||
         ((strOffset + i) >= EEPROM_BYTES))
          str[i] = 0; // prevent overrun
     else str[i] = EEPROM.read(strOffset + i);

@@ -60,7 +60,7 @@ void ExecAppCmd(char *instr)
     }
     case '?': // sends reply with configuration strings
     {
-      char outstr[STRLEN_PATTERNS];
+      char outstr[STRLEN_PATSTR];
 
       if (instr[1] == 'S') // send info about each strand
       {
@@ -87,7 +87,7 @@ void ExecAppCmd(char *instr)
           pCustomCode->sendReply(outstr);
 
           // returns empty string on error
-          if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATTERNS))
+          if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
             ErrorHandler(4, 1, false); // blink for error and continue
 
           pCustomCode->sendReply(outstr);
@@ -116,7 +116,7 @@ void ExecAppCmd(char *instr)
       else if (instr[1] == 0) // nothing after ?
       {
         sprintf(outstr, "P!!\n%d %d %d %d %d %d", 
-                        STRAND_COUNT, STRLEN_PATTERNS,
+                        STRAND_COUNT, STRLEN_PATSTR,
                         NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS,
                         codePatterns, 0); // custom plugin count TODO
         pCustomCode->sendReply(outstr);
@@ -127,10 +127,10 @@ void ExecAppCmd(char *instr)
     }
     case '*': // store current pattern to flash
     {
-      char outstr[STRLEN_PATTERNS];
+      char outstr[STRLEN_PATSTR];
 
       // stores empty string on error
-      if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATTERNS))
+      if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
         ErrorHandler(4, 1, false); // blink for error and continue
 
       FlashSetStr(outstr, 0);
