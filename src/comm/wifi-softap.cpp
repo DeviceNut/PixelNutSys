@@ -51,7 +51,7 @@ void WiFiSoftAp::setup(void)
 {
   char devname[MAXLEN_DEVICE_NAME + PREFIX_LEN_DEVNAME + 1];
   strcpy(devname, PREFIX_DEVICE_NAME);
-  FlashGetName(devname + PREFIX_LEN_DEVNAME);
+  FlashGetDevName(devname + PREFIX_LEN_DEVNAME);
 
   DBGOUT(("---------------------------------------"));
 
@@ -72,7 +72,7 @@ void WiFiSoftAp::setup(void)
 
 void WiFiSoftAp::setName(char *name)
 {
-  FlashSetName(name);
+  FlashSetDevName(name);
 }
 
 void WiFiSoftAp::sendReply(char *instr)

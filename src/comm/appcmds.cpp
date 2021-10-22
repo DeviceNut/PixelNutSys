@@ -39,21 +39,13 @@ void ExecAppCmd(char *instr)
 {
   DBGOUT((F("CmdExec: \"%s\""), instr));
 
-  static int16_t saveStrIndex = -1;
-
-  if (saveStrIndex < 0) instr = skipSpaces(instr); // skip leading spaces
-  // else need those separating spaces while in sequence
+  instr = skipSpaces(instr); // skip leading spaces
 
   if (*instr) switch (instr[0])
   {
     default:
     {
-      if (saveStrIndex >= 0) // save part of pattern into flash
-      {
-        FlashSetStr(instr, saveStrIndex);
-        saveStrIndex += strlen(instr);
-      }
-      else if (isalpha(instr[0])) ExecPattern(instr);
+      if (isalpha(instr[0])) ExecPattern(instr);
 
       else { DBGOUT((F("Unknown command: %s"), instr)); }
       break;
@@ -71,25 +63,28 @@ void ExecAppCmd(char *instr)
         {
           FlashSetStrand(i);
 
-          uint16_t hue = FlashGetValue(FLASH_SEG_XT_HUE) + (FlashGetValue(FLASH_SEG_XT_HUE+1) << 8);
+          uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) + (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
 
           sprintf(outstr, "%d %d %d %d\n%d %d %d %d %d",
                         pixcounts[i],
-                        FlashGetValue(FLASH_SEG_BRIGHTNESS),
-                        (int8_t)FlashGetValue(FLASH_SEG_DELAYMSECS),
-                        FlashGetValue(FLASH_SEG_FIRSTPOS),
+                        FlashGetValue(FLASHOFF_SDATA_BRIGHTNESS),
+                        (int8_t)FlashGetValue(FLASHOFF_SDATA_DELAYMSECS),
+                        FlashGetValue(FLASHOFF_SDATA_FIRSTPOS),
 
-                        FlashGetValue(FLASH_SEG_XT_MODE),
+                        FlashGetValue(FLASHOFF_SDATA_XT_MODE),
                         hue,
-                        FlashGetValue(FLASH_SEG_XT_WHT),
-                        FlashGetValue(FLASH_SEG_XT_CNT),
-                        FlashGetValue(FLASH_SEG_FORCE));
+                        FlashGetValue(FLASHOFF_SDATA_XT_WHT),
+                        FlashGetValue(FLASHOFF_SDATA_XT_CNT),
+                        FlashGetValue(FLASHOFF_SDATA_FORCE));
           pCustomCode->sendReply(outstr);
 
           // returns empty string on error
           if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
             ErrorHandler(4, 1, false); // blink for error and continue
 
+          pCustomCode->sendReply(outstr);
+
+          FlashGetPatName(outstr);          
           pCustomCode->sendReply(outstr);
         }
 
@@ -133,7 +128,8 @@ void ExecAppCmd(char *instr)
       if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
         ErrorHandler(4, 1, false); // blink for error and continue
 
-      FlashSetStr(outstr, 0);
+      FlashSetPatStr(outstr);
+      FlashSetPatName(instr+1);
       break;
     }
     case '#': // client is switching physical segments

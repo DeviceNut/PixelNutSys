@@ -8,12 +8,12 @@ See license.txt for the terms of this license.
 #include "flash.h"
 #include <EEPROM.h>
 
-#if (FLASHOFF_PATTERN_END > EEPROM_BYTES)
+#if (FLASHOFF_PINFO_END > EEPROM_BYTES)
 #error("Not enough flash space to store external pattern strings");
 #endif
 
 static byte valOffset = FLASHOFF_STRAND_DATA;
-static uint16_t strOffset = FLASHOFF_PATTERN_START;
+static uint16_t pinfoOffset = FLASHOFF_PINFO_START;
 
 static void FlashStart(void)
 {
@@ -36,99 +36,124 @@ byte FlashGetValue(uint16_t offset) { return EEPROM.read(valOffset + offset); }
 // Note: this is not range checked
 byte FlashSetStrand(byte strandindex)
 {
-  int oldval = (valOffset - FLASHOFF_STRAND_DATA) / FLASH_SEG_LENGTH;
-  valOffset = FLASHOFF_STRAND_DATA + (strandindex * FLASH_SEG_LENGTH);
+  int oldval = (valOffset - FLASHOFF_STRAND_DATA) / FLASHLEN_STRAND_DATA;
+  valOffset = FLASHOFF_STRAND_DATA + (strandindex * FLASHLEN_STRAND_DATA);
   return oldval;
 }
 
 #if CLIENT_APP
 
-void FlashSetName(char *name)
+void FlashSetDevName(char *name)
 {
-  DBGOUT((F("FlashSetName: \"%s\""), name));
+  DBGOUT((F("FlashSetDevName: \"%s\""), name));
 
   for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
+  {
     EEPROM.write(i, name[i]);
+    if (!name[i]) break;
+  }
 
   FlashDone();
 }
 
-void FlashGetName(char *name)
+void FlashGetDevName(char *name)
 {
   for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
     name[i] = EEPROM.read(i);
 
   name[MAXLEN_DEVICE_NAME] = 0;
 
-  DBGOUT((F("FlashGetName: \"%s\""), name));
+  DBGOUT((F("FlashGetDevName: \"%s\""), name));
 }
 
-#endif // CLIENT_APP
-
-void FlashSetStr(char *str, int offset)
+void FlashSetPatStr(char *str)
 {
-  DBGOUT((F("FlashSetStr(@%d): \"%s\" (len=%d)"), (strOffset + offset), str, strlen(str)));
+  DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"), pinfoOffset, str, strlen(str)));
 
   for (int i = 0; ; ++i)
   {
-    if ((strOffset + offset + i) >= EEPROM_BYTES) break; // prevent overrun
-    EEPROM.write((strOffset + offset + i), str[i]);
+    if (i >= (STRLEN_PATSTR-1)) break;
+    EEPROM.write((pinfoOffset + i), str[i]);
     if (!str[i]) break;
   }
 
   FlashDone();
 }
 
-void FlashGetStr(char *str)
+void FlashGetPatStr(char *str)
 {
   for (int i = 0; ; ++i)
   {
-    if ((i >= (STRLEN_PATSTR-1)) ||
-        ((strOffset + i) >= EEPROM_BYTES))
+    if (i >= (STRLEN_PATSTR-1))
          str[i] = 0; // prevent overrun
-    else str[i] = EEPROM.read(strOffset + i);
+    else str[i] = EEPROM.read(pinfoOffset + i);
     if (!str[i]) break;
   }
 
-  DBGOUT((F("FlashGetStr(@%d): \"%s\" (len=%d)"), strOffset, str, strlen(str)));
+  DBGOUT((F("FlashGetPatStr(@%d): \"%s\" (len=%d)"), pinfoOffset, str, strlen(str)));
 }
 
-void FlashSetPatNum(byte pattern) { FlashSetValue(FLASH_SEG_PATNUM, pattern); FlashDone(); }
+void FlashSetPatName(char *name)
+{
+  DBGOUT((F("FlashSetPatName: \"%s\""), name));
 
-void FlashSetBright()    { FlashSetValue(FLASH_SEG_BRIGHTNESS, pPixelNutEngine->getMaxBrightness());  FlashDone(); }
-void FlashSetDelay()     { FlashSetValue(FLASH_SEG_DELAYMSECS, pPixelNutEngine->getDelayOffset());    FlashDone(); }
-void FlashSetFirst()     { FlashSetValue(FLASH_SEG_FIRSTPOS,   pPixelNutEngine->getFirstPosition());  FlashDone(); }
+  for (int i = 0; i < STRLEN_PATNAME; ++i)
+  {
+    EEPROM.write((pinfoOffset + FLASHLEN_PATSTR + i), name[i]);
+    if (!name[i]) break;
+  }
 
-void FlashSetXmode(bool enable) { FlashSetValue(FLASH_SEG_XT_MODE, enable);  FlashDone(); }
+  FlashDone();
+}
+
+void FlashGetPatName(char *name)
+{
+  for (int i = 0; i < STRLEN_PATNAME; ++i)
+    name[i] = EEPROM.read(pinfoOffset + FLASHLEN_PATSTR + i);
+
+  name[STRLEN_PATNAME] = 0;
+
+  DBGOUT((F("FlashGetPatName: \"%s\""), name));
+}
+
+#endif // CLIENT_APP
+
+void FlashSetPatNum(byte pattern) { FlashSetValue(FLASHOFF_SDATA_PATNUM, pattern); FlashDone(); }
+
+void FlashSetBright()    { FlashSetValue(FLASHOFF_SDATA_BRIGHTNESS, pPixelNutEngine->getMaxBrightness());  FlashDone(); }
+void FlashSetDelay()     { FlashSetValue(FLASHOFF_SDATA_DELAYMSECS, pPixelNutEngine->getDelayOffset());    FlashDone(); }
+void FlashSetFirst()     { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,   pPixelNutEngine->getFirstPosition());  FlashDone(); }
+
+void FlashSetXmode(bool enable) { FlashSetValue(FLASHOFF_SDATA_XT_MODE, enable);  FlashDone(); }
 
 void FlashSetExterns(uint16_t hue, byte wht, byte cnt)
 {
-  FlashSetValue(FLASH_SEG_XT_HUE,   hue&0xFF);
-  FlashSetValue(FLASH_SEG_XT_HUE+1, hue>>8);
-  FlashSetValue(FLASH_SEG_XT_WHT,   wht);
-  FlashSetValue(FLASH_SEG_XT_CNT,   cnt);
+  FlashSetValue(FLASHOFF_SDATA_XT_HUE,   hue&0xFF);
+  FlashSetValue(FLASHOFF_SDATA_XT_HUE+1, hue>>8);
+  FlashSetValue(FLASHOFF_SDATA_XT_WHT,   wht);
+  FlashSetValue(FLASHOFF_SDATA_XT_CNT,   cnt);
   FlashDone();
 }
 
 void FlashSetForce(short force)
 {
-  FlashSetValue(FLASH_SEG_FORCE, force);
-  FlashSetValue(FLASH_SEG_FORCE+1, (force >> 8));
+  FlashSetValue(FLASHOFF_SDATA_FORCE, force);
+  FlashSetValue(FLASHOFF_SDATA_FORCE+1, (force >> 8));
   FlashDone();
 }
 
 short FlashGetForce(void)
 {
-  return FlashGetValue(FLASH_SEG_FORCE) + (FlashGetValue(FLASH_SEG_FORCE+1) << 8);
+  return FlashGetValue(FLASHOFF_SDATA_FORCE) + (FlashGetValue(FLASHOFF_SDATA_FORCE+1) << 8);
 }
 
 void FlashSetProperties(void)
 {
-  uint16_t hue = FlashGetValue(FLASH_SEG_XT_HUE) + (FlashGetValue(FLASH_SEG_XT_HUE+1) << 8);
+  uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) + (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
 
-  pPixelNutEngine->setPropertyMode(      FlashGetValue(FLASH_SEG_XT_MODE));
-  pPixelNutEngine->setColorProperty(hue, FlashGetValue(FLASH_SEG_XT_WHT));
-  pPixelNutEngine->setCountProperty(     FlashGetValue(FLASH_SEG_XT_CNT));
+  pPixelNutEngine->setPropertyMode(      FlashGetValue(FLASHOFF_SDATA_XT_MODE));
+  pPixelNutEngine->setColorProperty(hue, FlashGetValue(FLASHOFF_SDATA_XT_WHT));
+  pPixelNutEngine->setCountProperty(     FlashGetValue(FLASHOFF_SDATA_XT_CNT));
 }
 
   void FlashStartup(void)
@@ -136,19 +161,19 @@ void FlashSetProperties(void)
   FlashStart();
 
   #if !CLIENT_APP
-  curPattern = FlashGetValue(FLASH_SEG_PATNUM);
+  curPattern = FlashGetValue(FLASHOFF_SDATA_PATNUM);
   if (!curPattern || (curPattern > codePatterns))
     curPattern = 1; // 1..codePatterns
   DBGOUT((F("Flash: pattern=#%d"), curPattern));
   #endif
  
-  byte bright = FlashGetValue(FLASH_SEG_BRIGHTNESS);
-  if (bright == 0) FlashSetValue(FLASH_SEG_BRIGHTNESS, bright=MAX_BRIGHTNESS); // set to max if 0
+  byte bright = FlashGetValue(FLASHOFF_SDATA_BRIGHTNESS);
+  if (bright == 0) FlashSetValue(FLASHOFF_SDATA_BRIGHTNESS, bright=MAX_BRIGHTNESS); // set to max if 0
 
-  int8_t delay = (int8_t)FlashGetValue(FLASH_SEG_DELAYMSECS);
+  int8_t delay = (int8_t)FlashGetValue(FLASHOFF_SDATA_DELAYMSECS);
   if ((delay < -DELAY_RANGE) || (DELAY_RANGE < delay)) delay = 0; // set to min if out of range
 
-  int16_t fpos = FlashGetValue(FLASH_SEG_FIRSTPOS);
+  int16_t fpos = FlashGetValue(FLASHOFF_SDATA_FIRSTPOS);
 
   pPixelNutEngine->setMaxBrightness(bright);
   pPixelNutEngine->setDelayOffset(delay);

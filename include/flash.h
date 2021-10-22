@@ -21,40 +21,49 @@ See license.txt for the terms of this license.
 #endif
 
 // for each strand:
-#define FLASH_SEG_LENGTH        12
+#define FLASHLEN_STRAND_DATA          12
 
 // offsets within each strand space:
-#define FLASH_SEG_PATNUM        0
-#define FLASH_SEG_BRIGHTNESS    1
-#define FLASH_SEG_DELAYMSECS    2
-#define FLASH_SEG_FIRSTPOS      3  // 2 bytes
-#define FLASH_SEG_XT_MODE       5
-#define FLASH_SEG_XT_HUE        6  // 2 bytes
-#define FLASH_SEG_XT_WHT        8
-#define FLASH_SEG_XT_CNT        9
-#define FLASH_SEG_FORCE         10 // 2 bytes
+#define FLASHOFF_SDATA_PATNUM       0
+#define FLASHOFF_SDATA_BRIGHTNESS   1
+#define FLASHOFF_SDATA_DELAYMSECS   2
+#define FLASHOFF_SDATA_FIRSTPOS     3  // 2 bytes
+#define FLASHOFF_SDATA_XT_MODE      5
+#define FLASHOFF_SDATA_XT_HUE       6  // 2 bytes
+#define FLASHOFF_SDATA_XT_WHT       8
+#define FLASHOFF_SDATA_XT_CNT       9
+#define FLASHOFF_SDATA_FORCE        10 // 2 bytes
 
 #if CLIENT_APP
-#define FLASHOFF_STRAND_DATA    MAXLEN_DEVICE_NAME
-#define FLASHLEN_PATTERN        STRLEN_PATSTR
+#define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
+#define FLASHLEN_PATSTR             STRLEN_PATSTR
+#define FLASHLEN_PATNAME            STRLEN_PATNAME
 #else
-#define FLASHOFF_STRAND_DATA    0
-#define FLASHLEN_PATTERN        0
+#define FLASHOFF_STRAND_DATA        0
+#define FLASHLEN_PATSTR             0
+#define FLASHLEN_PATNAME            0
 #endif
 
-#define FLASHOFF_PATTERN_START  (FLASHOFF_STRAND_DATA   + (STRAND_COUNT * FLASH_SEG_LENGTH))
-#define FLASHOFF_PATTERN_END    (FLASHOFF_PATTERN_START + (STRAND_COUNT * FLASHLEN_PATTERN))
+#define FLASHOFF_PINFO_START  (FLASHOFF_STRAND_DATA + (STRAND_COUNT * FLASHLEN_STRAND_DATA))
+#define FLASHOFF_PINFO_END    (FLASHOFF_PINFO_START + (STRAND_COUNT * (FLASHLEN_PATSTR + FLASHLEN_PATNAME)))
 
-#define EEPROM_FREE_START  FLASHOFF_PATTERN_END
+#if (FLASHOFF_PINFO_END > EEPROM_BYTES)
+#error("EEPROM not large enough")
+#endif
+#define EEPROM_FREE_START  FLASHOFF_PINFO_END
 #define EEPROM_FREE_BYTES  (EEPROM_BYTES - EEPROM_FREE_START)
 
 extern void FlashSetValue(uint16_t offset, byte value);
 extern byte FlashGetValue(uint16_t offset);
+#if CLIENT_APP
+extern void FlashSetDevName(char *name);
+extern void FlashGetDevName(char *name);
+extern void FlashSetPatStr(char *str);
+extern void FlashGetPatStr(char *str);
+extern void FlashSetPatName(char *name);
+extern void FlashGetPatName(char *name);
+#endif
 extern byte FlashSetStrand(byte strandindex);
-extern void FlashSetName(char *name);
-extern void FlashGetName(char *name);
-extern void FlashSetStr(char *str, int offset);
-extern void FlashGetStr(char *str);
 extern void FlashSetBright();
 extern void FlashSetDelay();
 extern void FlashSetFirst();

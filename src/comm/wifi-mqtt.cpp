@@ -205,7 +205,7 @@ void WiFiMqtt::setName(char *name)
   DBGOUT(("Disconnect from Mqtt..."));
   mqttClient.disconnect();
 
-  FlashSetName(name);
+  FlashSetDevName(name);
   strcpy(deviceName, name);
 
   // re-connect with new name next loop
@@ -219,7 +219,7 @@ void WiFiMqtt::setup(void)
 
   DBGOUT((F("Setting up WiFi/Mqtt...")));
 
-  FlashGetName(deviceName);
+  FlashGetDevName(deviceName);
   MakeHostName();
 
   ConnectWiFi();

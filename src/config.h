@@ -37,6 +37,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 // minimize these to reduce memory consumption:
 #define STRLEN_PATSTR           300         // must be long enough for patterns
+#define STRLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 

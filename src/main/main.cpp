@@ -59,20 +59,20 @@ void DisplayConfiguration(void)
   }
 
   DBGOUT((F("Configuration:")));
-  DBGOUT((F("  MAX_BRIGHTNESS         = %d"), MAX_BRIGHTNESS));
-  DBGOUT((F("  DELAY_OFFSET           = %d"), DELAY_OFFSET));
-  DBGOUT((F("  DELAY_RANGE            = %d"), DELAY_RANGE));
-  DBGOUT((F("  STRAND_COUNT           = %d"), STRAND_COUNT));
-  DBGOUT((F("  PIXEL_COUNTS           = %s"), strcounts));
-  DBGOUT((F("  STRLEN_PATSTR          = %d"), STRLEN_PATSTR));
-  DBGOUT((F("  STRLEN_PATNAME         = %d"), STRLEN_PATNAME));
-  DBGOUT((F("  DEV_PATTERNS           = %d"), DEV_PATTERNS));
-  DBGOUT((F("  CLIENT_APP             = %d"), CLIENT_APP));
-  DBGOUT((F("  NUM_PLUGIN_TRACKS      = %d"), NUM_PLUGIN_TRACKS));
-  DBGOUT((F("  NUM_PLUGIN_LAYERS      = %d"), NUM_PLUGIN_LAYERS));
-  DBGOUT((F("  FLASHOFF_PATTERN_START = %d"), FLASHOFF_PATTERN_START));
-  DBGOUT((F("  FLASHOFF_PATTERN_END   = %d"), FLASHOFF_PATTERN_END));
-  DBGOUT((F("  EEPROM_FREE_BYTES      = %d"), EEPROM_FREE_BYTES));
+  DBGOUT((F("  MAX_BRIGHTNESS       = %d"), MAX_BRIGHTNESS));
+  DBGOUT((F("  DELAY_OFFSET         = %d"), DELAY_OFFSET));
+  DBGOUT((F("  DELAY_RANGE          = %d"), DELAY_RANGE));
+  DBGOUT((F("  STRAND_COUNT         = %d"), STRAND_COUNT));
+  DBGOUT((F("  PIXEL_COUNTS         = %s"), strcounts));
+  DBGOUT((F("  STRLEN_PATSTR        = %d"), STRLEN_PATSTR));
+  DBGOUT((F("  STRLEN_PATNAME       = %d"), STRLEN_PATNAME));
+  DBGOUT((F("  DEV_PATTERNS         = %d"), DEV_PATTERNS));
+  DBGOUT((F("  CLIENT_APP           = %d"), CLIENT_APP));
+  DBGOUT((F("  NUM_PLUGIN_TRACKS    = %d"), NUM_PLUGIN_TRACKS));
+  DBGOUT((F("  NUM_PLUGIN_LAYERS    = %d"), NUM_PLUGIN_LAYERS));
+  DBGOUT((F("  FLASHOFF_PINFO_START = %d"), FLASHOFF_PINFO_START));
+  DBGOUT((F("  FLASHOFF_PINFO_END   = %d"), FLASHOFF_PINFO_END));
+  DBGOUT((F("  EEPROM_FREE_BYTES    = %d"), EEPROM_FREE_BYTES));
 
   #if defined(ESP32)
   esp_chip_info_t sysinfo;
@@ -187,7 +187,7 @@ void setup()
 
     #if CLIENT_APP
     char cmdstr[STRLEN_PATSTR];
-    FlashGetStr(cmdstr);    // get pattern string previously stored in flash
+    FlashGetPatStr(cmdstr);    // get pattern string previously stored in flash
     ExecPattern(cmdstr);    // load pattern into the engine: ready to be displayed
     #else
     LoadCurPattern();       // load pattern string corresponding to pattern number

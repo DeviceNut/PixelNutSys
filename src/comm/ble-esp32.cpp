@@ -147,7 +147,7 @@ void BleEsp32::setup(void)
 
   DBGOUT((F("Setting up BLE...")));
 
-  FlashGetName(deviceName);
+  FlashGetDevName(deviceName);
   char str[PREFIX_LEN_DEVNAME + MAXLEN_DEVICE_NAME + 1];
   strcpy(str, PREFIX_DEVICE_NAME);
   strcpy((str+PREFIX_LEN_DEVNAME), deviceName);
@@ -181,7 +181,7 @@ void BleEsp32::setup(void)
 
 void BleEsp32::setName(char *name)
 {
-  FlashSetName(name);
+  FlashSetDevName(name);
   strcpy(deviceName, name);
 }
 
