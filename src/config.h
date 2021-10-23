@@ -25,14 +25,11 @@ See license.txt for the terms of this license.
 #define F(x) x
 extern void MsgFormat(const char *fmtstr, ...);
 
-// when first flash a new device, set this to 1 to clear the EEPROM, then reset to 0
+// to initilize the flash, set this to 1 to clear the EEPROM; must be 0 for normal operation
 #define EEPROM_FORMAT           0           // 1 to write 0 to entire flash data space
 
-// these depend on power comsumption, processor speed, and the physical layout:
+// these are defaults for particular global settings:
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
-#define DELAY_MIN_VALUE         -60         // min delay (largest delay in patterns)
-#define DELAY_MAX_VALUE         100         // max delay by default TODO
-#define DELAY_OFFSET            0           // default is no additional delay (for hardware controls only)
 #define PIXEL_OFFSET            0           // start drawing at the first pixel
 #define DIRECTION_UP            true        // draw from start to end by default
 

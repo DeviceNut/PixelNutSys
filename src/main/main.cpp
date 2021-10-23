@@ -19,7 +19,7 @@ bool doUpdate = true;             // false to not update display
 
 #if !CLIENT_APP
 byte curPattern = 1;              // current pattern (1..codePatterns)
-char curPatStr[STRLEN_PATSTR];  // current pattern string
+char curPatStr[STRLEN_PATSTR];    // current pattern string
 
 // create empty base class
 CustomCode customcode;
@@ -60,8 +60,6 @@ void DisplayConfiguration(void)
 
   DBGOUT((F("Configuration:")));
   DBGOUT((F("  MAX_BRIGHTNESS       = %d"), MAX_BRIGHTNESS));
-  DBGOUT((F("  DELAY_RANGE          = %d-%d"), DELAY_MIN_VALUE, DELAY_MAX_VALUE));
-  DBGOUT((F("  DELAY_OFFSET         = %d"), DELAY_OFFSET));
   DBGOUT((F("  STRAND_COUNT         = %d"), STRAND_COUNT));
   DBGOUT((F("  PIXEL_COUNTS         = %s"), strcounts));
   DBGOUT((F("  STRLEN_PATSTR        = %d"), STRLEN_PATSTR));
