@@ -27,11 +27,11 @@
 //
 // Properties Used:
 //
-//    msecsDelay - sets the maximum delay the very first call to nextstep().
+//    pcentDelay - sets the maximum delay the very first call to nextstep().
 //
 // Properties Affected:
 //
-//    msecsDelay - delay time in milliseconds: set each call to nextstep().
+//    pcentDelay - delay time in milliseconds: set each call to nextstep().
 //
 
 class PNP_DelaySurge : public PixelNutPlugin
@@ -49,26 +49,26 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    if (maxDelay == (uint16_t)-1) maxDelay = pdraw->msecsDelay; // set on very first trigger
+    if (maxDelay == (uint16_t)-1) maxDelay = pdraw->pcentDelay; // set on very first trigger
 
     // map inverse force between 0 and the max value (more force is less delay)
     force = abs(force);
-    pdraw->msecsDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, maxDelay, 0);
+    pdraw->pcentDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, maxDelay, 0);
     stepCount = 0;
 
-    //pixelNutSupport.msgFormat(F("DelaySurge: low=%d max=%d"), pdraw->msecsDelay, maxDelay);
+    //pixelNutSupport.msgFormat(F("DelaySurge: low=%d max=%d"), pdraw->pcentDelay, maxDelay);
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
-    if (pdraw->msecsDelay < maxDelay)
+    if (pdraw->pcentDelay < maxDelay)
     {
       if (++stepCount/10)
       {
-        ++pdraw->msecsDelay;
+        ++pdraw->pcentDelay;
         stepCount = 0;
 
-        //pixelNutSupport.msgFormat(F("DelaySurge: delay %d => %d"), pdraw->msecsDelay, maxDelay);
+        //pixelNutSupport.msgFormat(F("DelaySurge: delay %d => %d"), pdraw->pcentDelay, maxDelay);
       }
     }
   }

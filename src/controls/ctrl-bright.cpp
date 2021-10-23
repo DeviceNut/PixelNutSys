@@ -16,7 +16,7 @@ See license.txt for the terms of this license.
 static void SetMaxBrightness(byte brightness)
 {
   DBGOUT((F("Controls: max brightness=%d%%"), brightness));
-  pPixelNutEngine->setMaxBrightness(brightness);
+  pPixelNutEngine->setBrightPercent(brightness);
 }
 
 #endif

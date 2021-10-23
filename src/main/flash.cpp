@@ -120,9 +120,9 @@ void FlashGetPatName(char *name)
 
 void FlashSetPatNum(byte pattern) { FlashSetValue(FLASHOFF_SDATA_PATNUM, pattern); FlashDone(); }
 
-void FlashSetBright()    { FlashSetValue(FLASHOFF_SDATA_BRIGHTNESS, pPixelNutEngine->getMaxBrightness());  FlashDone(); }
-void FlashSetDelay()     { FlashSetValue(FLASHOFF_SDATA_DELAYMSECS, pPixelNutEngine->getDelayOffset());    FlashDone(); }
-void FlashSetFirst()     { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,   pPixelNutEngine->getFirstPosition());  FlashDone(); }
+void FlashSetBright()    { FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, pPixelNutEngine->getBrightPercent());  FlashDone(); }
+void FlashSetDelay()     { FlashSetValue(FLASHOFF_SDATA_PC_DELAY,  pPixelNutEngine->getDelayPercent());   FlashDone(); }
+void FlashSetFirst()     { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,  pPixelNutEngine->getFirstPosition());  FlashDone(); }
 
 void FlashSetXmode(bool enable) { FlashSetValue(FLASHOFF_SDATA_XT_MODE, enable);  FlashDone(); }
 
@@ -167,20 +167,22 @@ void FlashSetProperties(void)
   DBGOUT((F("Flash: pattern=#%d"), curPattern));
   #endif
  
-  byte bright = FlashGetValue(FLASHOFF_SDATA_BRIGHTNESS);
-  if (bright == 0) FlashSetValue(FLASHOFF_SDATA_BRIGHTNESS, bright=MAX_BRIGHTNESS); // set to max if 0
+  byte bright = FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT);
+  if (!bright || (bright > MAX_BRIGHTNESS))
+    FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, bright=MAX_BRIGHTNESS);
 
-  int8_t delay = (int8_t)FlashGetValue(FLASHOFF_SDATA_DELAYMSECS);
-  if ((delay < -DELAY_RANGE) || (DELAY_RANGE < delay)) delay = 0; // set to min if out of range
+  byte delay = FlashGetValue(FLASHOFF_SDATA_PC_DELAY);
+  if (delay > MAX_PERCENTAGE) delay = MAX_PERCENTAGE;
+    FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, delay=MAX_PERCENTAGE);
 
   int16_t fpos = FlashGetValue(FLASHOFF_SDATA_FIRSTPOS);
 
-  pPixelNutEngine->setMaxBrightness(bright);
-  pPixelNutEngine->setDelayOffset(delay);
+  pPixelNutEngine->setBrightPercent(bright);
+  pPixelNutEngine->setDelayPercent(delay);
   pPixelNutEngine->setFirstPosition(fpos);
 
-  DBGOUT((F("Flash: brightness=%d%%"), bright));
-  DBGOUT((F("Flash: delay=%d msecs"), delay));
+  DBGOUT((F("Flash: bright=%d%%"), bright));
+  DBGOUT((F("Flash: delay=%d%%"), delay));
 
   FlashSetProperties();
 

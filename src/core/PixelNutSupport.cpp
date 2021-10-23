@@ -161,7 +161,7 @@ void PixelNutSupport::setPixel(PixelNutHandle handle, uint16_t pos, byte r, byte
   {
     byte *ppixs = (pEngine->pDrawPixels + (pos * 3));
 
-    byte brightval = (scale * pEngine->getMaxBrightness() * MAX_BYTE_VALUE) / MAX_PERCENTAGE;
+    byte brightval = (scale * pEngine->getBrightPercent() * MAX_BYTE_VALUE) / MAX_PERCENTAGE;
     float factor = ((float)GammaCorrection(brightval) / MAX_BYTE_VALUE);
 
     ppixs[pPixOrder->r] = r * factor;

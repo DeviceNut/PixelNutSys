@@ -44,11 +44,11 @@ public:
             byte num_layers, byte num_tracks,
             uint16_t first_pixel=0, bool backwards=false);
 
-  void setMaxBrightness(byte percent) { pcentBright = percent; }
-  byte getMaxBrightness() { return pcentBright; }
+  void setBrightPercent(byte percent) { pcentBright = percent; }
+  byte getBrightPercent() { return pcentBright; }
 
-  void setDelayOffset(int8_t msecs) { delayOffset = msecs; }
-  int8_t getDelayOffset() { return delayOffset; }
+  void setDelayPercent(byte percent) { pcentDelay = percent; }
+  byte getDelayPercent() { return pcentDelay; }
 
   void setFirstPosition(uint16_t pixpos)
   {
@@ -111,7 +111,7 @@ protected:
 
   // default values for propertes and control settings:
   #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
-  #define DEF_DELAYMSECS    0
+  #define DEF_PCENTDELAY    (MAX_PERCENTAGE/2)
   #define DEF_DEGREESHUE    0
   #define DEF_PCENTWHITE    0
   #define DEF_PCENTCOUNT    50
@@ -132,9 +132,8 @@ protected:
     TrigTypeBit_Repeating    = 8,   // auto-repeating   ("R" command)
   };
 
-  byte pcentBright = MAX_PERCENTAGE;            // max percent brightness to apply to each effect
-  int8_t delayOffset = 0;                         // additional delay to add to each effect (msecs)
-                                                // this is kept to be +/- 'DELAY_RANGE'
+  byte pcentBright = MAX_BRIGHTNESS;            // percent brightness to apply to each effect
+  byte pcentDelay  = MAX_PERCENTAGE/2;          // percent delay to apply to each effect
 
   typedef struct ATTR_PACKED // 24-26 bytes
   {
@@ -181,7 +180,9 @@ protected:
   short indexTrackStack = -1;                   // index into the plugin properties stack
   short indexTrackEnable = -1;                  // higher indices are not yet activated
 
-  uint32_t timePrevUpdate = 0;                  // time of previous call to update
+  uint32_t msTimeUpdate = 0;                    // time of previous call to update
+  uint16_t maxDelayMsecs = 500;                 // delay time in msecs needed to get 1Hz
+                                                // (needs to be calibrated on bootup)
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goBackwards = false;                     // false to draw from start to end, else reverse

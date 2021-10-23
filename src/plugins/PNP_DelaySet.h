@@ -17,7 +17,7 @@
 //
 // Properties Affected:
 //
-//   delayMsecs - set to a value determined by the force used in the previous call to trigger().
+//   pcentDelay - set to a value determined by the force used in the previous call to trigger().
 //
 // Effect:
 //
@@ -40,6 +40,6 @@ public:
   {
     force = abs(force);
     // invert values: larger forces reduce the delay time
-    pdraw->msecsDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, MAX_BYTE_VALUE, 0);
+    pdraw->pcentDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, MAX_PERCENTAGE, 0);
   }
 };

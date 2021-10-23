@@ -165,7 +165,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
     pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT, 0, MAX_PERCENTAGE, 1, numPixels);
 
     SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
-    SETVAL_IF_NONZERO(pProps->msecsDelay,  DEF_DELAYMSECS);
+    SETVAL_IF_NONZERO(pProps->pcentDelay,  DEF_PCENTDELAY);
     SETVAL_IF_NONZERO(pProps->degreeHue,   DEF_DEGREESHUE);
     SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
     SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
@@ -294,11 +294,11 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 
     // just always reset trigger time after rollover event
     if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
-      pluginLayers[i].trigTimeMsecs = timePrevUpdate;
+      pluginLayers[i].trigTimeMsecs = msTimeUpdate;
 
     if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               && // auto-triggering set
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) && // have count (or infinite)
-        (pluginLayers[i].trigTimeMsecs <= timePrevUpdate))                  // and time has expired
+        (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))                  // and time has expired
     {
       DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
@@ -309,7 +309,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 
       triggerLayer(i, force);
 
-      pluginLayers[i].trigTimeMsecs = timePrevUpdate +
+      pluginLayers[i].trigTimeMsecs = msTimeUpdate +
           (1000 * random(pluginLayers[i].trigRepOffset,
                         (pluginLayers[i].trigRepOffset +
                         pluginLayers[i].trigRepRange+1)));
@@ -476,7 +476,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       clearStack();
       curlayer = curtrack = -1; // must reset these after clear
-      timePrevUpdate = 0; // redisplay pixels after being cleared
+      msTimeUpdate = 0; // redisplay pixels after being cleared
     }
     else if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
@@ -538,14 +538,14 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
           pdraw->pixStart = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 0, numPixels-1);
-          DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'K': // number of pixels in the track by percent
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
           pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
-          DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'B': // percent brightness property ("B" sets default value)
@@ -556,7 +556,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'D': // drawing delay ("D" sets default value)
         {
-          pdraw->msecsDelay = (byte)GetNumValue(cmd+1, DEF_DELAYMSECS, MAX_DELAY_VALUE);
+          pdraw->pcentDelay = (byte)GetNumValue(cmd+1, DEF_PCENTDELAY, MAX_PERCENTAGE);
+          DBGOUT((F("Delay=%d%%"), pdraw->pcentDelay));
           break;
         }
         case 'H': // color Hue degrees property ("H" sets default value)
@@ -776,9 +777,9 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      if (pdraw->msecsDelay != DEF_DELAYMSECS)
+      if (pdraw->pcentDelay != DEF_PCENTDELAY)
       {
-        sprintf(str, "D%d ", pdraw->msecsDelay);
+        sprintf(str, "D%d ", pdraw->pcentDelay);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
@@ -882,11 +883,11 @@ error:
 
 bool PixelNutEngine::updateEffects(void)
 {
-  bool doshow = (timePrevUpdate == 0);
+  bool doshow = (msTimeUpdate == 0);
 
   uint32_t time = pixelNutSupport.getMsecs();
-  bool rollover = (timePrevUpdate > time);
-  timePrevUpdate = time;
+  bool rollover = (msTimeUpdate > time);
+  msTimeUpdate = time;
 
   RepeatTriger(rollover);
 
@@ -903,8 +904,8 @@ bool PixelNutEngine::updateEffects(void)
     if (pLayer->disable || !pLayer->trigActive) continue;
 
     // update the time if it's rolled over, then check if time to draw
-    if (rollover) pTrack->msTimeRedraw = timePrevUpdate;
-    if (pTrack->msTimeRedraw > timePrevUpdate) continue;
+    if (rollover) pTrack->msTimeRedraw = msTimeUpdate;
+    if (pTrack->msTimeRedraw > msTimeUpdate) continue;
 
     short pixCount = 0;
     short degreeHue = 0;
@@ -934,10 +935,10 @@ bool PixelNutEngine::updateEffects(void)
     pLayer->pPlugin->nextstep(this, &pTrack->draw);
     pDrawPixels = pDisplayPixels; // restore to default (display buffer)
 
-    short addtime = pTrack->draw.msecsDelay + delayOffset;
-    //DBGOUT((F("delay=%d.%d.%d"), pTrack->draw.msecsDelay, delayOffset, addtime));
-    if (addtime <= 0) addtime = 1; // must advance at least by 1 each time
-    pTrack->msTimeRedraw = timePrevUpdate + addtime;
+    short addmsecs = (((maxDelayMsecs * pcentDelay) / MAX_PERCENTAGE) * pTrack->draw.pcentDelay) / MAX_PERCENTAGE;
+    DBGOUT((F("delay=%d (%d*%d*%d)"), addmsecs, maxDelayMsecs, pcentDelay, pTrack->draw.pcentDelay));
+    if (addmsecs <= 0) addmsecs = 1; // must advance at least by 1 each time
+    pTrack->msTimeRedraw = msTimeUpdate + addmsecs;
 
     doshow = true;
   }

@@ -46,9 +46,9 @@ PixelNutPlugin *PluginFactory::makePlugin(int plugin)
   {
     // drawing effects:
 
-    case 0:   return new PNP_DrawAll;                     // draws current color to all pixels
-    case 1:   return new PNP_DrawPush;                    // draws current color one pixel at a time, inserting at the head
-    case 2:   return new PNP_DrawStep;                    // draws current color one pixel at a time, appending at the tail
+    case 0:   return new PNP_DrawAll;                     // draws current color to all pixels on each step
+    case 1:   return new PNP_DrawPush;                    // draws current color to one pixel on each step, inserting at the head
+    case 2:   return new PNP_DrawStep;                    // draws current color to one pixel on each step, appending at the tail
 
     case 10:  return new PNP_LightWave;                   // light waves (brighness changes) that move; count property sets wave frequency
     case 20:  return new PNP_CometHeads;                  // creates "comets": moving head with tail that fades, trigger creates new head
@@ -56,9 +56,9 @@ PixelNutPlugin *PluginFactory::makePlugin(int plugin)
     case 40:  return new PNP_BlockScanner;                // moves color block back and forth; count property sets the block length 
 
                                                           // these use the current color, and count property sets the value of 'N':
-    case 50:  return new PNP_Twinkle;                     // scales light levels individually up and down for 'N' pixels in total
-    case 51:  return new PNP_Blinky;                      // blinks on and off 'N' random pixels using current color and brightness
-    case 52:  return new PNP_Noise;                       // sets 'N' randomly chosen pixels with a random brightness and current color
+    case 50:  return new PNP_Twinkle;                     // scales the brightness levels for 'N' pixels up and down individually
+    case 51:  return new PNP_Blinky;                      // blinks 'N' random pixels on/off using current color and brightness
+    case 52:  return new PNP_Noise;                       // sets 'N' random pixels using current color and random brightness 
 
     // predraw effects:
 

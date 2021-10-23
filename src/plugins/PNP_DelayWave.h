@@ -23,17 +23,17 @@
 //
 // Calling nextstep():
 //
-//    Sets the value of the 'msecsDelay' property each time, using the saved force
+//    Sets the value of the 'pcentDelay' property each time, using the saved force
 //    value to determine the modulation with a cosine function. The very first time
 //    this is called the maximum delay is set to the current property value.
 //
 // Properties Used:
 //
-//    msecsDelay - read to set the maximum delay the very first call to nextstep().
+//    pcentDelay - read to set the maximum delay the very first call to nextstep().
 //
 // Properties Affected:
 //
-//    msecsDelay - delay time in milliseconds: set each call to nextstep().
+//    pcentDelay - delay time in milliseconds: set each call to nextstep().
 //
 
 class PNP_DelayWave : public PixelNutPlugin
@@ -58,12 +58,12 @@ public:
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
-    if (!maxDelay) maxDelay = pdraw->msecsDelay;
+    if (!maxDelay) maxDelay = pdraw->pcentDelay;
 
     // scale delay from 0 to maxDelay:
-    pdraw->msecsDelay = maxDelay/2 * (cos(angleNext) + 1.0);
+    pdraw->pcentDelay = maxDelay/2 * (cos(angleNext) + 1.0);
 
-    //pixelNutSupport.msgFormat(F("DelayWave: delay=%d angle(*100)=%d"), pdraw->msecsDelay, (int)(angleNext*100));
+    //pixelNutSupport.msgFormat(F("DelayWave: delay=%d angle(*100)=%d"), pdraw->pcentDelay, (int)(angleNext*100));
 
     angleNext += (RADIANS_PER_WAVE / 100.0) * ((float)forceVal / MAX_FORCE_VALUE);
 

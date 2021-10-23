@@ -67,8 +67,8 @@ void ExecAppCmd(char *instr)
 
           sprintf(outstr, "%d %d %d %d\n%d %d %d %d %d",
                         pixcounts[i],
-                        FlashGetValue(FLASHOFF_SDATA_BRIGHTNESS),
-                        (int8_t)FlashGetValue(FLASHOFF_SDATA_DELAYMSECS),
+                        FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT),
+                        (int8_t)FlashGetValue(FLASHOFF_SDATA_PC_DELAY),
                         FlashGetValue(FLASHOFF_SDATA_FIRSTPOS),
 
                         FlashGetValue(FLASHOFF_SDATA_XT_MODE),
@@ -145,15 +145,15 @@ void ExecAppCmd(char *instr)
       #endif
       break;
     }
-    case '%': // set maximum brightness level
+    case '%': // set max brightness percentage
     {
-      pPixelNutEngine->setMaxBrightness(atoi(instr+1));
+      pPixelNutEngine->setBrightPercent(atoi(instr+1));
       FlashSetBright();
       break;
     }
-    case ':': // set delay offset
+    case ':': // set max delay percentage
     {
-      pPixelNutEngine->setDelayOffset( atoi(instr+1) );
+      pPixelNutEngine->setDelayPercent( atoi(instr+1) );
       FlashSetDelay();
       break;
     }

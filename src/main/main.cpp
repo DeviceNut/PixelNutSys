@@ -60,8 +60,8 @@ void DisplayConfiguration(void)
 
   DBGOUT((F("Configuration:")));
   DBGOUT((F("  MAX_BRIGHTNESS       = %d"), MAX_BRIGHTNESS));
+  DBGOUT((F("  DELAY_RANGE          = %d-%d"), DELAY_MIN_VALUE, DELAY_MAX_VALUE));
   DBGOUT((F("  DELAY_OFFSET         = %d"), DELAY_OFFSET));
-  DBGOUT((F("  DELAY_RANGE          = %d"), DELAY_RANGE));
   DBGOUT((F("  STRAND_COUNT         = %d"), STRAND_COUNT));
   DBGOUT((F("  PIXEL_COUNTS         = %s"), strcounts));
   DBGOUT((F("  STRLEN_PATSTR        = %d"), STRLEN_PATSTR));
@@ -187,7 +187,7 @@ void setup()
 
     #if CLIENT_APP
     char cmdstr[STRLEN_PATSTR];
-    FlashGetPatStr(cmdstr);    // get pattern string previously stored in flash
+    FlashGetPatStr(cmdstr); // get pattern string previously stored in flash
     ExecPattern(cmdstr);    // load pattern into the engine: ready to be displayed
     #else
     LoadCurPattern();       // load pattern string corresponding to pattern number

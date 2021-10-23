@@ -20,7 +20,6 @@
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
 #define MAX_DEGREES_HUE           359     // hue value is 0-359
 #define MAX_PIXEL_VALUE           255     // max value for pixel
-#define MAX_DELAY_VALUE           255     // max value for delay
 #define MAX_FORCE_VALUE           1000    // max value for force
 #define MAX_PLUGIN_VALUE          32000   // max value for plugin
 
@@ -62,12 +61,12 @@ public:
       uint16_t pixStart, pixLen;  // start/length of range of pixels to be drawn (0...)
       uint16_t pixCount;          // pixel count property (from 1)
 
+      byte pcentBright;           // percent brightness (0-MAX_PERCENTAGE)
+      byte pcentDelay;            // determines msecs delay after each redraw
+
       uint16_t degreeHue;         // hue in degrees (0-MAX_DEGREES_HUE)
       byte pcentWhite;            // percent whiteness (0-MAX_PERCENTAGE)
-      byte pcentBright;           // percent brightness (0-MAX_PERCENTAGE)
       byte r,g,b;                 // RGB calculated from the above 3 values
-
-      byte msecsDelay;            // determines msecs delay after each redraw
 
       bool goBackwards;           // direction of drawing (true for end-to-start)
       bool pixOrValues;           // whether pixels overwrite or are OR'ed

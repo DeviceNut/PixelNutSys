@@ -25,8 +25,8 @@ See license.txt for the terms of this license.
 
 // offsets within each strand space:
 #define FLASHOFF_SDATA_PATNUM       0
-#define FLASHOFF_SDATA_BRIGHTNESS   1
-#define FLASHOFF_SDATA_DELAYMSECS   2
+#define FLASHOFF_SDATA_PC_BRIGHT    1
+#define FLASHOFF_SDATA_PC_DELAY     2
 #define FLASHOFF_SDATA_FIRSTPOS     3  // 2 bytes
 #define FLASHOFF_SDATA_XT_MODE      5
 #define FLASHOFF_SDATA_XT_HUE       6  // 2 bytes

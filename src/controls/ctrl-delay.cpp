@@ -1,5 +1,5 @@
 // Hardware Delay Control
-// Sets global delay offset applied to all effects in the pixelnut engine.
+// Sets global delay percent applied to all effects in the pixelnut engine.
 /*
 Copyright (c) 2021, Greg de Valois
 Software License Agreement (MIT License)
@@ -13,10 +13,10 @@ See license.txt for the terms of this license.
 #if defined(DPIN_DELAY_BUTTON) || defined(APIN_DELAY_POT)
 
 // engine support setting of global delay offset
-static void SetDelayOffset(int8_t msecs = 0)
+static void SetDelayPercent(byte pcent = MAX_PERCENTAGE)
 {
-  DBGOUT((F("Controls: delay offset=%d msecs"), (msecs + DELAY_OFFSET)));
-  pPixelNutEngine->setDelayOffset(msecs + DELAY_OFFSET);
+  DBGOUT((F("Controls: delay percent=%d%%"), pcent));
+  pPixelNutEngine->setDelayPercent(pcent);
 }
 
 #endif
@@ -28,14 +28,14 @@ static void SetDelayOffset(int8_t msecs = 0)
 UIDeviceButton bc_delay(DPIN_DELAY_BUTTON, false, true, true);
 
 static byte delay_pos = 2; // default setting
-static int8_t delay_presets[] = { 30, 15, 0, -15, -30 };
+static int8_t delay_presets[] = { 10, 30, 50, 70, 90 };
 
 static void SetNewDelay(void)
 {
   if (delay_pos >= sizeof(delay_presets)/sizeof(delay_presets[0]))
     delay_pos = 0;
 
-  SetDelayOffset( delay_presets[delay_pos] );
+  SetDelayPercent( delay_presets[delay_pos] );
 }
 
 static void CheckDelay(void)
@@ -60,21 +60,21 @@ static void SetupDelay(void)
 
 // we define this so that the animation gets faster when increasing the pot
 #if defined(DELAY_POT_BACKWARDS) && DELAY_POT_BACKWARDS
-UIDeviceAnalog pc_delay(APIN_DELAY_POT, -DELAY_RANGE, DELAY_RANGE);
+UIDeviceAnalog pc_delay(APIN_DELAY_POT, 0, MAX_PERCENTAGE);
 #else // default is not wired backwards
-UIDeviceAnalog pc_delay(APIN_DELAY_POT, DELAY_RANGE, -DELAY_RANGE);
+UIDeviceAnalog pc_delay(APIN_DELAY_POT, MAX_PERCENTAGE, 0);
 #endif
 
 static void CheckDelay(void)
 {
   if (pc_delay.CheckForChange())
-    SetDelayOffset( pc_delay.newValue );
+    SetDelayPercent( pc_delay.newValue );
 }
 
 static void SetupDelay(void)
 {
-  DBGOUT((F("Delay: range=%d offset=%d msecs"), DELAY_RANGE, DELAY_OFFSET));
-  SetDelayOffset( pc_delay.newValue );
+  DBGOUT((F("Delay: range=%d-%d offset=%d msecs"), 0, MAX_PERCENTAGE));
+  SetDelayPercent( pc_delay.newValue );
 }
 
 #endif
