@@ -68,13 +68,13 @@ static short GetNumValue(char *str, int maxval)
   return newval;
 }
 
-// clips values to range 0-'maxval'
+// clips values to range 0-'maxval' (maxval=0 for full 16 bits)
 // returns 'curval' if no value is specified
-static short GetNumValue(char *str, int curval, int maxval) // FIXME: use signed values
+static short GetNumValue(char *str, int curval, int maxval)
 {
   if ((str == NULL) || !isdigit(*str)) return curval;
   int newval = atoi(str);
-  if (newval > maxval) return maxval;
+  if (maxval && (newval > maxval)) return maxval;
   if (newval < 0) return 0;
   return newval;
 }
@@ -663,7 +663,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
           if (isdigit(*(cmd+1))) // there is a value after "R"
           {
-            uint16_t value = (uint16_t)GetNumValue(cmd+1, 0, MAX_WORD_VALUE);
+            uint16_t value = (uint16_t)GetNumValue(cmd+1, 0, 0);
             if (value == 0) enable = false;
             else pluginLayers[curlayer].trigRepCount = value;
           }
@@ -686,12 +686,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'O': // repeat trigger offset time ("O" sets default value)
         {
-          pluginLayers[curlayer].trigRepOffset = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_OFFSET, MAX_WORD_VALUE);
+          pluginLayers[curlayer].trigRepOffset = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_OFFSET, 0);
           break;
         }
         case 'N': // range of trigger time ("N" sets default value)
         {
-          pluginLayers[curlayer].trigRepRange = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_RANGE, MAX_WORD_VALUE);
+          pluginLayers[curlayer].trigRepRange = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_RANGE, 0);
           break;
         }
         case 'G': // Go: activate newly added effect tracks

@@ -15,8 +15,6 @@
 
 // maximum values for properties:
 #define MAX_BYTE_VALUE            255     // max value in 8 bits (unsigned)
-#define MAX_WORD_VALUE            65535   // max value in 16 bits (unsigned) FIXME
-
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
 #define MAX_DEGREES_HUE           359     // hue value is 0-359
 #define MAX_PIXEL_VALUE           255     // max value for pixel
