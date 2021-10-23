@@ -36,13 +36,13 @@ static byte GammaCorrection(byte inval) { return pgm_read_byte(&gamma_vals[inval
 
 // hue: 0...MAX_DEGREES_HUE
 // sat: 0...MAX_PERCENTAGE
-// val: 0...MAX_BYTE_VALUE
+// val: 0...MAX_PERCENTAGE
 static void HSVtoRGB(int hue, byte sat, byte val, byte *rptr, byte *gptr, byte *bptr)
 {
   //val = GammaCorrection(val); // gamma correction to brightness
 
   float s = (float)sat / MAX_PERCENTAGE;
-  float v = (float)val / MAX_BYTE_VALUE;
+  float v = (float)val / MAX_PERCENTAGE;
   float q = (float)hue / 60; // which 60 degree section
   float smod = q - (int)q; // saturation modifier 0..1
   float r, g, b; // values 0..1
@@ -115,8 +115,8 @@ PixelNutSupport::PixelNutSupport(GetMsecsTime get_msecs, PixelValOrder *pix_orde
 void PixelNutSupport::makeColorVals(DrawProps *pdraw)
 {
   // convert brightness value from percentage to a byte value
-  byte brightval = ((uint32_t)pdraw->pcentBright * MAX_BYTE_VALUE) / MAX_PERCENTAGE;
-  HSVtoRGB(pdraw->degreeHue, (MAX_PERCENTAGE - pdraw->pcentWhite), brightval, &pdraw->r, &pdraw->g, &pdraw->b);
+  HSVtoRGB(pdraw->degreeHue, (MAX_PERCENTAGE - pdraw->pcentWhite), pdraw->pcentBright,
+            &pdraw->r, &pdraw->g, &pdraw->b);
 }
 
 void PixelNutSupport::movePixels(PixelNutHandle handle, uint16_t startpos, uint16_t endpos, uint16_t newpos)
