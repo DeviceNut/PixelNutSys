@@ -254,6 +254,8 @@ void PixelNutEngine::DelPluginLayer(short track, short layer)
 void PixelNutEngine::triggerLayer(byte layer, short force)
 {
   PluginLayer *pLayer = &pluginLayers[layer];
+  if (pLayer->disable) return;
+
   int track = pLayer->track;
   PluginTrack *pTrack = &pluginTracks[track];
 
@@ -323,23 +325,17 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 void PixelNutEngine::triggerForce(short force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-  {
-    if (!pluginLayers[i].disable &&
-        (pluginLayers[i].trigType & TrigTypeBit_External))
+    if (pluginLayers[i].trigType & TrigTypeBit_External)
       triggerLayer(i, force);
-  }
 }
 
 // internal: called from plugins
 void PixelNutEngine::triggerForce(byte layer, short force, PixelNutSupport::DrawProps *pdraw)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-  {
-    if (!pluginLayers[i].disable &&
-        (pluginLayers[i].trigLayer == layer) &&
-        (pluginLayers[i].trigType & TrigTypeBit_Internal))
+    if ((pluginLayers[i].trigType & TrigTypeBit_Internal) &&
+        (pluginLayers[i].trigLayer == layer))
       triggerLayer(i, force);
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -507,8 +503,10 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'Z': // sets/clears mute state for track/layer TODO
+        case 'Z': // sets/clears mute state for track/layer ('Z' disables)
         {
+          pluginLayers[curlayer].disable = GetBoolValue(cmd+1, false);
+          DBGOUT((F("Layer=%d Disable=%d"), curlayer, pluginLayers[curlayer].disable));
           break;
         }
         case 'S': // switch/remove effect for existing track ("S" deletes entire layer)
@@ -620,7 +618,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           pdraw->pixOrValues = GetBoolValue(cmd+1, !DEF_PIXORVALS);
           break;
         }
-        case 'F': // force value to be used by trigger ("F" means random force)
+        case 'F': // force value to be used by trigger ("F" for random force)
         {
           if (isdigit(*(cmd+1))) // there is a value after "F" (clip to 0-MAX_FORCE_VALUE)
                pluginLayers[curlayer].trigForce = GetNumValue(cmd+1, 0, MAX_FORCE_VALUE);
@@ -646,7 +644,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_External;
           break;
         }
-        case 'A': // assign effect layer as trigger source ("A" to disable)
+        case 'A': // assign effect layer as trigger source ("A" disables)
         {
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
