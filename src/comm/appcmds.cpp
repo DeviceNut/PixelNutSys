@@ -7,6 +7,7 @@ See license.txt for the terms of this license.
 
 #include "main.h"
 
+// Note: this modifies 'pattern'
 void ExecPattern(char *pattern)
 {
   PixelNutEngine::Status status = pPixelNutEngine->execCmdStr(pattern);
@@ -15,8 +16,6 @@ void ExecPattern(char *pattern)
     DBGOUT((F("CmdErr: %d"), status));
     ErrorHandler(2, status, false); // blink for error and continue
   }
-
-  *pattern = 0; // must clear command string after finished
 }
 
 #if CLIENT_APP
@@ -52,7 +51,7 @@ void ExecAppCmd(char *instr)
     }
     case '?': // sends reply with configuration strings
     {
-      char outstr[STRLEN_PATSTR];
+      char outstr[MAXLEN_PATSTR+1];
 
       if (instr[1] == 'S') // send info about each strand
       {
@@ -63,23 +62,23 @@ void ExecAppCmd(char *instr)
         {
           FlashSetStrand(i);
 
-          uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) + (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
+          uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) +
+                        (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
 
           sprintf(outstr, "%d %d %d %d\n%d %d %d %d %d",
                         pixcounts[i],
                         FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT),
-                        (int8_t)FlashGetValue(FLASHOFF_SDATA_PC_DELAY),
+                        FlashGetValue(FLASHOFF_SDATA_PC_DELAY),
                         FlashGetValue(FLASHOFF_SDATA_FIRSTPOS),
 
-                        FlashGetValue(FLASHOFF_SDATA_XT_MODE),
-                        hue,
+                        FlashGetValue(FLASHOFF_SDATA_XT_MODE), hue,
                         FlashGetValue(FLASHOFF_SDATA_XT_WHT),
                         FlashGetValue(FLASHOFF_SDATA_XT_CNT),
                         FlashGetValue(FLASHOFF_SDATA_FORCE));
           pCustomCode->sendReply(outstr);
 
           // returns empty string on error
-          if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
+          if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
             ErrorHandler(4, 1, false); // blink for error and continue
 
           pCustomCode->sendReply(outstr);
@@ -111,7 +110,7 @@ void ExecAppCmd(char *instr)
       else if (instr[1] == 0) // nothing after ?
       {
         sprintf(outstr, "P!!\n%d %d %d %d %d %d", 
-                        STRAND_COUNT, STRLEN_PATSTR,
+                        STRAND_COUNT, MAXLEN_PATSTR,
                         NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS,
                         codePatterns, 0); // custom plugin count TODO
         pCustomCode->sendReply(outstr);
@@ -120,15 +119,27 @@ void ExecAppCmd(char *instr)
 
       break;
     }
-    case '*': // store current pattern to flash
+    case '*': // store following pattern to flash and execute
     {
-      char outstr[STRLEN_PATSTR];
+      if (instr[1]) // save pattern string sent with command
+      {
+        FlashSetPatStr(instr+1);
+        ExecPattern(instr+1);
+      }
+      else
+      {
+        char outstr[MAXLEN_PATSTR];
 
-      // stores empty string on error
-      if (!pPixelNutEngine->makeCmdStr(outstr, STRLEN_PATSTR))
-        ErrorHandler(4, 1, false); // blink for error and continue
+        // no pattern string - use current one (clears if error)
+        if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
+          ErrorHandler(4, 1, false); // blink for error and continue
 
-      FlashSetPatStr(outstr);
+        FlashSetPatStr(outstr);
+      }
+      break;
+    }
+    case '+': // store pattern name to flash
+    {
       FlashSetPatName(instr+1);
       break;
     }

@@ -36,8 +36,8 @@ See license.txt for the terms of this license.
 
 #if CLIENT_APP
 #define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
-#define FLASHLEN_PATSTR             STRLEN_PATSTR
-#define FLASHLEN_PATNAME            STRLEN_PATNAME
+#define FLASHLEN_PATSTR             MAXLEN_PATSTR
+#define FLASHLEN_PATNAME            MAXLEN_PATNAME
 #else
 #define FLASHOFF_STRAND_DATA        0
 #define FLASHLEN_PATSTR             0

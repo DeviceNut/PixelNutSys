@@ -59,20 +59,24 @@ void FlashSetDevName(char *name)
 void FlashGetDevName(char *name)
 {
   for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
+  {
     name[i] = EEPROM.read(i);
+    if(!name[i]) break;
+  }
 
-  name[MAXLEN_DEVICE_NAME] = 0;
+  name[MAXLEN_DEVICE_NAME] = 0; // insure termination
 
   DBGOUT((F("FlashGetDevName: \"%s\""), name));
 }
 
 void FlashSetPatStr(char *str)
 {
-  DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"), pinfoOffset, str, strlen(str)));
+  DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"),
+          pinfoOffset, str, strlen(str)));
 
   for (int i = 0; ; ++i)
   {
-    if (i >= (STRLEN_PATSTR-1)) break;
+    if (i >= (MAXLEN_PATSTR-1)) break;
     EEPROM.write((pinfoOffset + i), str[i]);
     if (!str[i]) break;
   }
@@ -82,22 +86,23 @@ void FlashSetPatStr(char *str)
 
 void FlashGetPatStr(char *str)
 {
-  for (int i = 0; ; ++i)
+  for (int i = 0; i < MAXLEN_PATSTR; ++i)
   {
-    if (i >= (STRLEN_PATSTR-1))
-         str[i] = 0; // prevent overrun
-    else str[i] = EEPROM.read(pinfoOffset + i);
+    str[i] = EEPROM.read(pinfoOffset + i);
     if (!str[i]) break;
   }
+  str[MAXLEN_PATSTR] = 0; // insure termination
 
-  DBGOUT((F("FlashGetPatStr(@%d): \"%s\" (len=%d)"), pinfoOffset, str, strlen(str)));
+  DBGOUT((F("FlashGetPatStr(@%d): \"%s\" (len=%d)"),
+          pinfoOffset, str, strlen(str)));
 }
 
 void FlashSetPatName(char *name)
 {
-  DBGOUT((F("FlashSetPatName: \"%s\""), name));
+  DBGOUT((F("FlashSetPatName(@%d): \"%s\"  (len=%d)"),
+          (pinfoOffset + FLASHLEN_PATSTR), name, strlen(name)));
 
-  for (int i = 0; i < STRLEN_PATNAME; ++i)
+  for (int i = 0; i < MAXLEN_PATNAME; ++i)
   {
     EEPROM.write((pinfoOffset + FLASHLEN_PATSTR + i), name[i]);
     if (!name[i]) break;
@@ -108,12 +113,15 @@ void FlashSetPatName(char *name)
 
 void FlashGetPatName(char *name)
 {
-  for (int i = 0; i < STRLEN_PATNAME; ++i)
+  for (int i = 0; i < MAXLEN_PATNAME; ++i)
+  {
     name[i] = EEPROM.read(pinfoOffset + FLASHLEN_PATSTR + i);
+    if (!name[i]) break;
+  }
+  name[MAXLEN_PATNAME] = 0; // insure termination
 
-  name[STRLEN_PATNAME] = 0;
-
-  DBGOUT((F("FlashGetPatName: \"%s\""), name));
+  DBGOUT((F("FlashGetPatName(@%d): \"%s\"  (len=%d)"),
+          (pinfoOffset + FLASHLEN_PATSTR), name, strlen(name)));
 }
 
 #endif // CLIENT_APP
@@ -169,11 +177,17 @@ void FlashSetProperties(void)
  
   byte bright = FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT);
   if (!bright || (bright > MAX_BRIGHTNESS))
+  {
+    DBGOUT((F("Resetting bright: %d => %d %%"), bright, MAX_BRIGHTNESS));
     FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, bright=MAX_BRIGHTNESS);
+  }
 
   byte delay = FlashGetValue(FLASHOFF_SDATA_PC_DELAY);
-  if (delay > MAX_PERCENTAGE) delay = MAX_PERCENTAGE;
-    FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, delay=MAX_PERCENTAGE);
+  if (delay > MAX_PERCENTAGE)
+  {
+    DBGOUT((F("Resetting delay: %d => %d %%"), delay, MAX_PERCENTAGE));
+    FlashSetValue(FLASHOFF_SDATA_PC_DELAY, delay=MAX_PERCENTAGE);
+  }
 
   int16_t fpos = FlashGetValue(FLASHOFF_SDATA_FIRSTPOS);
 

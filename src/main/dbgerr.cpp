@@ -10,7 +10,7 @@ See license.txt for the terms of this license.
 #if DEBUG_OUTPUT
 
 // debug output string must be longer than pattern strings and any debug format string
-#define MAXLEN_DBGSTR (STRLEN_PATSTR + 70)
+#define MAXLEN_DBGSTR (MAXLEN_PATSTR + 70)
 char dbgstr[MAXLEN_DBGSTR];   // holds debug output string
 
 void MsgFormat(const char *fmtstr, ...)

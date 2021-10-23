@@ -34,8 +34,8 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define DIRECTION_UP            true        // draw from start to end by default
 
 // minimize these to reduce memory consumption:
-#define STRLEN_PATSTR           300         // must be long enough for patterns
-#define STRLEN_PATNAME          32          // max length for name of pattern
+#define MAXLEN_PATSTR           300         // must be long enough for patterns
+#define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 

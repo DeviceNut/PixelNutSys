@@ -21,7 +21,6 @@ extern byte codePatterns;
 extern bool doUpdate;
 #if !CLIENT_APP
 extern byte curPattern;
-extern char curPatStr[];
 #endif
 
 extern CustomCode *pCustomCode;

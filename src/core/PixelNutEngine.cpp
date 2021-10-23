@@ -934,7 +934,7 @@ bool PixelNutEngine::updateEffects(void)
     pDrawPixels = pDisplayPixels; // restore to default (display buffer)
 
     short addmsecs = (((maxDelayMsecs * pcentDelay) / MAX_PERCENTAGE) * pTrack->draw.pcentDelay) / MAX_PERCENTAGE;
-    DBGOUT((F("delay=%d (%d*%d*%d)"), addmsecs, maxDelayMsecs, pcentDelay, pTrack->draw.pcentDelay));
+    //DBGOUT((F("delay=%d (%d*%d*%d)"), addmsecs, maxDelayMsecs, pcentDelay, pTrack->draw.pcentDelay));
     if (addmsecs <= 0) addmsecs = 1; // must advance at least by 1 each time
     pTrack->msTimeRedraw = msTimeUpdate + addmsecs;
 

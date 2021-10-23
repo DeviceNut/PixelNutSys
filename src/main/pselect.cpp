@@ -22,8 +22,9 @@ void CountPatterns(void)
     }
 
     #if !CLIENT_APP
-    strcpy_P(curPatStr, devPatCmds[i]);
-    DBGOUT((F("  %2d: \"%s\""), i+1, curPatStr));
+    char outstr[MAXLEN_PATSTR+1];
+    strcpy_P(outstr, devPatCmds[i]);
+    DBGOUT((F("  %2d: \"%s\""), i+1, outstr));
     #else
     DBGOUT((F("  %2d: %s"), i+1, devPatNames[i]));
     #endif
@@ -40,11 +41,12 @@ void LoadCurPattern()
 {
   if ((0 < curPattern) && (curPattern <= codePatterns))
   {
-    strcpy_P(curPatStr, devPatCmds[curPattern-1]);
+    char outstr[MAXLEN_PATSTR+1];
+    strcpy_P(outstr, devPatCmds[curPattern-1]);
     DBGOUT((F("Retrieving device pattern #%d"), curPattern));
 
     pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
-    ExecPattern(curPatStr);
+    ExecPattern(outstr);
   }
 }
 
