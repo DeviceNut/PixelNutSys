@@ -238,6 +238,8 @@ void WiFiMqtt::setup(void)
   DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
 
   DBGOUT(("---------------------------------------"));
+
+  ConnectMqtt();
 }
 
 void WiFiMqtt::loop(void)

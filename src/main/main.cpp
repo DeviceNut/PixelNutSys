@@ -193,7 +193,6 @@ void setup()
   pPixelNutEngine = &pixelNutEngines[0];
 
   pCustomCode->setup();   // custom initialization here
-  //pCustomCode->sendReply((char*)"<Reboot>");
 
   #if defined(ESP32)
   randomSeed(esp_random()); // should be called after BLE/WiFi started
@@ -204,6 +203,10 @@ void setup()
 
   BlinkStatusLED(0, 2); // indicates success
   DBGOUT((F("** Setup complete **")));
+
+  #if CLIENT_APP
+  pCustomCode->sendReply((char*)"<Reboot>"); // signal client
+  #endif
 }
 
 void loop()
