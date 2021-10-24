@@ -298,9 +298,10 @@ void PixelNutEngine::RepeatTriger(bool rollover)
     if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
       pluginLayers[i].trigTimeMsecs = msTimeUpdate;
 
-    if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               && // auto-triggering set
-        (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) && // have count (or infinite)
-        (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))                  // and time has expired
+    // if repeat triggering is set and have count (or infinite) and time has expired
+    if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               &&
+        (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
+        (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
     {
       DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
@@ -503,9 +504,9 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'Z': // sets/clears mute state for track/layer ('Z' disables)
+        case 'Z': // sets/clears mute state for track/layer ("Z" same as "Z1")
         {
-          pluginLayers[curlayer].disable = GetBoolValue(cmd+1, false);
+          pluginLayers[curlayer].disable = GetBoolValue(cmd+1, true);
           DBGOUT((F("Layer=%d Disable=%d"), curlayer, pluginLayers[curlayer].disable));
           break;
         }
@@ -599,7 +600,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
               if (bits & ExtControlBit_PixCount)
               {
-                pdraw->pixCount = pixelNutSupport.mapValue(externPcentCount, 0, MAX_PERCENTAGE, 1, numPixels);
+                pdraw->pixCount = pixelNutSupport.mapValue(externPcentCount, 0,
+                                                MAX_PERCENTAGE, 1, numPixels);
                 DBGOUT((F("SetExtern: track=%d count=%d"), curtrack, pdraw->pixCount));
               }
 
@@ -625,7 +627,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           else pluginLayers[curlayer].trigForce = -1; // get random value each time
           break;
         }
-        case 'T': // trigger plugin layer ('T0' to disable)
+        case 'T': // trigger plugin layer ("T0" to disable, "T" same as "T1")
         {
           if (GetBoolValue(cmd+1, true))
           {
@@ -637,7 +639,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_AtStart;
           break;
         }
-        case 'I': // external triggering enable ('I0' to disable)
+        case 'I': // external triggering enable ("I0" to disable, "I" same as "I1")
         {
           if (GetBoolValue(cmd+1, true))
                pluginLayers[curlayer].trigType |=  TrigTypeBit_External;
@@ -673,7 +675,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
             pluginLayers[curlayer].trigTimeMsecs = pixelNutSupport.getMsecs() +
                 (1000 * random(pluginLayers[curlayer].trigRepOffset,
-                              (pluginLayers[curlayer].trigRepOffset + pluginLayers[curlayer].trigRepRange+1)));
+                              (pluginLayers[curlayer].trigRepOffset +
+                               pluginLayers[curlayer].trigRepRange+1)));
 
             DBGOUT((F("RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
                       pluginLayers[curlayer].trigRepOffset, pluginLayers[curlayer].trigRepRange,
@@ -748,10 +751,14 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
     PluginTrack *pTrack = &pluginTracks[pLayer->track];
     PixelNutSupport::DrawProps *pdraw = &pTrack->draw;
 
-    if (pLayer->disable) continue;
-
     sprintf(str, "E%d ", pLayer->iplugin);
     if (!addstr(&cmdstr, str, &addlen)) goto error;
+
+    if (pLayer->disable)
+    {
+      sprintf(str, "Z ");
+      if (!addstr(&cmdstr, str, &addlen)) goto error;
+    }
 
     if (i == pTrack->layer) // drawing layer
     {
