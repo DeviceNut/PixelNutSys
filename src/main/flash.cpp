@@ -74,9 +74,8 @@ void FlashSetPatStr(char *str)
   DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"),
           pinfoOffset, str, strlen(str)));
 
-  for (int i = 0; ; ++i)
+  for (int i = 0; i < MAXLEN_PATSTR; ++i)
   {
-    if (i >= (MAXLEN_PATSTR-1)) break;
     EEPROM.write((pinfoOffset + i), str[i]);
     if (!str[i]) break;
   }

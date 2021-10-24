@@ -119,31 +119,30 @@ void ExecAppCmd(char *instr)
 
       break;
     }
-    case '*': // store following pattern to flash and execute
+    case '$': // store current pattern to flash
     {
-      if (instr[1]) // save pattern string sent with command
-      {
-        FlashSetPatStr(instr+1);
-        ExecPattern(instr+1);
-      }
-      else
-      {
-        char outstr[MAXLEN_PATSTR];
+      char outstr[MAXLEN_PATSTR];
 
-        // no pattern string - use current one (clears if error)
-        if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
-          ErrorHandler(4, 1, false); // blink for error and continue
+      // no pattern string - use current one (clears if error)
+      if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
+        ErrorHandler(4, 1, false); // blink for error and continue
 
-        FlashSetPatStr(outstr);
-      }
+      FlashSetPatStr(outstr);
       break;
     }
-    case '+': // store pattern name to flash
+    case '=': // store following pattern to flash and execute
+    {
+      pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
+      FlashSetPatStr(instr+1);
+      ExecPattern(instr+1);
+      break;
+    }
+    case '~': // store pattern name to flash
     {
       FlashSetPatName(instr+1);
       break;
     }
-    case '#': // client is switching physical segments
+    case '#': // client is switching strands
     {
       #if (STRAND_COUNT > 1)
       byte index = *(instr+1)-0x30; // convert ASCII digit to value
@@ -162,7 +161,7 @@ void ExecAppCmd(char *instr)
       FlashSetBright();
       break;
     }
-    case ':': // set max delay percentage
+    case '&': // set max delay percentage
     {
       pPixelNutEngine->setDelayPercent( atoi(instr+1) );
       FlashSetDelay();
@@ -184,14 +183,14 @@ void ExecAppCmd(char *instr)
       doUpdate = true;
       break;
     }
-    case '_': // set external mode on/off
+    case '-': // set external mode on/off
     {
       bool mode = (atoi(instr+1) != 0);
       FlashSetXmode(mode);
       pPixelNutEngine->setPropertyMode(mode);
       break;
     }
-    case '=': // set color hue/white and count properties
+    case '+': // set color hue/white and count properties
     {
       ++instr; // skip past '='
       short hue = atoi(instr);
