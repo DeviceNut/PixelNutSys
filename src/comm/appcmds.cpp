@@ -119,22 +119,42 @@ void ExecAppCmd(char *instr)
 
       break;
     }
-    case '$': // store current pattern to flash
+    case '<': // return current pattern to client
     {
       char outstr[MAXLEN_PATSTR];
 
-      // no pattern string - use current one (clears if error)
-      if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
+      if (pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
+      {
         ErrorHandler(4, 1, false); // blink for error and continue
+        break;
+      }
+
+      pCustomCode->sendReply(outstr);
+      break;
+    }
+    case '>': // store current pattern to flash
+    {
+      char outstr[MAXLEN_PATSTR];
+
+      if (pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
+      {
+        ErrorHandler(4, 1, false); // blink for error and continue
+        break;
+      }
 
       FlashSetPatStr(outstr);
       break;
     }
-    case '=': // store following pattern to flash and execute
+    case '$': // store pattern string to flash, clear and execute
     {
       pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
       FlashSetPatStr(instr+1);
       ExecPattern(instr+1);
+      break;
+    }
+    case '=': // store pattern string to flash
+    {
+      FlashSetPatStr(instr+1);
       break;
     }
     case '~': // store pattern name to flash
