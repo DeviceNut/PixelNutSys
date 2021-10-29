@@ -148,8 +148,6 @@ void ExecAppCmd(char *instr)
     case '$': // store pattern string to flash, clear and execute
     {
       pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
-      msTimeUpdate = 0; // redisplay pixels after being cleared
-
       FlashSetPatStr(instr+1);
       ExecPattern(instr+1);
       break;

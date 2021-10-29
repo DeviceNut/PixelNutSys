@@ -107,8 +107,9 @@ void PixelNutEngine::clearStack(void)
   indexLayerStack  = -1;
   indexTrackStack  = -1;
 
-  // clear all pixels too
+  // clear all pixels and force redisplay
   memset(pDisplayPixels, 0, pixelBytes);
+  msTimeUpdate = 0;
 }
 
 // return false if unsuccessful for any reason
@@ -473,7 +474,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       clearStack();
       curlayer = curtrack = -1; // must reset these after clear
-      msTimeUpdate = 0; // redisplay pixels after being cleared
     }
     else if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
@@ -504,7 +504,11 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'Z': // sets/clears mute state for track/layer ("Z" same as "Z1")
+        case 'Z': // append or delete track/layer ("Z" to delete, else value is effect to append)
+        {
+          break;
+        }
+        case 'M': // sets/clears mute state for track/layer ("M" same as "M1")
         {
           pluginLayers[curlayer].disable = GetBoolValue(cmd+1, true);
           DBGOUT((F("Layer=%d Disable=%d"), curlayer, pluginLayers[curlayer].disable));
@@ -756,7 +760,7 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 
     if (pLayer->disable)
     {
-      sprintf(str, "Z ");
+      sprintf(str, "M ");
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
 
