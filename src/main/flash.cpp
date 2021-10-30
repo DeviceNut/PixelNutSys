@@ -13,7 +13,10 @@ See license.txt for the terms of this license.
 #endif
 
 static byte valOffset = FLASHOFF_STRAND_DATA;
+
+#if CLIENT_APP
 static uint16_t pinfoOffset = FLASHOFF_PINFO_START;
+#endif
 
 static void FlashStart(void)
 {
