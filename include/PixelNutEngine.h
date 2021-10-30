@@ -135,20 +135,20 @@ protected:
   byte pcentBright = MAX_BRIGHTNESS;            // percent brightness to apply to each effect
   byte pcentDelay  = MAX_PERCENTAGE/2;          // percent delay to apply to each effect
 
-  typedef struct ATTR_PACKED // 24-26 bytes
+  struct ATTR_PACKED _PluginTrack;
+  typedef struct ATTR_PACKED // 28-32 bytes
   {
+    struct _PluginTrack *pTrack;                // pointer to track for this layer (if redraw)
     PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
     byte iplugin;                               // plugin ID value (0 is placeholder)
     bool redraw;                                // true if plugin is drawing else filter
-    byte track;                                 // index into tracks for plugin properties
     bool disable;                               // true to disable this layer (mute)
 
     byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
     bool trigActive;                            // true once layer has been triggered once
+    byte trigLayerIndex;                        // layer stack index of effect trigger
+    uint16_t trigLayerID;                       //  and the layerID of that layer
     short trigForce;                            // amount of force to apply (-1 for random)
-
-    byte trigLayer;                             // layer that can trigger this layer
-    byte reserved;
 
                                                 // repeat triggering:
     uint16_t trigRepCount;                      // number of times to trigger (0 to repeat forever)
@@ -156,17 +156,22 @@ protected:
     uint32_t trigTimeMsecs;                     // next trigger time in msecs, calculated from:
     uint16_t trigRepOffset;                     // min delay offset before next trigger in seconds
     uint16_t trigRepRange;                      // range of delay values possible (min...min+range)
+
+    uint16_t thisLayerID;                       // unique identifier for this layer
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED // 24 bytes
+  typedef struct ATTR_PACKED _PluginTrack // 28-32 bytes
   {
+    PluginLayer *pLayer;                        // pointer to layer for this track
+    byte *pBuffer;                              // pixel buffer for this track
+
     PixelNutSupport::DrawProps draw;            // drawing properties for this track
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
 
+    bool active;                                // true if has been activated (G command)
     byte ctrlBits;                              // controls setting properties (ExtControlBit_xx)
-    byte layer;                                 // index into layer stack to redraw effect
-    byte lcount;                                // number of layers in this track
+    byte lcount;                                // number of layers in this track (>= 1)
     byte reserved;
   }
   PluginTrack; // defines properties for each drawing plugin
@@ -182,12 +187,11 @@ protected:
 
   uint32_t msTimeUpdate = 0;                    // time of previous call to update
   uint16_t maxDelayMsecs = 500;                 // delay time in msecs needed to get 1Hz
-                                                // (needs to be calibrated on bootup)
+                                                // (needs to be calibrated on bootup) TODO
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goBackwards = false;                     // false to draw from start to end, else reverse
 
-  byte *pTrackBuffers;                          // array of pixel buffers for each track
   byte numBytesPerPixel;                        // number of bytes needed for each pixel
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 
@@ -202,7 +206,7 @@ protected:
 
   Status AddPluginLayer(int plugin);
   Status ModPluginLayer(int plugin, short layer);
-  void DelPluginLayer(short track, short layer);
+  void DelPluginLayer(short layer);
 
   void RepeatTriger(bool rollover);
 };
