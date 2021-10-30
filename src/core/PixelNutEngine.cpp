@@ -143,18 +143,26 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   }
 
   ++indexLayerStack; // stack another effect layer
-  memset(&pluginLayers[indexLayerStack], 0, sizeof(PluginLayer));
+  PluginLayer *pLayer = (pluginLayers + indexLayerStack);
+  memset(pLayer, 0, sizeof(PluginLayer));
 
-  PluginTrack *pTrack = NULL;
+  PluginTrack *pTrack;
+
   if (dodraw)
   {
     ++indexTrackStack; // create another effect track
-    pTrack = &pluginTracks[indexTrackStack];
-    memset(pTrack, 0, sizeof(PluginTrack)); // set all to 0
+    pTrack = pluginTracks + indexTrackStack;
+
+    // clear track but retain pixel buffer
+    byte *pbuff = pTrack->pBuffer;
+    memset(pTrack, 0, sizeof(PluginTrack));
+    pTrack->pBuffer = pbuff;
+
+    pTrack->pLayer = pLayer; // refer back to this layer
 
     // initialize track drawing properties to default values
     PixelNutSupport::DrawProps *pProps = &pTrack->draw;
-    pTrack->draw.pixLen = numPixels; // set initial window
+    pProps->pixLen = numPixels; // set initial window
     pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT, 0, MAX_PERCENTAGE, 1, numPixels);
 
     SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
@@ -166,8 +174,8 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
 
     pixelNutSupport.makeColorVals(pProps); // create RGB values
   }
+  else pTrack = pluginTracks + indexTrackStack;
 
-  PluginLayer *pLayer = &pluginLayers[indexLayerStack];
   pLayer->pTrack  = pTrack;
   pLayer->pPlugin = pPlugin;
   pLayer->iplugin = iplugin;
@@ -177,7 +185,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   SETVAL_IF_NONZERO(pLayer->trigRepCount,  DEF_TRIG_FOREVER);
   SETVAL_IF_NONZERO(pLayer->trigRepOffset, DEF_TRIG_OFFSET);
   SETVAL_IF_NONZERO(pLayer->trigRepRange,  DEF_TRIG_RANGE);
-  // all other parameters have been initialized to 0 with memset
+  // all other parameters have been initialized to 0
 
   DBGOUT((F("Append plugin: #%d type=0x%02X redraw=%d track=%d layer=%d"),
           iplugin, ptype, dodraw, indexTrackStack, indexLayerStack));
@@ -185,11 +193,8 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(int iplugin)
   // begin new plugin, but will not be drawn until triggered
   pPlugin->begin(indexLayerStack, numPixels);
 
-  if (dodraw)
-  {
-    // must clear buffer to remove current drawn pixels
-    memset(pTrack->pBuffer, 0, pixelBytes);
-  }
+  // must clear buffer to remove currently drawn pixels
+  if (dodraw) memset(pTrack->pBuffer, 0, pixelBytes);
 
   return Status_Success;
 }

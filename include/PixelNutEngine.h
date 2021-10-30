@@ -138,7 +138,7 @@ protected:
   struct ATTR_PACKED _PluginTrack;
   typedef struct ATTR_PACKED // 28-32 bytes
   {
-    struct _PluginTrack *pTrack;                // pointer to track for this layer (if redraw)
+    struct _PluginTrack *pTrack;                // pointer to track for this layer
     PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
     byte iplugin;                               // plugin ID value (0 is placeholder)
     bool redraw;                                // true if plugin is drawing else filter
