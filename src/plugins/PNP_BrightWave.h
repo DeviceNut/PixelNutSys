@@ -69,17 +69,18 @@ public:
 
     pixelNutSupport.makeColorVals(pdraw);
 
-    //pixelNutSupport.msgFormat(F("BrightWave: force=%d bright=%d angle(*100)=%d"), forceVal, pdraw->pcentBright, (int)(angleNext*100));
+    //pixelNutSupport.msgFormat(F("BrightWave: force=%d bright=%d angle=%.1f"),
+    //  forceVal, pdraw->pcentBright, ((angleNext*DEGREES_PER_CIRCLE)/RADIANS_PER_CIRCLE));
 
-    angleNext += (RADIANS_PER_WAVE / 100.0) * ((float)forceVal / MAX_FORCE_VALUE);
+    angleNext += (RADIANS_PER_CIRCLE / 100.0) * ((float)forceVal / MAX_FORCE_VALUE);
 
-    if (angleNext > RADIANS_PER_WAVE)
+    if (angleNext > RADIANS_PER_CIRCLE)
     {
-      angleNext -= RADIANS_PER_WAVE;
+      angleNext -= RADIANS_PER_CIRCLE;
       pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
     }
     else if (angleNext < 0)
-      angleNext += RADIANS_PER_WAVE;
+      angleNext += RADIANS_PER_CIRCLE;
   }
 
 private:

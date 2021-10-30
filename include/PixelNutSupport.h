@@ -11,7 +11,8 @@
 
 // useful physical constants:
 #define PI_VALUE            (3.1415)
-#define RADIANS_PER_WAVE    (2 * PI_VALUE)  // radians in a circle
+#define RADIANS_PER_CIRCLE  (2 * PI_VALUE)  // radians in a circle
+#define DEGREES_PER_CIRCLE  360             // degrees in a circle
 
 // maximum values for properties:
 #define MAX_BYTE_VALUE            255     // max value in 8 bits (unsigned)

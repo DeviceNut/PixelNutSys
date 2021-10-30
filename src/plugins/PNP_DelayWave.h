@@ -63,18 +63,19 @@ public:
     // scale delay from 0 to maxDelay:
     pdraw->pcentDelay = maxDelay/2 * (cos(angleNext) + 1.0);
 
-    //pixelNutSupport.msgFormat(F("DelayWave: delay=%d angle(*100)=%d"), pdraw->pcentDelay, (int)(angleNext*100));
+    //pixelNutSupport.msgFormat(F("DelayWave: delay=%d angle=%.1f"),
+    //  pdraw->pcentDelay, ((angleNext*DEGREES_PER_CIRCLE)/RADIANS_PER_CIRCLE));
 
-    angleNext += (RADIANS_PER_WAVE / 100.0) * ((float)forceVal / MAX_FORCE_VALUE);
+    angleNext += (RADIANS_PER_CIRCLE / 100.0) * ((float)forceVal / MAX_FORCE_VALUE);
 
-    if (angleNext > RADIANS_PER_WAVE)
+    if (angleNext > RADIANS_PER_CIRCLE)
     {
-      angleNext -= RADIANS_PER_WAVE;
+      angleNext -= RADIANS_PER_CIRCLE;
       pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
     }
     else if (angleNext < 0)
     {
-      angleNext += RADIANS_PER_WAVE;
+      angleNext += RADIANS_PER_CIRCLE;
       pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
     }
   }

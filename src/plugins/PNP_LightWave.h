@@ -42,7 +42,7 @@ public:
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
     uint16_t count = (pixLength - pdraw->pixCount + 1);
-    float angle_step = (RADIANS_PER_WAVE / 10.0) * ((float)count / pixLength);
+    float angle_step = (RADIANS_PER_CIRCLE / 10.0) * ((float)count / pixLength);
     float angle = angleNext;
 
     for (uint16_t i = 0; i < pixLength; ++i, angle += angle_step)
@@ -55,7 +55,7 @@ public:
     //pixelNutSupport.msgFormat(F("LightWave: angleNext * 100 = %d"), (int)(angleNext * 100));
 
     angleNext -= angle_step; // subtracting causes "forward" motion
-    if (angleNext < 0) angleNext += RADIANS_PER_WAVE;
+    if (angleNext < 0) angleNext += RADIANS_PER_CIRCLE;
   }
 
 private:

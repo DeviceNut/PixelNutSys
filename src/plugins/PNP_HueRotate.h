@@ -57,7 +57,7 @@ public:
     }
     else doResetAtEnd = false;
 
-    //pixelNutSupport.msgFormat(F("HueRotate: force=%d pixlen=%d degrees=%d(*100)"), force, pixLength, (int)(addDegrees*100));
+    //pixelNutSupport.msgFormat(F("HueRotate: force=%d pixlen=%d degrees=%.1f"), force, pixLength, addDegrees);
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
