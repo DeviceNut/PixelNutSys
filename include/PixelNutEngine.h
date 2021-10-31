@@ -179,6 +179,7 @@ protected:
   PluginLayer *pluginLayers;                    // plugin layers that creates effect
   short maxPluginLayers;                        // max number of layers possible
   short indexLayerStack = -1;                   // index into the plugin layers stack
+  uint16_t uniqueLayerID = 1;                   // used to identify layers uniquely
 
   PluginTrack *pluginTracks;                    // plugin tracks that have properties
   short maxPluginTracks;                        // max number of tracks possible
@@ -204,9 +205,12 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
+  Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype);
   Status AddPluginLayer(int plugin);
-  Status ModPluginLayer(int plugin, short layer);
-  void DelPluginLayer(short layer);
+  Status AppendPluginLayer(short layer, int plugin);
+  Status SwitchPluginLayer(short layer, int plugin);
+  void SwapPluginLayers(short layer);
+  void RemovePluginLayer(short layer);
 
   void RepeatTriger(bool rollover);
 };
