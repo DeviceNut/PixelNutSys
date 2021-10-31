@@ -145,11 +145,12 @@ void ExecAppCmd(char *instr)
       FlashSetPatStr(outstr);
       break;
     }
-    case '$': // store pattern string to flash, clear and execute
+    case '$': // restart: clear, then execute pattern stored in flash
     {
+      char cmdstr[MAXLEN_PATSTR+1];
       pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
-      FlashSetPatStr(instr+1);
-      ExecPattern(instr+1);
+      FlashGetPatStr(cmdstr); // get pattern string previously stored in flash
+      ExecPattern(cmdstr);
       break;
     }
     case '=': // store pattern string to flash
