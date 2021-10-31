@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -49,10 +49,7 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
   return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Trigger force handling routines
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// called by all of the following triggering functions
 void PixelNutEngine::triggerLayer(byte layer, short force)
 {
   PluginLayer *pLayer = (pluginLayers + layer);

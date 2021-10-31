@@ -87,7 +87,7 @@ public:
   // Used by plugins to trigger based on the effect layer, enabled by the "A" command.
   void triggerForce(byte layer, short force, PixelNutSupport::DrawProps *pdraw);
 
-  // Called by the above and DoTrigger(), RepeatTriger(), allows override
+  // Called by the above and internal triggering functions to allow override
   virtual void triggerLayer(byte layer, short force);
 
   // Parses and executes a pattern command string, returning a status code.
@@ -102,7 +102,7 @@ public:
   // creates command string from currently running pattern
   bool makeCmdStr(char *cmdstr, int maxlen);
 
-  // Private to the PixelNutSupport class and main application.
+  // Used to access main display buffer and related parameters.
   byte *pDrawPixels;    // current pixel buffer to draw into or display
   uint16_t numPixels;   // number of pixels in output buffer
   uint16_t pixelBytes;  // total bytes in for all pixels
