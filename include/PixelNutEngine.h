@@ -205,18 +205,21 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
+  void RepeatTriger(bool rollover);
+
   Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype);
-  void InitPluginLayer(PluginLayer *pLayer, bool redraw);
+  void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
+  void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
+                          PixelNutPlugin *pPlugin, int iplugin, bool redraw);
+
   void updateTrackPtrs(void);
   void updateLayerPtrs(void);
 
   Status AppendPluginLayer(int plugin);
   Status InsertPluginLayer(short layer, int plugin);
   Status SwitchPluginLayer(short layer, int plugin);
-  void SwapPluginLayers(short layer);
+  Status SwapPluginLayers(short layer);
   void DeletePluginLayer(short layer);
-
-  void RepeatTriger(bool rollover);
 };
 
 class PluginFactory

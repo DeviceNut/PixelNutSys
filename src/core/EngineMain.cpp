@@ -17,9 +17,9 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
 {
   pixelBytes = num_pixels * num_bytes;
 
-  // allocate track and layer stacks
-  pluginLayers  = (PluginLayer*)malloc(num_layers * sizeof(PluginLayer));
-  pluginTracks  = (PluginTrack*)malloc(num_tracks * sizeof(PluginTrack));
+  // allocate track and layer stacks; add 1 for use in swapping
+  pluginLayers  = (PluginLayer*)malloc((num_layers + 1) * sizeof(PluginLayer));
+  pluginTracks  = (PluginTrack*)malloc((num_tracks + 1) * sizeof(PluginTrack));
   if ((pluginLayers == NULL) || (pluginTracks == NULL)) return false;
 
   // allocate pixel buffer for each track
@@ -42,8 +42,8 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
   firstPixel        = first_pixel;
   goBackwards       = backwards;
 
-  maxPluginLayers = (short)num_layers;
-  maxPluginTracks = (short)num_tracks;
+  maxPluginLayers = (short)num_layers; // swap layer at this index
+  maxPluginTracks = (short)num_tracks; // swap track at this index
 
   pDrawPixels = pDisplayPixels;
   return true;

@@ -59,9 +59,9 @@ void PixelNutEngine::clearStacks(void)
 PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype)
 {
   // check if can add another layer to the stack
-  if ((indexLayerStack+1) >= maxPluginLayers)
+  if ((indexLayerStack + 1) >= maxPluginLayers)
   {
-    DBGOUT((F("Cannot add another layer: max=%d"), (indexLayerStack+1)));
+    DBGOUT((F("Cannot add another layer: max=%d"), (indexLayerStack + 1)));
     return Status_Error_Memory;
   }
 
@@ -94,59 +94,48 @@ PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin
   return Status_Success;
 }
 
-void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, bool redraw)
+void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
+{
+  // clear track but retain pixel buffer and clear it
+  byte *pbuff = pTrack->pBuffer;
+  memset(pTrack, 0, sizeof(PluginTrack));
+  memset(pbuff, 0, pixelBytes);
+  pTrack->pBuffer = pbuff;
+
+  pTrack->pLayer = pLayer; // this layer not yet initialized
+
+  // initialize track drawing properties to default values
+  PixelNutSupport::DrawProps *pProps = &pTrack->draw;
+  pProps->pixLen = numPixels; // set initial window
+  pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT,
+                          0,MAX_PERCENTAGE, 1,numPixels);
+
+  SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
+  SETVAL_IF_NONZERO(pProps->pcentDelay,  DEF_PCENTDELAY);
+  SETVAL_IF_NONZERO(pProps->degreeHue,   DEF_DEGREESHUE);
+  SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
+  SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
+  SETVAL_IF_NONZERO(pProps->pixOrValues, DEF_PIXORVALS);
+
+  pixelNutSupport.makeColorVals(pProps); // create RGB values
+}
+
+void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
+                        PixelNutPlugin *pPlugin, int iplugin, bool redraw)
 {
   memset(pLayer, 0, sizeof(PluginLayer));
   pLayer->thisLayerID = uniqueLayerID++;
 
-  PluginTrack *pTrack;
-
-  if (pLayer->redraw)
-  {
-    ++indexTrackStack; // create another effect track
-    pTrack = (pluginTracks + indexTrackStack);
-
-    // clear track but retain pixel buffer
-    byte *pbuff = pTrack->pBuffer;
-    memset(pTrack, 0, sizeof(PluginTrack));
-    pTrack->pBuffer = pbuff;
-
-    pTrack->pLayer = pLayer;  // refer back to this layer
-
-    // initialize track drawing properties to default values
-    PixelNutSupport::DrawProps *pProps = &pTrack->draw;
-    pProps->pixLen = numPixels; // set initial window
-    pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT, 0, MAX_PERCENTAGE, 1, numPixels);
-
-    SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
-    SETVAL_IF_NONZERO(pProps->pcentDelay,  DEF_PCENTDELAY);
-    SETVAL_IF_NONZERO(pProps->degreeHue,   DEF_DEGREESHUE);
-    SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
-    SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
-    SETVAL_IF_NONZERO(pProps->pixOrValues, DEF_PIXORVALS);
-
-    pixelNutSupport.makeColorVals(pProps); // create RGB values
-  }
-  else pTrack = (pluginTracks + indexTrackStack); // current track
-
-  pTrack->lcount++; // first/another layer for this track
-
-  pLayer->pTrack  = pTrack;
-  pLayer->pPlugin = pLayer->pPlugin;
-  pLayer->iplugin = pLayer->iplugin;
+  pLayer->pPlugin = pPlugin;
+  pLayer->iplugin = iplugin;
   pLayer->redraw  = redraw;
+  pLayer->pTrack  = pTrack;
 
   SETVAL_IF_NONZERO(pLayer->trigForce,     DEF_FORCEVAL);
   SETVAL_IF_NONZERO(pLayer->trigRepCount,  DEF_TRIG_FOREVER);
   SETVAL_IF_NONZERO(pLayer->trigRepOffset, DEF_TRIG_OFFSET);
   SETVAL_IF_NONZERO(pLayer->trigRepRange,  DEF_TRIG_RANGE);
   // all other parameters have been initialized to 0
-
-  // begin new plugin, but will not be drawn until triggered
-  pLayer->pPlugin->begin(pLayer->thisLayerID, numPixels);
-
-  // must clear buffer to remove currently drawn pixels
-  if (redraw) memset(pTrack->pBuffer, 0, pixelBytes);
 }
 
 // Return false if unsuccessful for any reason.
@@ -157,15 +146,23 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(int iplugin)
   Status rc = MakeNewPlugin(iplugin, &pPlugin, &ptype);
   if (rc != Status_Success) return rc;
 
-  bool redraw = !!(ptype & PLUGIN_TYPE_REDRAW);
-
   ++indexLayerStack; // stack another effect layer
   PluginLayer *pLayer = (pluginLayers + indexLayerStack);
+
+  bool redraw = !!(ptype & PLUGIN_TYPE_REDRAW);
+  if (redraw) ++indexTrackStack; // create another effect track
+  PluginTrack *pTrack = (pluginTracks + indexTrackStack);
 
   DBGOUT((F("Append plugin: #%d type=0x%02X track=%d layer=%d"),
           iplugin, ptype, indexTrackStack, indexLayerStack));
 
-  InitPluginLayer(pLayer, redraw);
+  if (redraw) InitPluginTrack(pTrack, pLayer);
+
+  InitPluginLayer(pLayer, pTrack, pPlugin, iplugin,  redraw);
+
+  // begin new plugin, but will not be drawn until triggered
+  pLayer->pPlugin->begin(pLayer->thisLayerID, numPixels);
+
   return Status_Success;
 }
 
@@ -189,7 +186,7 @@ PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugi
   PluginLayer *pLayer = (pluginLayers + layer);
 
   bool redraw = !!(ptype & PLUGIN_TYPE_REDRAW);
-  if (redraw != pLayer->redraw)
+  if (redraw != pLayer->redraw) // must be same as current layer
   {
     DBGOUT((F("Unexpected plugin(%d) type=%02X for layer=%d"), iplugin, ptype, layer));
     delete pPlugin;
@@ -198,27 +195,36 @@ PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugi
 
   DBGOUT((F("Insert plugin: #%d type=0x%02X layer=%d"), iplugin, ptype, layer));
 
+  PluginTrack *pTrack = pLayer->pTrack;
+  int lcount = 1;
+
   if (redraw)
   {
-    int lcount = pLayer->pTrack->lcount;
-    int track = (pLayer->pTrack - pluginTracks);
-
-    // open space in layer stack for all layers in the track
-    shiftStack((byte*)pluginLayers, layer, (layer + lcount), indexLayerStack, sizeof(PluginLayer));
-    updateTrackPtrs(); // adjust tracks for moved layers
+    lcount = pTrack->lcount;
+    int track = (pTrack - pluginTracks);
 
     // open space in track stack for one new track
-    shiftStack((byte*)pluginTracks, track, track+1, indexTrackStack, sizeof(PluginTrack));
+    shiftStack((byte*)pluginTracks, track, (track + 1), indexTrackStack, sizeof(PluginTrack));
+
+    ++indexTrackStack; // more more effect on the stack
+    InitPluginTrack(pTrack, pLayer);
+
+    // this iterates tracks, so they must all be initialized
     updateLayerPtrs(); // adjust layers for moved tracks
   }
-  else
-  {
-    // open space in layer stack for one new layer
-    shiftStack((byte*)pluginLayers, layer, layer+1, indexLayerStack, sizeof(PluginLayer));
-    updateTrackPtrs(); // adjust tracks for moved layers
-  }
 
-  InitPluginLayer(pLayer, redraw);
+  // open space in layer stack for all layers in the track
+  shiftStack((byte*)pluginLayers, layer, (layer + lcount), indexLayerStack, sizeof(PluginLayer));
+
+  ++indexLayerStack; // now have another effect layer
+  InitPluginLayer(pLayer, pTrack, pPlugin, iplugin, redraw);
+
+  // this iterates layers, so they must all be initialized
+  updateTrackPtrs(); // adjust tracks for moved layers
+
+  // begin new plugin, but will not be drawn until triggered
+  pLayer->pPlugin->begin(pLayer->thisLayerID, numPixels);
+
   return Status_Success;
 }
 
@@ -264,21 +270,6 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, int iplugi
   return Status_Success;
 }
 
-// Copy the memory for the layer(s) to swap (if a track layer
-// then all the layers for that track), move the memory down,
-// then copy the layer memory to its new location. Then update
-// the layer pointers for each track.
-//
-// If this is a track layer, copy/move/copy the track memory,
-// then update all the track pointers for each layer.
-void PixelNutEngine::SwapPluginLayers(short layer)
-{
-  //PluginLayer *pLayer = (pluginLayers + layer);
-
-  DBGOUT((F("Swap layers: %d <=> %d"), layer, layer+1));
-
-}
-
 // If layer/track is the last one, then just update the current
 // end-of-stack index (track/layer count), otherwise:
 //
@@ -304,7 +295,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
   if (pLayer->redraw)
   {
     lcount = pLayer->pTrack->lcount;
-    int track = (pLayer->pTrack - pluginTracks);
+    int track = (pLayer->pTrack - pluginTracks) / sizeof(PluginTrack);
 
     if ((layer + lcount) < indexLayerStack)
     {
@@ -313,7 +304,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
       updateTrackPtrs(); // adjust tracks for moved layers
 
       // close space in track stack for that one track
-      shiftStack((byte*)pluginTracks, track+1, track, indexTrackStack, sizeof(PluginTrack));
+      shiftStack((byte*)pluginTracks, (track + 1), track, indexTrackStack, sizeof(PluginTrack));
       updateLayerPtrs(); // adjust layers for moved tracks
     }
 
@@ -322,8 +313,71 @@ void PixelNutEngine::DeletePluginLayer(short layer)
   else if (layer+1 < indexLayerStack)
   {
     // close space in layer stack for one layer
-    shiftStack((byte*)pluginLayers, layer+1, layer, indexLayerStack, sizeof(PluginLayer));
+    shiftStack((byte*)pluginLayers, (layer + 1), layer, indexLayerStack, sizeof(PluginLayer));
+    updateTrackPtrs(); // adjust tracks for moved layers
   }
 
   indexLayerStack -= lcount;
+}
+
+// Copy the memory for the layer(s) to swap (if a track layer
+// then all the layers for that track), move the memory down,
+// then copy the layer memory to its new location. Then update
+// the layer pointers for each track.
+//
+// If this is a track layer, copy/move/copy the track memory,
+// then update all the track pointers for each layer.
+PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
+{
+  PluginLayer *pLayer = (pluginLayers + layer);
+  bool redraw = pLayer->redraw;
+  int track = (pLayer->pTrack - pluginTracks) / sizeof(PluginTrack);
+
+  int rotate_count = 1;
+  int endlayer = layer;
+
+  if (redraw)
+    rotate_count = pLayer->pTrack->lcount;
+
+  // MUST have layer(s) after this one in order to swap
+  if ((layer + rotate_count) >= indexLayerStack)
+  {
+    DBGOUT((F("Cannot swap layers: %d<>%d max=%d"),
+            layer, (layer + rotate_count), indexLayerStack));
+    return Status_Error_BadVal;
+  }
+
+  if (redraw)
+    endlayer = layer + (pLayer + rotate_count)->pTrack->lcount - 1;
+
+  DBGOUT((F("Swap layers: %d<>%d-%d"), layer, (layer + rotate_count), endlayer));
+
+  for (int i = 0; i < rotate_count; ++i)
+  {
+    // move one layer to the saved slot above the usable part of the stack
+    shiftStack((byte*)pluginLayers, layer, maxPluginLayers, (layer + 1), sizeof(PluginLayer));
+
+    // shift one or more layers down to replace the layer just moved
+    shiftStack((byte*)pluginLayers, (layer + 1), layer, endlayer, sizeof(PluginLayer));
+
+    // move saved layer to the opened slot above previous shift
+    shiftStack((byte*)pluginLayers, maxPluginLayers, (endlayer + 1), maxPluginLayers, sizeof(PluginLayer));
+  }
+  updateTrackPtrs(); // adjust tracks for moved layers
+
+  if (redraw) // rotate one track
+  {
+    // move one track to the saved slot above the usable part of the stack
+    shiftStack((byte*)pluginTracks, track, maxPluginTracks, (track + 1), sizeof(PluginTrack));
+
+    // shift one track down to replace the one just moved
+    shiftStack((byte*)pluginTracks, (track + 1), track, (track + 1), sizeof(PluginTrack));
+
+    // move saved track to the opened slot above previous shift
+    shiftStack((byte*)pluginTracks, maxPluginTracks, (track + 1), maxPluginLayers, sizeof(PluginTrack));
+
+    updateLayerPtrs(); // adjust layers for moved tracks
+  }
+
+  return Status_Success;
 }

@@ -68,10 +68,17 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     else if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
       int layer = GetNumValue(cmd+1, indexLayerStack); // returns -1 if not in range
-      DBGOUT((F("LayerCmd: %d max=%d"), layer, indexLayerStack));
 
-      if (layer >= 0) curlayer = layer;
-      else status = Status_Error_BadVal;
+      if (layer >= 0)
+      {
+        DBGOUT((F("LayerCmd: %d max=%d"), layer, indexLayerStack));
+        curlayer = layer;        
+      }
+      else
+      {
+        DBGOUT((F("Layer %d not valid: max=%d"), layer, indexLayerStack));
+        status = Status_Error_BadVal;
+      }
     }
     else if (cmd[0] == 'E') // add a plugin Effect to the stack ("E" is an error)
     {
@@ -101,7 +108,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             if (plugin >= 0) status = SwitchPluginLayer(curlayer, plugin);
             else status = Status_Error_BadVal;
           }
-          else SwapPluginLayers(curlayer);
+          else status = SwapPluginLayers(curlayer);
           break;
         }
         case 'Z': // append/remove track/layer ("Z" to delete, else value is effect to insert)
