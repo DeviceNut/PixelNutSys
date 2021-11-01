@@ -54,8 +54,8 @@ void WiFiSoftAp::setup(void)
   FlashGetDevName(devname + PREFIX_LEN_DEVNAME);
 
   DBGOUT(("---------------------------------------"));
-
-  DBGOUT((F("Setting up SoftAP: %s..."), devname));
+  DBGOUT(("SoftAP Device: \"%s\"", deviceName));
+  DBGOUT((F("Setting up ...")));
 
   WiFi.softAP(devname, NULL);
   delay(100); // do this or crashes when client connects !!

@@ -215,12 +215,11 @@ void WiFiMqtt::setName(char *name)
 
 void WiFiMqtt::setup(void)
 {
-  DBGOUT(("---------------------------------------"));
-
-  DBGOUT((F("Setting up WiFi/Mqtt...")));
-
   FlashGetDevName(deviceName);
   MakeHostName();
+
+  DBGOUT(("---------------------------------------"));
+  DBGOUT((F("Setting up WiFi/Mqtt...")));
 
   ConnectWiFi();
   mqttClient.setClient(wifiClient);
@@ -230,13 +229,12 @@ void WiFiMqtt::setup(void)
   strcpy(localIP, WiFi.localIP().toString().c_str());
   MakeMqttStrs();
 
-  DBGOUT(("Device: \"%s\"", deviceName));
+  DBGOUT(("Mqtt Device: \"%s\"", deviceName));
   DBGOUT(("  LocalIP=%s", localIP));
   DBGOUT(("  Hostname=%s", WiFi.getHostname()));
   DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
   DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
   DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
-
   DBGOUT(("---------------------------------------"));
 
   ConnectMqtt();
