@@ -45,7 +45,7 @@ void LoadCurPattern()
     strcpy_P(outstr, devPatCmds[curPattern-1]);
     DBGOUT((F("Retrieving device pattern #%d"), curPattern));
 
-    pPixelNutEngine->clearStack(); // clear stack to prepare for new pattern
+    pPixelNutEngine->clearStacks(); // clear stack to prepare for new pattern
     ExecPattern(outstr);
   }
 }

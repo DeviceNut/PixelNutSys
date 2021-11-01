@@ -40,6 +40,7 @@ static short GetNumValue(char *str, int curval, int maxval)
   return newval;
 }
 
+// uses all alpha characters except for "P"
 PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 {
   Status status = Status_Success;
@@ -61,7 +62,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
     if (cmd[0] == 'P') // Pop all plugins from the stack
     {
-      clearStack();
+      clearStacks();
       curlayer = indexLayerStack;
     }
     else if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
@@ -77,7 +78,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
       if (plugin >= 0)
       {
-        status = AddPluginLayer(plugin);
+        status = AppendPluginLayer(plugin);
         curlayer = indexLayerStack;
       }
       else status = Status_Error_BadVal;
@@ -108,10 +109,10 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "Z"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            if (plugin >= 0) status = AppendPluginLayer(curlayer, plugin);
+            if (plugin >= 0) status = InsertPluginLayer(curlayer+1, plugin);
             else status = Status_Error_BadVal;
           }
-          else RemovePluginLayer(curlayer);
+          else DeletePluginLayer(curlayer);
           break;
         }
         case 'X': // offset into output display of the track by pixel index

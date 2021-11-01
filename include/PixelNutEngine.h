@@ -94,7 +94,7 @@ public:
   // An empty string (or one with only spaces), is ignored.
   virtual Status execCmdStr(char *cmdstr);
 
-  virtual void clearStack(void); // Pops off all layers from the stack
+  virtual void clearStacks(void); // Pops off all layers from the stack
 
   // Updates current effect: returns true if the pixels have changed and should be redisplayed.
   virtual bool updateEffects(void);
@@ -206,11 +206,15 @@ protected:
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
   Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype);
-  Status AddPluginLayer(int plugin);
-  Status AppendPluginLayer(short layer, int plugin);
+  void InitPluginLayer(PluginLayer *pLayer, bool redraw);
+  void updateTrackPtrs(void);
+  void updateLayerPtrs(void);
+
+  Status AppendPluginLayer(int plugin);
+  Status InsertPluginLayer(short layer, int plugin);
   Status SwitchPluginLayer(short layer, int plugin);
   void SwapPluginLayers(short layer);
-  void RemovePluginLayer(short layer);
+  void DeletePluginLayer(short layer);
 
   void RepeatTriger(bool rollover);
 };
