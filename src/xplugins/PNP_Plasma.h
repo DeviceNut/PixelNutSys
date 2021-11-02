@@ -14,13 +14,11 @@
 //
 // Calling trigger():
 //
-//    The trigger force is used to modify the time it takes to fade all pixels.
-//    The larger the force, the longer it takes to fade to black.
+//    Not instantiated.
 //
 // Calling nextstep():
 //
-//    Modifies the brightness of each pixel in the strip, then reduces the brightness
-//    scaling by the amount calculated in trigger().
+//    Draws some pixels.
 //
 // Properties Used:
 //
