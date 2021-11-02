@@ -21,7 +21,7 @@ static PROGMEM const char PLASMA_PATTERN[] = "E80 Q4 T E120 F100 I T G";
 #if PLUGIN_SPECTRA
 #define SPECTRUM_NAME "Spectrum"
 #define SPECTRUM_DESC "Creates a \"spectrum\" effect using an FFT from audio data out of a microphone."
-static PROGMEM const char SPECTRUM_PATTERN[] = "E0 B60 H250 W50 T E70 V1 T G";
+static PROGMEM const char SPECTRUM_PATTERN[] = "E0 B60 H250 W50 T E70 V T G";
 #endif
 
 #if CLIENT_APP
