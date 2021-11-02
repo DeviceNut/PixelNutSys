@@ -24,10 +24,6 @@
 class PNP_ColorRandom : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return 0;
-  };
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {

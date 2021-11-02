@@ -20,6 +20,8 @@
 //       Subsequent calls will create a comet, which is repeated if the force >= 0.
 //       This mode allows for additional repetitive comets if new forces are positive.
 //
+//    Note that in all modes negative forces are ignored.
+//
 // Sending a trigger:
 //
 //    A trigger is generated only for comets that are not repeated, and is done when
@@ -47,14 +49,7 @@ class PNP_CometHeads : public PixelNutPlugin
 public:
   ~PNP_CometHeads() { pixelNutComets.cometHeadDelete(cdata); }
 
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW   | PLUGIN_TYPE_DIRECTION |
-           PLUGIN_TYPE_TRIGGER  | PLUGIN_TYPE_NEGFORCE  |
-           PLUGIN_TYPE_USEFORCE | PLUGIN_TYPE_SENDFORCE;
-  };
-
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     pixLength = pixlen;
     myid = id;
@@ -104,13 +99,13 @@ public:
     uint16_t count = pixelNutComets.cometHeadDraw(cdata, myid, pdraw, handle, pixLength);
     if (count != headCount)
     {
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
       headCount = count;
     }
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   bool firstime, repMode;
   short forceVal;
   uint16_t pixLength, headCount;

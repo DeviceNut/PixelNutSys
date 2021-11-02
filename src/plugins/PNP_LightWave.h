@@ -27,12 +27,8 @@
 class PNP_LightWave : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW | PLUGIN_TYPE_DIRECTION;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     pixLength = pixlen;
@@ -59,7 +55,7 @@ public:
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   uint16_t pixLength;
   float angleNext;
 };

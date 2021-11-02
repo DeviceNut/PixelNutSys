@@ -39,12 +39,8 @@
 class PNP_DelayWave : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_TRIGGER | PLUGIN_TYPE_USEFORCE | PLUGIN_TYPE_SENDFORCE;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     maxDelay = 0;     // will be set on first call to nextstep()
@@ -71,17 +67,17 @@ public:
     if (angleNext > RADIANS_PER_CIRCLE)
     {
       angleNext -= RADIANS_PER_CIRCLE;
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
     else if (angleNext < 0)
     {
       angleNext += RADIANS_PER_CIRCLE;
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   short forceVal;
   uint16_t maxDelay;
   float angleNext;

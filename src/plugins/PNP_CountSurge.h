@@ -27,12 +27,8 @@
 class PNP_CountSurge : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_TRIGGER | PLUGIN_TYPE_USEFORCE;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     pixLength = pixlen;
     baseCount = 0; // causes set on next trigger

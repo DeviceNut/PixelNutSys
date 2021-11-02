@@ -86,7 +86,7 @@ public:
   long clipValue(long inval, long out_min, long out_max);
 
   // sends trigger force to any other effect that has been assigned to this 'id'
-  void sendForce(PixelNutHandle p, byte id, short force, DrawProps *pdraw);
+  void sendForce(PixelNutHandle p, byte id, short force);
 };
 
 extern PixelNutSupport pixelNutSupport; // single statically allocated instance

@@ -8,13 +8,32 @@ See license.txt for the terms of this license.
 
 #if DEV_PLUGINS
 
+// extended PixelNut-Plugins (PNP):
+
 #include "PNP_Spectra.h"
 #include "PNP_Plasma.h"
 
 class XPluginFactory : public PluginFactory
 {
 public:
-  PixelNutPlugin *makePlugin(int plugin)
+  // returns true if plugin redraws, else filter
+  bool pluginDraws(int plugin)
+  {
+    switch (plugin)
+    {
+      #if PLUGIN_SPECTRA
+      case 70: return true;
+      #endif
+
+      #if PLUGIN_PLASMA
+      case 70: return true;
+      #endif
+
+      default: return PluginFactory::pluginDraws(plugin);
+    }
+  }
+
+  PixelNutPlugin *pluginCreate(int plugin)
   {
     switch (plugin)
     {
@@ -26,7 +45,7 @@ public:
       case 80: return new PNP_Plasma;
       #endif
 
-      default: return PluginFactory::makePlugin(plugin);
+      default: return PluginFactory::pluginCreate(plugin);
     }
   }
 };

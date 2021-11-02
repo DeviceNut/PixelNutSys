@@ -85,7 +85,7 @@ public:
   void triggerForce(short force);
 
   // Used by plugins to trigger based on the effect layer, enabled by the "A" command.
-  void triggerForce(byte layer, short force, PixelNutSupport::DrawProps *pdraw);
+  void triggerForce(byte layer, short force);
 
   // Called by the above and internal triggering functions to allow override
   virtual void triggerLayer(byte layer, short force);
@@ -207,7 +207,7 @@ protected:
 
   void RepeatTriger(bool rollover);
 
-  Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype);
+  Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin);
   void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
   void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
                           PixelNutPlugin *pPlugin, int iplugin, bool redraw);
@@ -224,5 +224,6 @@ protected:
 
 class PluginFactory
 {
-  public: virtual PixelNutPlugin *makePlugin(int plugin);
+  public: virtual bool pluginDraws(int plugin);
+  public: virtual PixelNutPlugin *pluginCreate(int plugin);
 };

@@ -14,14 +14,22 @@
 extern PluginFactory *pPluginFactory; // used to create effect plugins
 
 // update the track pointers in all layers
+// then update all source trigger layers
 void PixelNutEngine::updateTrackPtrs(void)
 {
   PluginLayer *pLayer = pluginLayers;
   for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
+  {
     pLayer->pTrack->pLayer = pLayer;
+    if (pLayer->trigType & TrigTypeBit_Internal)
+    {
+      // TODO: update source layer
+
+    }
+  }
 }
 
-// update the layer pointers in all track;
+// update the layer pointers in all tracks
 void PixelNutEngine::updateLayerPtrs(void)
 {
   PluginTrack *pTrack = pluginTracks;
@@ -56,7 +64,7 @@ void PixelNutEngine::clearStacks(void)
 
 // return false if cannot create another plugin, either because
 // not enought layers left, or because plugin index is invalid
-PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin, int *ptype)
+PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin)
 {
   // check if can add another layer to the stack
   if ((indexLayerStack + 1) >= maxPluginLayers)
@@ -65,31 +73,24 @@ PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin
     return Status_Error_Memory;
   }
 
-  *ppPlugin = pPluginFactory->makePlugin(iplugin);
-  if (*ppPlugin == NULL) return Status_Error_BadVal;
-
-  *ptype = (*ppPlugin)->gettype();
-  bool redraw = (*ptype & PLUGIN_TYPE_REDRAW);
+  bool redraw = pPluginFactory->pluginDraws(iplugin);
 
   // check if:
-  // a filter plugin and there is at least one redraw plugin, or
-  // a redraw plugin and cannot add another track to the stack
-  if ((!redraw && (indexTrackStack < 0)) ||
-      ( redraw && ((indexTrackStack+1) >= maxPluginTracks)))
+  // a redraw plugin and cannot add another track to the stack,
+  // or a filter plugin and there is at least one redraw plugin
+  if (redraw && ((indexTrackStack+1) >= maxPluginTracks))
   {
-    delete *ppPlugin;
-
-    if (redraw)
-    {
-      DBGOUT((F("Reached max track: max=%d"), (indexTrackStack+1)));
-      return Status_Error_Memory;
-    }
-    else
-    {
-      DBGOUT((F("Expecting drawing plugin: #%d"), iplugin));
-      return Status_Error_BadCmd;
-    }
+    DBGOUT((F("Reached max track: max=%d"), (indexTrackStack+1)));
+    return Status_Error_Memory;
   }
+  else if (indexTrackStack < 0)
+  {
+    DBGOUT((F("Expecting drawing plugin: #%d"), iplugin));
+    return Status_Error_BadCmd;
+  }
+
+  *ppPlugin = pPluginFactory->pluginCreate(iplugin);
+  if (*ppPlugin == NULL) return Status_Error_BadVal;
 
   return Status_Success;
 }
@@ -141,20 +142,20 @@ void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
 // Return false if unsuccessful for any reason.
 PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(int iplugin)
 {
-  int ptype;
+  bool redraw = pPluginFactory->pluginDraws(iplugin);
+
   PixelNutPlugin *pPlugin;
-  Status rc = MakeNewPlugin(iplugin, &pPlugin, &ptype);
+  Status rc = MakeNewPlugin(iplugin, &pPlugin);
   if (rc != Status_Success) return rc;
+
+  DBGOUT((F("Append plugin: #%d redraw=%d track=%d layer=%d"),
+          iplugin, redraw, indexTrackStack, indexLayerStack));
 
   ++indexLayerStack; // stack another effect layer
   PluginLayer *pLayer = (pluginLayers + indexLayerStack);
 
-  bool redraw = !!(ptype & PLUGIN_TYPE_REDRAW);
   if (redraw) ++indexTrackStack; // create another effect track
   PluginTrack *pTrack = (pluginTracks + indexTrackStack);
-
-  DBGOUT((F("Append plugin: #%d type=0x%02X track=%d layer=%d"),
-          iplugin, ptype, indexTrackStack, indexLayerStack));
 
   if (redraw) InitPluginTrack(pTrack, pLayer);
 
@@ -178,22 +179,20 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(int iplugin)
 // Return false if unsuccessful for any reason.
 PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugin)
 {
-  int ptype;
-  PixelNutPlugin *pPlugin;
-  Status rc = MakeNewPlugin(iplugin, &pPlugin, &ptype);
-  if (rc != Status_Success) return rc;
-
   PluginLayer *pLayer = (pluginLayers + layer);
 
-  bool redraw = !!(ptype & PLUGIN_TYPE_REDRAW);
+  bool redraw = pPluginFactory->pluginDraws(iplugin);
   if (redraw != pLayer->redraw) // must be same as current layer
   {
-    DBGOUT((F("Unexpected plugin(%d) type=%02X for layer=%d"), iplugin, ptype, layer));
-    delete pPlugin;
+    DBGOUT((F("Unexpected plugin(%d) for layer=%d"), iplugin, layer));
     return Status_Error_BadVal;
   }
 
-  DBGOUT((F("Insert plugin: #%d type=0x%02X layer=%d"), iplugin, ptype, layer));
+  PixelNutPlugin *pPlugin;
+  Status rc = MakeNewPlugin(iplugin, &pPlugin);
+  if (rc != Status_Success) return rc;
+
+  DBGOUT((F("Insert plugin: #%d redraw=%d layer=%d"), iplugin, redraw, layer));
 
   PluginTrack *pTrack = pLayer->pTrack;
   int lcount = 1;
@@ -232,25 +231,24 @@ PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugi
 // Return false if unsuccessful for any reason.
 PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, int iplugin)
 {
-  int ptype;
-  PixelNutPlugin *pPlugin;
-  Status rc = MakeNewPlugin(iplugin, &pPlugin, &ptype);
-  if (rc != Status_Success) return rc;
-
   PluginLayer *pLayer = (pluginLayers + layer);
-  bool redraw = (ptype & PLUGIN_TYPE_REDRAW);
 
+  bool redraw = pPluginFactory->pluginDraws(iplugin);
   if (redraw != pLayer->redraw)
   {
     DBGOUT((F("Unexpected plugin type for layer=%d"), layer));
     return Status_Error_BadVal;
   }
 
+  PixelNutPlugin *pPlugin;
+  Status rc = MakeNewPlugin(iplugin, &pPlugin);
+  if (rc != Status_Success) return rc;
+
+  DBGOUT((F("Switch plugin: #%d redraw=%d layer=%d"), iplugin, redraw, layer));
+
   delete pLayer->pPlugin;
   pLayer->pPlugin = pPlugin;
   pLayer->iplugin = iplugin;
-
-  DBGOUT((F("Switch plugin: #%d type=0x%02X layer=%d"), iplugin, ptype, layer));
 
   // begin new plugin, but will not be drawn until triggered
   pPlugin->begin(pLayer->thisLayerID, numPixels);

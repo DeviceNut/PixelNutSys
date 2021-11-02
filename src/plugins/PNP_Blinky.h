@@ -26,12 +26,7 @@
 class PNP_Blinky : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW;
-  };
-
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     pixLength = pixlen;
   }

@@ -25,10 +25,6 @@
 class PNP_ColorModify : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_TRIGGER | PLUGIN_TYPE_USEFORCE;
-  };
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {

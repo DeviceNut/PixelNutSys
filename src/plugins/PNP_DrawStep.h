@@ -24,12 +24,8 @@
 class PNP_DrawStep : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW | PLUGIN_TYPE_NEGFORCE | PLUGIN_TYPE_SENDFORCE | PLUGIN_TYPE_DIRECTION;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     pixLength = pixlen;
@@ -50,12 +46,12 @@ public:
     if (++curPos >= pixLength)
     {
       curPos = 0;
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   short forceVal;
   uint16_t pixLength, curPos;
 };

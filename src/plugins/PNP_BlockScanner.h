@@ -25,12 +25,7 @@
 class PNP_BlockScanner : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW | PLUGIN_TYPE_SENDFORCE;
-  };
-
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     pixLength = pixlen;
     myid = id;
@@ -86,7 +81,7 @@ public:
       if (tailpos >= (pixLength-1))
       {
         goForward = false;
-        pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+        pixelNutSupport.sendForce(handle, myid, forceVal);
       }
     }
     else
@@ -96,7 +91,7 @@ public:
       if (headPos <= 0)
       {
         goForward = true;
-        pixelNutSupport.sendForce(handle, myid, -forceVal, pdraw);
+        pixelNutSupport.sendForce(handle, myid, -forceVal);
       }
     }
 
@@ -105,7 +100,7 @@ public:
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   short forceVal;
   bool goForward;
   int16_t pixLength, lastCount, headPos;

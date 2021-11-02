@@ -24,12 +24,8 @@
 class PNP_WinExpander : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_NEGFORCE | PLUGIN_TYPE_SENDFORCE;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     forceVal = 0;
@@ -62,7 +58,7 @@ public:
       if (headPos <= (pixCenter - (count >> 1)))
       {
         goForward = false;
-        pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+        pixelNutSupport.sendForce(handle, myid, forceVal);
       }
     }
     else // contract
@@ -70,7 +66,7 @@ public:
       if ((headPos == pixCenter) || (tailPos == pixCenter))
       {
         goForward = true;
-        pixelNutSupport.sendForce(handle, myid, -forceVal, pdraw);
+        pixelNutSupport.sendForce(handle, myid, -forceVal);
       }
     }
 
@@ -87,7 +83,7 @@ public:
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   short forceVal;
   bool goForward;
   int16_t pixCenter, headPos, tailPos;

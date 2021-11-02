@@ -24,12 +24,8 @@
 class PNP_ColorMeld : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_TRIGGER | PLUGIN_TYPE_NEGFORCE | PLUGIN_TYPE_SENDFORCE;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     endHue = endWhite = -2; // forces initialization
@@ -54,7 +50,7 @@ public:
     //pixelNutSupport.msgFormat(F("ColorStep1: hue=%d.%d, white=%d.%d"), curHue, endHue, curWhite, endWhite);
 
     if ((curHue == endHue) && (curWhite == endWhite))
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
 
     endHue = pdraw->degreeHue;
     endWhite = pdraw->pcentWhite;
@@ -100,7 +96,7 @@ public:
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   short forceVal;
   int16_t curHue, curWhite;
   int16_t endHue, endWhite;

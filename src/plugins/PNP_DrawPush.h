@@ -27,12 +27,8 @@
 class PNP_DrawPush : public PixelNutPlugin
 {
 public:
-  byte gettype(void) const
-  {
-    return PLUGIN_TYPE_REDRAW | PLUGIN_TYPE_DIRECTION | PLUGIN_TYPE_NEGFORCE | PLUGIN_TYPE_SENDFORCE;
-  };
 
-  void begin(byte id, uint16_t pixlen)
+  void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
     pixLength = pixlen;
@@ -40,7 +36,7 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    forceVal = force; // if <0 then drawing stops after cycle
+    forceVal = force; // if <=0 then drawing stops after cycle
     doDraw = true;
     curPos = 0;
   }
@@ -66,18 +62,18 @@ public:
     {
       doDraw = false;
       curPos = 0;
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
     else if (forceVal > 0)
     {
       doDraw = true;
       curPos = 0;
-      pixelNutSupport.sendForce(handle, myid, forceVal, pdraw);
+      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
   }
 
 private:
-  byte myid;
+  uint16_t myid;
   bool doDraw;
   short forceVal;
   uint16_t pixLength, curPos;

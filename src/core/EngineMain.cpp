@@ -120,7 +120,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
   }
 }
 
-// external: cause trigger if enabled in track
+// external: cause trigger if enabled in layer
 void PixelNutEngine::triggerForce(short force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
@@ -128,8 +128,8 @@ void PixelNutEngine::triggerForce(short force)
       triggerLayer(i, force);
 }
 
-// internal: called from plugins
-void PixelNutEngine::triggerForce(byte layer, short force, PixelNutSupport::DrawProps *pdraw)
+// internal: called from effect plugins
+void PixelNutEngine::triggerForce(byte layer, short force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
     if ((pluginLayers[i].trigType & TrigTypeBit_Internal) &&

@@ -14,6 +14,8 @@
 #include "PixelNutPlugin.h"
 #include "PixelNutEngine.h"
 
+// Built-in PixelNut-Plugins (PNP):
+
 #include "PNP_DrawAll.h"
 #include "PNP_DrawPush.h"
 #include "PNP_DrawStep.h"
@@ -40,7 +42,13 @@
 #include "PNP_WinExpander.h"
 #include "PNP_FlipDirection.h"
 
-PixelNutPlugin *PluginFactory::makePlugin(int plugin)
+// returns true if plugin redraws, else filter
+bool PluginFactory::pluginDraws(int plugin)
+{
+  return (plugin < 100);
+}
+
+PixelNutPlugin *PluginFactory::pluginCreate(int plugin)
 {
   switch (plugin)
   {
