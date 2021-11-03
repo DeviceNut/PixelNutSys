@@ -7,6 +7,8 @@ See license.txt for the terms of this license.
 
 #include "main.h"
 
+extern PluginFactory *pPluginFactory; // used to enumerate effect plugins
+
 // Note: this modifies 'pattern'
 void ExecPattern(char *pattern)
 {
@@ -104,7 +106,17 @@ void ExecAppCmd(char *instr)
       else if (instr[1] == 'G') // about internal plugins
       {
         #if DEV_PLUGINS
-        // TODO: send info on each built-in plugin
+
+        byte *plist = pPluginFactory->pluginList;
+        for (int i = 0; plist[i] != 0; ++i)
+        {
+          uint16_t plugin = plist[i];
+          pCustomCode->sendReply( pPluginFactory->pluginName(plugin) );
+          pCustomCode->sendReply( pPluginFactory->pluginDesc(plugin) );
+          sprintf(outstr, "%02X", pPluginFactory->pluginBits(plugin));
+          pCustomCode->sendReply( outstr );
+        }
+
         #endif
       }
       else if (instr[1] == 0) // nothing after ?

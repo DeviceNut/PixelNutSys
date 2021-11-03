@@ -42,9 +42,6 @@
 #include "PNP_WinExpander.h"
 #include "PNP_FlipDirection.h"
 
-byte*PluginFactory::pluginList(void) { return NULL; }
-bool PluginFactory::pluginBits(uint16_t plugin) { return 0; }
-
 // returns true if plugin redraws, else filter
 bool PluginFactory::pluginDraws(uint16_t plugin)
 {

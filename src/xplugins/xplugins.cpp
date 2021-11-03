@@ -31,19 +31,45 @@ See license.txt for the terms of this license.
 
 class XPluginFactory : public PluginFactory
 {
-private:
-
-  byte plist = { 70, 80, 0 };
-
 public:
 
-  byte *pluginList(void)
+  byte pluginList[3] = { 70, 80, 0 };
+  // returns name of plugin
+  char *pluginName(uint16_t plugin)
   {
-    return plist;
+    switch (plugin)
+    {
+      #if PLUGIN_SPECTRA
+      case 70: return char*)"Spectra";
+      #endif
+
+      #if PLUGIN_PLASMA
+      case 80: return (char*)"Plasma";
+      #endif
+
+      default: return PluginFactory::pluginName(plugin);
+    }
+  }
+
+  // returns description of plugin
+  char *pluginDesc(uint16_t plugin)
+  {
+    switch (plugin)
+    {
+      #if PLUGIN_SPECTRA
+      case 70: return (char*)"Spectra reacts to sound.";
+      #endif
+
+      #if PLUGIN_PLASMA
+      case 80: return (char*)"Plasma is groovy.";
+      #endif
+
+      default: return PluginFactory::pluginDesc(plugin);
+    }
   }
 
   // returns bits descripting capabilities (PNP_EBIT_ values)
-  bool pluginBits(uint16_t plugin)
+  uint16_t pluginBits(uint16_t plugin)
   {
     switch (plugin)
     {

@@ -41,7 +41,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 // for device plugins and patterns:
 #define DEV_PATTERNS            1           // 1 to add device patterns
-#define DEV_PLUGINS             0           // 1 to add device plugins
+#define DEV_PLUGINS             1           // 1 to add device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
 #define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
 // NOTE: Spectra only works on ARM processors right now
