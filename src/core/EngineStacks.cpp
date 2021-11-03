@@ -64,7 +64,7 @@ void PixelNutEngine::clearStacks(void)
 
 // return false if cannot create another plugin, either because
 // not enought layers left, or because plugin index is invalid
-PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin)
+PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(uint16_t iplugin, PixelNutPlugin **ppPlugin)
 {
   // check if can add another layer to the stack
   if ((indexLayerStack + 1) >= maxPluginLayers)
@@ -122,7 +122,7 @@ void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
 }
 
 void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
-                        PixelNutPlugin *pPlugin, int iplugin, bool redraw)
+                        PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw)
 {
   memset(pLayer, 0, sizeof(PluginLayer));
   pLayer->thisLayerID = uniqueLayerID++;
@@ -140,7 +140,7 @@ void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
 }
 
 // Return false if unsuccessful for any reason.
-PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(int iplugin)
+PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
 {
   bool redraw = pPluginFactory->pluginDraws(iplugin);
 
@@ -177,7 +177,7 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(int iplugin)
 // the current track, then update the track pointers for each layer.
 //
 // Return false if unsuccessful for any reason.
-PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugin)
+PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, uint16_t iplugin)
 {
   PluginLayer *pLayer = (pluginLayers + layer);
 
@@ -229,7 +229,7 @@ PixelNutEngine::Status PixelNutEngine::InsertPluginLayer(short layer, int iplugi
 
 // Switch plugin effects for the requested layer.
 // Return false if unsuccessful for any reason.
-PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, int iplugin)
+PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t iplugin)
 {
   PluginLayer *pLayer = (pluginLayers + layer);
 

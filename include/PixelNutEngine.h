@@ -136,13 +136,14 @@ protected:
   byte pcentDelay  = MAX_PERCENTAGE/2;          // percent delay to apply to each effect
 
   struct ATTR_PACKED _PluginTrack;
-  typedef struct ATTR_PACKED // 28-32 bytes
+  typedef struct ATTR_PACKED // 30-34 bytes
   {
     struct _PluginTrack *pTrack;                // pointer to track for this layer
     PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
-    byte iplugin;                               // plugin ID value (0 is placeholder)
+    uint16_t iplugin;                           // plugin ID value
     bool redraw;                                // true if plugin is drawing else filter
     bool disable;                               // true to disable this layer (mute)
+    byte reserved;
 
     byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
     bool trigActive;                            // true once layer has been triggered once
@@ -207,23 +208,25 @@ protected:
 
   void RepeatTriger(bool rollover);
 
-  Status MakeNewPlugin(int iplugin, PixelNutPlugin **ppPlugin);
+  Status MakeNewPlugin(uint16_t iplugin, PixelNutPlugin **ppPlugin);
   void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
   void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
-                          PixelNutPlugin *pPlugin, int iplugin, bool redraw);
+                          PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
 
   void updateTrackPtrs(void);
   void updateLayerPtrs(void);
 
-  Status AppendPluginLayer(int plugin);
-  Status InsertPluginLayer(short layer, int plugin);
-  Status SwitchPluginLayer(short layer, int plugin);
+  Status AppendPluginLayer(uint16_t plugin);
+  Status InsertPluginLayer(short layer, uint16_t plugin);
+  Status SwitchPluginLayer(short layer, uint16_t plugin);
   Status SwapPluginLayers(short layer);
   void DeletePluginLayer(short layer);
 };
 
 class PluginFactory
 {
-  public: virtual bool pluginDraws(int plugin);
-  public: virtual PixelNutPlugin *pluginCreate(int plugin);
+  public: virtual byte *pluginList(void);
+  public: virtual bool pluginBits(uint16_t plugin);
+  public: virtual bool pluginDraws(uint16_t plugin);
+  public: virtual PixelNutPlugin *pluginCreate(uint16_t plugin);
 };
