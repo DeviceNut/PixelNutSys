@@ -107,13 +107,13 @@ void ExecAppCmd(char *instr)
       {
         #if DEV_PLUGINS
 
-        byte *plist = pPluginFactory->pluginList;
+        byte *plist = pPluginFactory->pluginList();
         for (int i = 0; plist[i] != 0; ++i)
         {
           uint16_t plugin = plist[i];
           pCustomCode->sendReply( pPluginFactory->pluginName(plugin) );
           pCustomCode->sendReply( pPluginFactory->pluginDesc(plugin) );
-          sprintf(outstr, "%02X", pPluginFactory->pluginBits(plugin));
+          sprintf(outstr, "%d %04X", plugin, pPluginFactory->pluginBits(plugin));
           pCustomCode->sendReply( outstr );
         }
 
@@ -121,10 +121,16 @@ void ExecAppCmd(char *instr)
       }
       else if (instr[1] == 0) // nothing after ?
       {
+        int pcount = 0;
+        byte *plist = pPluginFactory->pluginList();
+        if (plist != NULL)
+          for (int i = 0; plist[i] != 0; ++i)
+            ++pcount;
+
         sprintf(outstr, "P!!\n%d %d %d %d %d %d", 
                         STRAND_COUNT, MAXLEN_PATSTR,
                         NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS,
-                        codePatterns, 0); // custom plugin count TODO
+                        codePatterns, pcount);
         pCustomCode->sendReply(outstr);
       }
       else { DBGOUT((F("Unknown ? modifier: %c"), instr[1])); }

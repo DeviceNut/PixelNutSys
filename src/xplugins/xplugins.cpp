@@ -29,11 +29,26 @@ See license.txt for the terms of this license.
 #define PNP_EBIT_ORIDE_DIR      0x1000  // effect overrides direction property
 #define PNP_EBIT_ORIDE_EXT      0x2000  // effect overrides start/extent properties
 
+#define PNP_EBIT_REDRAW         0x8000  // set if redraw effect, else filter
+
+static byte plist[] =
+{
+  #if PLUGIN_SPECTRA
+  70,
+  #endif
+
+  #if PLUGIN_PLASMA
+  80,
+  #endif
+  0
+};
+
 class XPluginFactory : public PluginFactory
 {
 public:
 
-  byte pluginList[3] = { 70, 80, 0 };
+  byte *pluginList(void) { return plist; }
+
   // returns name of plugin
   char *pluginName(uint16_t plugin)
   {
@@ -74,11 +89,11 @@ public:
     switch (plugin)
     {
       #if PLUGIN_SPECTRA
-      case 70: return 0;
+      case 70: return PNP_EBIT_REDRAW;
       #endif
 
       #if PLUGIN_PLASMA
-      case 80: return PNP_EBIT_COUNT | PNP_EBIT_DELAY;
+      case 80: return PNP_EBIT_REDRAW | PNP_EBIT_COUNT | PNP_EBIT_DELAY;
       #endif
 
       default: return PluginFactory::pluginBits(plugin);

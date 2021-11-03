@@ -83,7 +83,7 @@ PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(uint16_t iplugin, PixelNutP
     DBGOUT((F("Reached max track: max=%d"), (indexTrackStack+1)));
     return Status_Error_Memory;
   }
-  else if (indexTrackStack < 0)
+  else if (!redraw && (indexTrackStack < 0))
   {
     DBGOUT((F("Expecting drawing plugin: #%d"), iplugin));
     return Status_Error_BadCmd;
