@@ -31,10 +31,19 @@ See license.txt for the terms of this license.
 
 class XPluginFactory : public PluginFactory
 {
+private:
+
+  byte plist = { 70, 80, 0 };
+
 public:
 
+  byte *pluginList(void)
+  {
+    return plist;
+  }
+
   // returns bits descripting capabilities (PNP_EBIT_ values)
-  bool pluginBits(int plugin)
+  bool pluginBits(uint16_t plugin)
   {
     switch (plugin)
     {
@@ -51,7 +60,7 @@ public:
   }
 
   // returns true if plugin redraws, else filter
-  bool pluginDraws(int plugin)
+  bool pluginDraws(uint16_t plugin)
   {
     switch (plugin)
     {
@@ -67,7 +76,7 @@ public:
     }
   }
 
-  PixelNutPlugin *pluginCreate(int plugin)
+  PixelNutPlugin *pluginCreate(uint16_t plugin)
   {
     switch (plugin)
     {

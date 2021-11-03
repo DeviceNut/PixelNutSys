@@ -42,13 +42,16 @@
 #include "PNP_WinExpander.h"
 #include "PNP_FlipDirection.h"
 
+byte*PluginFactory::pluginList(void) { return NULL; }
+bool PluginFactory::pluginBits(uint16_t plugin) { return 0; }
+
 // returns true if plugin redraws, else filter
-bool PluginFactory::pluginDraws(int plugin)
+bool PluginFactory::pluginDraws(uint16_t plugin)
 {
   return (plugin < 100);
 }
 
-PixelNutPlugin *PluginFactory::pluginCreate(int plugin)
+PixelNutPlugin *PluginFactory::pluginCreate(uint16_t plugin)
 {
   switch (plugin)
   {
