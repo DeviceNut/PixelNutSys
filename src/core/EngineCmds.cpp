@@ -85,7 +85,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
       if (plugin >= 0)
       {
-        status = AppendPluginLayer(plugin);
+        status = AppendPluginLayer((uint16_t)plugin);
         curlayer = indexLayerStack;
       }
       else status = Status_Error_BadVal;
@@ -105,7 +105,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "S"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            if (plugin >= 0) status = SwitchPluginLayer(curlayer, plugin);
+            if (plugin >= 0) status = SwitchPluginLayer(curlayer, (uint16_t)plugin);
             else status = Status_Error_BadVal;
           }
           else status = SwapPluginLayers(curlayer);
@@ -116,7 +116,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "Z"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            if (plugin >= 0) status = InsertPluginLayer(curlayer+1, plugin);
+            if (plugin >= 0) status = InsertPluginLayer(curlayer+1, (uint16_t)plugin);
             else status = Status_Error_BadVal;
           }
           else DeletePluginLayer(curlayer);
