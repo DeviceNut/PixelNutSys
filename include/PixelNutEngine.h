@@ -206,6 +206,8 @@ protected:
   void TriggerLayer(PluginLayer *pLayer, short force);
   void RepeatTriger(bool rollover);
 
+  void ShiftStack(bool dolayer, int isrc, int idst, int iend);
+
   Status MakeNewPlugin(uint16_t iplugin, PixelNutPlugin **ppPlugin);
   void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
   void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
