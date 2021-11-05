@@ -224,9 +224,7 @@ void loop()
 
   // if enabled: display new pixel values if anything has changed
   if (doUpdate)
-  {
     for (int i = 0; i < STRAND_COUNT; ++i)
       if (pixelNutEngines[i].updateEffects())
         ShowPixels(i);
-  }
 }

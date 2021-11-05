@@ -35,7 +35,7 @@ public:
     headPos = tailPos = pixCenter;
     if (!(pixlen & 1)) --headPos;
 
-    pixelNutSupport.msgFormat(F("WinXpand: pixlen=%d head.tail=%d.%d"), pixlen, headPos, tailPos);
+    //pixelNutSupport.msgFormat(F("WinXpand: pixlen=%d head.tail=%d.%d"), pixlen, headPos, tailPos);
   }
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)

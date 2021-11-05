@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -54,7 +54,7 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
 {
   PluginTrack *pTrack = pLayer->pTrack;
 
-  DBGOUT((F("Trigger: layer=%d force=%d"), (pLayer - indexLayerStack), force));
+  DBGOUT((F("Trigger: layer=%d force=%d"), (pLayer - pluginLayers), force));
 
   short pixCount = 0;
   short degreeHue = 0;
@@ -79,7 +79,7 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
   // if this is the drawing effect for the track then redraw immediately
   if (pLayer->redraw) pTrack->msTimeRedraw = pixelNutSupport.getMsecs();
 
-  pLayer->trigActive = true; // layer has been triggered now
+  pLayer->trigActive = true; // layer has been triggered at least once now
 }
 
 // internal: check for any automatic triggering
@@ -118,9 +118,10 @@ void PixelNutEngine::RepeatTriger(bool rollover)
   }
 }
 
-// external: cause trigger if enabled in layer
+// external: called from client command
 void PixelNutEngine::triggerForce(short force)
 {
+  DBGOUT((F("Client trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
@@ -130,6 +131,7 @@ void PixelNutEngine::triggerForce(short force)
 // internal: called from effect plugins
 void PixelNutEngine::triggerForce(byte layer, short force)
 {
+  DBGOUT((F("Plugin trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_Internal) &&

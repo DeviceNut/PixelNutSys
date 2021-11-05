@@ -125,9 +125,12 @@ bool PixelNutEngine::updateEffects(void)
   PluginTrack *pTrack = pluginTracks;
   for (int i = 0; i <= indexTrackStack; ++i, ++pTrack) // for each plugin that can redraw
   {
+    //DBGOUT((F("Draw: track=%d active=%d"), i, pTrack->active));
     if (!pTrack->active) break; // at top of active tracks now
 
     PluginLayer *pLayer = pTrack->pLayer;
+
+    //DBGOUT((F("Update: id=%d active=%d disable=%d"), pLayer->thisLayerID, pLayer->trigActive, pLayer->disable));
 
       // don't show if track is disabled or not triggered yet
     if (pLayer->disable || !pLayer->trigActive) continue;
