@@ -87,9 +87,6 @@ public:
   // Used by plugins to trigger based on the effect layer, enabled by the "A" command.
   void triggerForce(byte layer, short force);
 
-  // Called by the above and internal triggering functions to allow override
-  virtual void triggerLayer(byte layer, short force);
-
   // Parses and executes a pattern command string, returning a status code.
   // An empty string (or one with only spaces), is ignored.
   virtual Status execCmdStr(char *cmdstr);
@@ -206,18 +203,20 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
+  void TriggerLayer(PluginLayer *pLayer, short force);
   void RepeatTriger(bool rollover);
 
   Status MakeNewPlugin(uint16_t iplugin, PixelNutPlugin **ppPlugin);
   void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
   void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
                           PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
+  void BeginPluginLayer(PluginLayer *pLayer);
 
   void updateTrackPtrs(void);
   void updateLayerPtrs(void);
 
   Status AppendPluginLayer(uint16_t plugin);
-  Status InsertPluginLayer(short layer, uint16_t plugin);
+  Status AddPluginLayer(short layer, uint16_t plugin);
   Status SwitchPluginLayer(short layer, uint16_t plugin);
   Status SwapPluginLayers(short layer);
   void DeletePluginLayer(short layer);

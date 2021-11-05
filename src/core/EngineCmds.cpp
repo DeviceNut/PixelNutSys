@@ -40,7 +40,6 @@ static short GetNumValue(char *str, int curval, int maxval)
   return newval;
 }
 
-// uses all alpha characters except for "P"
 PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 {
   Status status = Status_Success;
@@ -83,12 +82,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     else if (cmd[0] == 'E') // add a plugin Effect to the stack ("E" is an error)
     {
       int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-      if (plugin >= 0)
-      {
-        status = AppendPluginLayer((uint16_t)plugin);
-        curlayer = indexLayerStack;
-      }
-      else status = Status_Error_BadVal;
+      status = AppendPluginLayer((uint16_t)plugin);
+      curlayer = indexLayerStack;
     }
     else if (pdraw != NULL)
     {
@@ -105,8 +100,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "S"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            if (plugin >= 0) status = SwitchPluginLayer(curlayer, (uint16_t)plugin);
-            else status = Status_Error_BadVal;
+            status = SwitchPluginLayer(curlayer, (uint16_t)plugin);
           }
           else status = SwapPluginLayers(curlayer);
           break;
@@ -116,10 +110,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "Z"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            if (plugin >= 0) status = InsertPluginLayer(curlayer+1, (uint16_t)plugin);
-            else status = Status_Error_BadVal;
+            status = AddPluginLayer(curlayer+1, (uint16_t)plugin);
           }
           else DeletePluginLayer(curlayer);
+
+          curlayer = indexLayerStack;
+          indexTrackEnable = indexTrackStack;
           break;
         }
         case 'X': // offset into output display of the track by pixel index
@@ -235,7 +231,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             pluginLayers[curlayer].trigType |= TrigTypeBit_AtStart;
             short force = pluginLayers[curlayer].trigForce;
             if (force < 0) force = random(0, MAX_FORCE_VALUE+1);
-            triggerLayer(curlayer, force); // trigger immediately
+            TriggerLayer((pluginLayers + curlayer), force); // trigger immediately
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_AtStart;
           break;

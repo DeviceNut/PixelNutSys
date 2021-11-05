@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -50,14 +50,11 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
 }
 
 // called by all of the following triggering functions
-void PixelNutEngine::triggerLayer(byte layer, short force)
+void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
 {
-  PluginLayer *pLayer = (pluginLayers + layer);
-  if (pLayer->disable) return;
-
   PluginTrack *pTrack = pLayer->pTrack;
 
-  DBGOUT((F("Trigger: layer=%d force=%d"), layer, force));
+  DBGOUT((F("Trigger: layer=%d force=%d"), (pLayer - indexLayerStack), force));
 
   short pixCount = 0;
   short degreeHue = 0;
@@ -97,7 +94,8 @@ void PixelNutEngine::RepeatTriger(bool rollover)
       pluginLayers[i].trigTimeMsecs = msTimeUpdate;
 
     // if repeat triggering is set and have count (or infinite) and time has expired
-    if ((pluginLayers[i].trigType & TrigTypeBit_Repeating)               &&
+    if (!pluginLayers[i].disable &&
+        (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
         (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
     {
@@ -108,7 +106,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
       short force = ((pluginLayers[i].trigForce >= 0) ? 
                       pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
 
-      triggerLayer(i, force);
+      TriggerLayer((pluginLayers + i), force);
 
       pluginLayers[i].trigTimeMsecs = msTimeUpdate +
           (1000 * random(pluginLayers[i].trigRepOffset,
@@ -124,15 +122,17 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 void PixelNutEngine::triggerForce(short force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-    if (pluginLayers[i].trigType & TrigTypeBit_External)
-      triggerLayer(i, force);
+    if (!pluginLayers[i].disable &&
+        (pluginLayers[i].trigType & TrigTypeBit_External))
+      TriggerLayer((pluginLayers + i), force);
 }
 
 // internal: called from effect plugins
 void PixelNutEngine::triggerForce(byte layer, short force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-    if ((pluginLayers[i].trigType & TrigTypeBit_Internal) &&
+    if (!pluginLayers[i].disable &&
+        (pluginLayers[i].trigType & TrigTypeBit_Internal) &&
         (pluginLayers[i].trigLayerIndex == layer))
-      triggerLayer(i, force);
+      TriggerLayer((pluginLayers + i), force);
 }
