@@ -81,7 +81,7 @@ void PixelNutComets::cometHeadDelete(PixelNutComets::cometData cdata)
 }
 
 // adds new head or overwrites existing one if no more room, returns number of heads currently in use
-int PixelNutComets::cometHeadAdd(PixelNutComets::cometData cdata, byte layer, bool dowrap, int pixlen)
+int PixelNutComets::cometHeadAdd(PixelNutComets::cometData cdata, bool dowrap, int pixlen)
 {
   if (cdata == NULL) return 0;
 
@@ -90,7 +90,7 @@ int PixelNutComets::cometHeadAdd(PixelNutComets::cometData cdata, byte layer, bo
   int maxheads = pData->count;
 
   #if DEBUG_OUTPUT
-  DBGOUT((F("AddHead: Layer=%d Count=%d/%d"), layer, pData->inuse, maxheads));
+  DBGOUT((F("AddHead: Count=%d/%d"), pData->inuse, maxheads));
   DBGOUT((F("  Before:")));
   for (int i = 0; i < maxheads; ++i)
   {
@@ -187,7 +187,7 @@ int PixelNutComets::cometHeadAdd(PixelNutComets::cometData cdata, byte layer, bo
 }
 
 // draws all valid comet heads, returns number of heads currently in use
-int PixelNutComets::cometHeadDraw(PixelNutComets::cometData cdata, byte layer,
+int PixelNutComets::cometHeadDraw(PixelNutComets::cometData cdata,
                                   PixelNutSupport::DrawProps *pdraw,
                                   PixelNutHandle handle, int pixlen)
 {
@@ -255,8 +255,8 @@ int PixelNutComets::cometHeadDraw(PixelNutComets::cometData cdata, byte layer,
     }
   
     #if 0 //DEBUG_OUTPUT
-    DBGOUT((F("L%d %2d: %sHeadPos=%-3d CurPos=%-3d StartBody=%-3d CurBody=%-3d DrawLen=%-3d FadeLen=%d"),
-        layer, headnum, (phead->offend ? " " : "^"), headpos, curpos, startbodylen, bodylen, drawlen, fadelen));
+    DBGOUT((F("%2d: %sHeadPos=%-3d CurPos=%-3d StartBody=%-3d CurBody=%-3d DrawLen=%-3d FadeLen=%d"),
+              headnum, (phead->offend ? " " : "^"), headpos, curpos, startbodylen, bodylen, drawlen, fadelen));
     //DBGOUT((F("    Fade(Scale=%-3d%% Step=%-3d%% Len=%d)"), (int)(fade_scale*100), (int)(fade_step*100), fadelen));
     #endif
   
@@ -294,7 +294,7 @@ int PixelNutComets::cometHeadDraw(PixelNutComets::cometData cdata, byte layer,
       {
         --pData->inuse;
         phead->offend = true;
-        DBGOUT((F("Done: L%d H%d(%d more) headpos=%d bodylen=%d"), layer, headnum, pData->inuse, headpos, bodylen));
+        DBGOUT((F("Done: H%d(%d more) headpos=%d bodylen=%d"), headnum, pData->inuse, headpos, bodylen));
       }
     }
   }

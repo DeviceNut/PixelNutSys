@@ -23,8 +23,8 @@ public:
     typedef void (*cometData); // abstracts internal data used for heads
     cometData cometHeadCreate(int headcount);
     void cometHeadDelete(cometData cdata);
-    int cometHeadAdd(cometData cdata, byte layer, bool dowrap, int pixlen);
-    int cometHeadDraw(cometData cdata, byte layer,
+    int cometHeadAdd(cometData cdata, bool dowrap, int pixlen);
+    int cometHeadDraw(cometData cdata,
           PixelNutSupport::DrawProps *pdraw, PixelNutHandle handle, int pixlen);
 };
 
