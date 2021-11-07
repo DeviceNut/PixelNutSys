@@ -24,7 +24,7 @@ void PixelNutEngine::SetPropColor(void)
   // adjust all tracks that allow extern control with Q command
   for (int i = 0; i <= indexTrackStack; ++i)
   {
-    PluginTrack *pTrack = (pluginTracks + i);
+    PluginTrack *pTrack = TRACK_MAKEPTR(i);
     if (pTrack->pLayer->disable) continue;
 
     bool doset = false;
@@ -61,7 +61,7 @@ void PixelNutEngine::SetPropCount(void)
   // adjust all tracks that allow extern control with Q command
   for (int i = 0; i <= indexTrackStack; ++i)
   {
-    PluginTrack *pTrack = (pluginTracks + i);
+    PluginTrack *pTrack = TRACK_MAKEPTR(i);
     if (pTrack->pLayer->disable) continue;
 
     if (pTrack->ctrlBits & ExtControlBit_PixCount)
@@ -122,18 +122,22 @@ bool PixelNutEngine::updateEffects(void)
 
   // first have any redraw effects that are ready draw into its own buffers...
 
-  PluginTrack *pTrack = pluginTracks;
-  for (int i = 0; i <= indexTrackStack; ++i, ++pTrack) // for each plugin that can redraw
+  for (int i = 0; i <= indexTrackStack; ++i) // for each plugin that can redraw
   {
-    //DBGOUT((F("Draw: track=%d active=%d"), i, pTrack->active));
-    if (!pTrack->active) break; // at top of active tracks now
-
+    PluginTrack *pTrack = TRACK_MAKEPTR(i);
     PluginLayer *pLayer = pTrack->pLayer;
 
-    //DBGOUT((F("Update: id=%d active=%d disable=%d"), pLayer->thisLayerID, pLayer->trigActive, pLayer->disable));
+    //DBGOUT((F("Update: id=%d active=%d trig=%d disable=%d"),
+    //        pLayer->thisLayerID, pTrack->active, pLayer->trigActive, pLayer->disable));
 
-      // don't show if track is disabled or not triggered yet
-    if (pLayer->disable || !pLayer->trigActive) continue;
+    // skip if at top of active tracks now or not triggered yet
+    if (!pTrack->active || !pLayer->trigActive) continue;
+
+    if (pLayer->disable) // track is muted, but still use update pixels
+    {
+      doshow = true;
+      continue;
+    }
 
     // update the time if it's rolled over, then check if time to draw
     if (rollover) pTrack->msTimeRedraw = msTimeUpdate;
@@ -162,7 +166,7 @@ bool PixelNutEngine::updateEffects(void)
     if (externPropMode) RestorePropVals(pTrack, pixCount, degreeHue, pcentWhite);
 
     // now the main drawing effect is executed for this track
-    pDrawPixels = pTrack->pBuffer; // switch to drawing buffer
+    pDrawPixels = TRACK_BUFFER(pTrack); // switch to drawing buffer
     pLayer->pPlugin->nextstep(this, &pTrack->draw);
     pDrawPixels = pDisplayPixels; // restore to draw from display buffer
 
@@ -180,9 +184,10 @@ bool PixelNutEngine::updateEffects(void)
     // merge all buffers whether just redrawn or not if anyone of them changed
     memset(pDisplayPixels, 0, pixelBytes); // must clear display buffer first
 
-    pTrack = pluginTracks;
-    for (int i = 0; i <= indexTrackStack; ++i, ++pTrack) // for each plugin that can redraw
+    for (int i = 0; i <= indexTrackStack; ++i) // for each plugin that can redraw
     {
+      PluginTrack *pTrack = TRACK_MAKEPTR(i);
+
       if (!pTrack->active) break; // at top of active tracks now
 
       PluginLayer *pLayer = pTrack->pLayer;
@@ -204,7 +209,7 @@ bool PixelNutEngine::updateEffects(void)
       short x = pix * numBytesPerPixel;
       short y = pTrack->draw.pixStart * numBytesPerPixel;
 
-      byte *ppix = pTrack->pBuffer;
+      byte *ppix = TRACK_BUFFER(pTrack);
       /*
       DBGOUT((F("Input pixels:")));
       for (int i = 0; i < numPixels; ++i)

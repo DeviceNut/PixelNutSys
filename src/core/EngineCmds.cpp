@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -91,8 +91,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       {
         case 'M': // sets/clears mute state for track/layer ("M" same as "M1")
         {
-          pluginLayers[curlayer].disable = GetBoolValue(cmd+1, true);
-          DBGOUT((F("Layer=%d Disable=%d"), curlayer, pluginLayers[curlayer].disable));
+          bool disable = GetBoolValue(cmd+1, true);
+          DBGOUT((F("Layer=%d Disable=%d"), curlayer, disable));
+          PluginLayer *pLayer = (pluginLayers + curlayer);
+          pLayer->disable = disable;
+          if (disable && pLayer->redraw)
+            memset(TRACK_BUFFER(pLayer->pTrack), 0, pixelBytes);
           break;
         }
         case 'S': // switch/swap effect for existing track ("S" swaps with next track/layer)
@@ -114,7 +118,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           }
           else DeletePluginLayer(curlayer);
 
-          curlayer = indexLayerStack;
           indexTrackEnable = indexTrackStack;
           break;
         }
@@ -297,12 +300,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           if (indexTrackEnable != indexTrackStack)
           {
-            DBGOUT((F("Activate tracks %d to %d"), indexTrackEnable+1, indexTrackStack));
+            DBGOUT((F("Activate tracks %d-%d"), indexTrackEnable+1, indexTrackStack));
 
             // TODO: assign trigLayerID to any layers with TrigTypeBit_Internal set
 
             for (int i = indexTrackEnable+1; i <= indexTrackStack; ++i)
-              pluginTracks[i].active = true;
+              (TRACK_MAKEPTR(i))->active = true;
 
             indexTrackEnable = indexTrackStack;
           }

@@ -120,6 +120,14 @@ protected:
   #define DEF_TRIG_RANGE    0
   #define SETVAL_IF_NONZERO(var,val) {if (val != 0) var = val;}
 
+  #define LAYER_BYTES       (sizeof(PluginLayer))
+  #define LAYER_INDEX(p)    (p - pluginLayers)
+
+  #define TRACK_BYTES       (sizeof(PluginTrack) + pixelBytes)
+  #define TRACK_INDEX(p)    (((byte*)p - (byte*)pluginTracks)/TRACK_BYTES)
+  #define TRACK_MAKEPTR(i)  (PluginTrack*)((i * TRACK_BYTES) + (byte*)pluginTracks)
+  #define TRACK_BUFFER(p)   ((byte*)(p + 1))
+
   // saves what triggering is enabled
   enum TrigTypeBit
   {
@@ -159,10 +167,9 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 28-32 bytes
+  typedef struct ATTR_PACKED _PluginTrack // 25-27 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
-    byte *pBuffer;                              // pixel buffer for this track
 
     PixelNutSupport::DrawProps draw;            // drawing properties for this track
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
@@ -170,7 +177,8 @@ protected:
     bool active;                                // true if has been activated (G command)
     byte ctrlBits;                              // controls setting properties (ExtControlBit_xx)
     byte lcount;                                // number of layers in this track (>= 1)
-    byte reserved;
+
+    // pixel buffer starts here
   }
   PluginTrack; // defines properties for each drawing plugin
 
@@ -214,8 +222,8 @@ protected:
                           PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
   void BeginPluginLayer(PluginLayer *pLayer);
 
-  void updateTrackPtrs(void);
-  void updateLayerPtrs(void);
+  void UpdateLayerPtrInTracks(void);
+  void UpdateTrackPtrInLayers(void);
 
   Status AppendPluginLayer(uint16_t plugin);
   Status AddPluginLayer(short layer, uint16_t plugin);

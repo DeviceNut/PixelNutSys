@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -18,17 +18,10 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
   pixelBytes = num_pixels * num_bytes;
 
   // allocate track and layer stacks; add 1 for use in swapping
-  pluginLayers  = (PluginLayer*)malloc((num_layers + 1) * sizeof(PluginLayer));
-  pluginTracks  = (PluginTrack*)malloc((num_tracks + 1) * sizeof(PluginTrack));
+  // track includes pixel buffer after end of structure
+  pluginLayers  = (PluginLayer*)malloc((num_layers + 1) * LAYER_BYTES);
+  pluginTracks  = (PluginTrack*)malloc((num_tracks + 1) * TRACK_BYTES);
   if ((pluginLayers == NULL) || (pluginTracks == NULL)) return false;
-
-  // allocate pixel buffer for each track
-  for (int i = 0; i < num_tracks; ++i)
-  {
-    byte *pbuff = (byte *)malloc(pixelBytes);
-    if (pbuff == NULL) return false;
-    pluginTracks[i].pBuffer = pbuff;
-  }
 
   // allocate single display pixel buffer
   pDisplayPixels = (byte*)malloc(pixelBytes);
@@ -54,7 +47,8 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
 {
   PluginTrack *pTrack = pLayer->pTrack;
 
-  DBGOUT((F("Trigger: layer=%d force=%d"), (pLayer - pluginLayers), force));
+  DBGOUT((F("Trigger: track=%d layer=%d force=%d"),
+            TRACK_INDEX(pTrack), LAYER_INDEX(pLayer), force));
 
   short pixCount = 0;
   short degreeHue = 0;
@@ -70,7 +64,7 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
 
   byte *dptr = pDrawPixels;
   // prevent drawing if filter effect
-  pDrawPixels = (pLayer->redraw ? pTrack->pBuffer : NULL);
+  pDrawPixels = (pLayer->redraw ? TRACK_BUFFER(pTrack) : NULL);
   pLayer->pPlugin->trigger(this, &pTrack->draw, force);
   pDrawPixels = dptr; // restore to the previous value
 
@@ -121,7 +115,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 // external: called from client command
 void PixelNutEngine::triggerForce(short force)
 {
-  DBGOUT((F("Client trigger: max layers=%d"), indexLayerStack));
+  //DBGOUT((F("Client trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
@@ -131,7 +125,7 @@ void PixelNutEngine::triggerForce(short force)
 // internal: called from effect plugins
 void PixelNutEngine::triggerForce(byte layer, short force)
 {
-  DBGOUT((F("Plugin trigger: max layers=%d"), indexLayerStack));
+  //DBGOUT((F("Plugin trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_Internal) &&

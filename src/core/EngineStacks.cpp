@@ -13,40 +13,59 @@
 
 extern PluginFactory *pPluginFactory; // used to create effect plugins
 
+// must be called after changing the layer stack:
 // for each redraw layer: update the layer pointer in its track
 // then update all source trigger layers TODO
-void PixelNutEngine::updateTrackPtrs(void)
+void PixelNutEngine::UpdateLayerPtrInTracks(void)
 {
-  PluginLayer *pLayer = pluginLayers;
-  for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
+  for (int i = 0; i <= indexLayerStack; ++i)
   {
+    PluginLayer *pLayer = (pluginLayers + i);
+
     if (pLayer->redraw)
     {
-      DBGOUT((F("Update track=%d layer: %d => %d"), (pLayer->pTrack - pluginTracks),
-              (pLayer->pTrack->pLayer - pluginLayers), i));
+      DBGOUT((F("Update track=%d layer: %d => %d"),
+              TRACK_INDEX(pLayer->pTrack),
+              LAYER_INDEX(pLayer->pTrack->pLayer), i));
 
       pLayer->pTrack->pLayer = pLayer;
     }
 
     if (pLayer->trigType & TrigTypeBit_Internal)
     {
-      // update source layer
+      bool found = false;
+      for (int j = 0; j <= indexLayerStack; ++j)
+      {
+        if (pluginLayers[j].trigLayerID == pLayer->trigLayerID)
+        {
+          pLayer->trigLayerIndex = j;
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+      {
+        DBGOUT((F("Clearing trigger for layer=%d (was %d)"), i, pLayer->trigLayerIndex));
 
+        pLayer->trigType &= ~TrigTypeBit_Internal;
+      }
     }
   }
 }
 
+// must be called after changing the track stack:
 // for each track: update track pointer in each layer for that track
-void PixelNutEngine::updateLayerPtrs(void)
+void PixelNutEngine::UpdateTrackPtrInLayers(void)
 {
-  PluginTrack *pTrack = pluginTracks;
-  for (int i = 0; i <= indexTrackStack; ++i, ++pTrack)
+  for (int i = 0; i <= indexTrackStack; ++i)
   {
-    PluginLayer *pLayer = pTrack->pLayer;
-    for (int j = 0; j < pTrack->lcount; ++j, ++pLayer)
+    PluginTrack *pTrack = TRACK_MAKEPTR(i);
+    for (int j = 0; j < pTrack->lcount; ++j)
     {
-      DBGOUT((F("Update layer=%d track: %d => %d"), (pLayer - pluginLayers),
-              (pLayer->pTrack - pluginTracks), i));
+      PluginLayer *pLayer = (pluginLayers + j);
+
+      DBGOUT((F("Update layer=%d track: %d => %d"),
+                LAYER_INDEX(pLayer), TRACK_INDEX(pLayer->pTrack), i));
 
       pLayer->pTrack = pTrack;
     }
@@ -54,12 +73,12 @@ void PixelNutEngine::updateLayerPtrs(void)
 }
 
 // moves stack memory safely
-void PixelNutEngine::ShiftStack(bool dolayer, int isrc, int idst, int iend)
+void PixelNutEngine::ShiftStack(bool dolayer, int isrc, int iend, int idst)
 {
   byte *base = (dolayer ? (byte*)pluginLayers : (byte*)pluginTracks);
-  int size   = (dolayer ? sizeof(PluginLayer) : sizeof(PluginTrack));
+  int size   = (dolayer ? LAYER_BYTES : TRACK_BYTES);
 
-  DBGOUT((F("Shifting %s: (%d,%d) => %d"), dolayer ? "layers" : "tracks", isrc, iend, idst));
+  DBGOUT((F("Shift %s: (%d,%d) => %d"), dolayer ? "layers" : "tracks", isrc, iend, idst));
 
   int mlen = size * (iend - isrc + 1);
   byte *psrc = base + (size * isrc);
@@ -69,7 +88,7 @@ void PixelNutEngine::ShiftStack(bool dolayer, int isrc, int idst, int iend)
 
 void PixelNutEngine::clearStacks(void)
 {
-  DBGOUT((F("Clear stack: tracks=%d layers=%d"), indexTrackStack, indexLayerStack));
+  DBGOUT((F("Clear stacks: tracks=%d layers=%d"), indexTrackStack, indexLayerStack));
 
   for (int i = 0; i < indexLayerStack; ++i)
     delete pluginLayers[i].pPlugin;
@@ -118,11 +137,8 @@ PixelNutEngine::Status PixelNutEngine::MakeNewPlugin(uint16_t iplugin, PixelNutP
 
 void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
 {
-  // clear track but retain pixel buffer and clear it
-  byte *pbuff = pTrack->pBuffer;
-  memset(pTrack, 0, sizeof(PluginTrack));
-  memset(pbuff, 0, pixelBytes);
-  pTrack->pBuffer = pbuff;
+  // clear track and pixel buffer
+  memset(pTrack, 0, TRACK_BYTES);
 
   pTrack->pLayer = pLayer; // this layer not yet initialized
 
@@ -188,13 +204,13 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
   PluginLayer *pLayer = (pluginLayers + indexLayerStack);
 
   if (redraw) ++indexTrackStack; // create another effect track
-  PluginTrack *pTrack = (pluginTracks + indexTrackStack);
+  PluginTrack *pTrack = TRACK_MAKEPTR(indexTrackStack);
 
-  DBGOUT((F("Append: max stacks=(track=%d layer=%d) active=%d"),
-          indexTrackStack, indexLayerStack, indexTrackEnable));
+  DBGOUT((F("Append: stacks=(track=%d-%d layer=%d)"),
+          indexTrackStack, indexTrackEnable, indexLayerStack));
 
   if (redraw) InitPluginTrack(pTrack, pLayer);
-  ++pTrack->lcount; // one more layer to track
+  ++(pTrack->lcount); // one more layer to track
 
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin,  redraw);
 
@@ -241,29 +257,29 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
   if (redraw)
   {
     lcount = pTrack->lcount;
-    int track = (pTrack - pluginTracks);
+    int track = TRACK_INDEX(pTrack);
 
     // open space in track stack for one new track
-    ShiftStack(false, track, (track + 1), indexTrackStack);
+    ShiftStack(false, track, indexTrackStack, (track + 1));
 
     ++indexTrackStack; // more more effect on the stack
     InitPluginTrack(pTrack, pLayer);
 
     // this iterates tracks, so they must all be initialized
-    updateLayerPtrs(); // adjust layers for moved tracks
+    UpdateTrackPtrInLayers(); // adjust layers for moved tracks
   }
 
   // open space in layer stack for all layers in the track
-  ShiftStack(true, layer, (layer + lcount), indexLayerStack);
+  ShiftStack(true, layer, indexLayerStack, (layer + lcount));
 
   ++indexLayerStack; // now have another effect layer
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin, redraw);
 
   // this iterates layers, so they must all be initialized
-  updateTrackPtrs(); // adjust tracks for moved layers
+  UpdateLayerPtrInTracks(); // adjust tracks for moved layers
 
-  DBGOUT((F("Add: max stacks=(track=%d layer=%d) active=%d"),
-          indexTrackStack, indexLayerStack, indexTrackEnable));
+  DBGOUT((F("Add: stacks=(track=%d-%d layer=%d)"),
+          indexTrackStack, indexTrackEnable, indexLayerStack));
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -294,7 +310,7 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t i
   pLayer->trigActive = false;
 
   // must clear buffer to remove current drawn pixels
-  memset(pLayer->pTrack->pBuffer, 0, pixelBytes);
+  memset((pLayer->pTrack + 1), 0, pixelBytes);
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -315,39 +331,47 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t i
 
 void PixelNutEngine::DeletePluginLayer(short layer)
 {
-  DBGOUT((F("Delete plugin: layer=%d"), layer));
-
   PluginLayer *pLayer = (pluginLayers + layer);
+
+  DBGOUT((F("Delete plugin: #%d layer=%d"), pLayer->iplugin, layer));
+
   delete pLayer->pPlugin;
 
   if (pLayer->redraw)
   {
     int lcount = pLayer->pTrack->lcount;
-    int track = (pLayer->pTrack - pluginTracks);
+    int track = TRACK_INDEX(pLayer->pTrack);
 
     if ((layer + lcount - 1) < indexLayerStack)
     {
       // close space in layer stack taken by all layers in the track
-      ShiftStack(true, (layer + lcount), layer, indexLayerStack);
+      ShiftStack(true, (layer + lcount), indexLayerStack, layer);
+
       indexLayerStack -= lcount;
-      updateTrackPtrs(); // adjust tracks for moved layers
+      UpdateLayerPtrInTracks(); // adjust tracks for moved layers
 
       // close space in track stack for that one track
-      ShiftStack(false, (track + 1), track, indexTrackStack);
-      --indexTrackStack;
-      updateLayerPtrs(); // adjust layers for moved tracks
-    }
-    else --indexTrackStack;
+      ShiftStack(false, (track + 1), indexTrackStack, track);
 
-    if (indexTrackEnable < indexTrackStack)
+      --indexTrackStack;
+      UpdateTrackPtrInLayers(); // adjust layers for moved tracks
+    }
+    else
+    {
+      indexLayerStack -= lcount;
+      --indexTrackStack;
+    }
+
+    if (indexTrackEnable > indexTrackStack)
         indexTrackEnable = indexTrackStack;
   }
   else if (layer < indexLayerStack)
   {
     // close space in layer stack for one layer
-    ShiftStack(true, (layer + 1), layer, indexLayerStack);
+    ShiftStack(true, (layer + 1), indexLayerStack, layer);
+
     --indexLayerStack;
-    updateTrackPtrs(); // adjust tracks for moved layers
+    UpdateLayerPtrInTracks(); // adjust tracks for moved layers
   }
   else
   {
@@ -355,8 +379,8 @@ void PixelNutEngine::DeletePluginLayer(short layer)
     --pLayer->pTrack->lcount;
   }
 
-  DBGOUT((F("Delete: max stacks=(track=%d layer=%d) active=%d"),
-          indexTrackStack, indexLayerStack, indexTrackEnable));
+  DBGOUT((F("Delete: stacks=(track=%d-%d layer=%d)"),
+          indexTrackStack, indexTrackEnable, indexLayerStack));
 }
 
 // Copy the memory for the layer(s) to swap (if a track layer
@@ -370,13 +394,8 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
 {
   PluginLayer *pLayer = (pluginLayers + layer);
   bool redraw = pLayer->redraw;
-  int track = (pLayer->pTrack - pluginTracks);
 
-  int rotate_count = 1;
-  int endlayer = layer;
-
-  if (redraw)
-    rotate_count = pLayer->pTrack->lcount;
+  int rotate_count = redraw ? pLayer->pTrack->lcount : 1;
 
   // MUST have layer(s) after this one in order to swap
   if ((layer + rotate_count) >= indexLayerStack)
@@ -386,36 +405,39 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
     return Status_Error_BadVal;
   }
 
-  if (redraw)
-    endlayer = layer + (pLayer + rotate_count)->pTrack->lcount - 1;
+  int endlayer = (layer + rotate_count);
+  if (redraw) endlayer += (pLayer + rotate_count)->pTrack->lcount - 1;
 
   DBGOUT((F("Swap layers: %d"), layer));
 
   for (int i = 0; i < rotate_count; ++i)
   {
     // move one layer to the saved slot above the usable part of the stack
-    ShiftStack(true, layer, maxPluginLayers, (layer + 1));
+    ShiftStack(true, layer, layer, maxPluginLayers);
 
     // shift one or more layers down to replace the layer just moved
-    ShiftStack(true, (layer + 1), layer, endlayer);
+    ShiftStack(true, (layer + 1), endlayer, layer);
 
     // move saved layer to the opened slot above previous shift
-    ShiftStack(true, maxPluginLayers, (endlayer + 1), maxPluginLayers);
+    ShiftStack(true, maxPluginLayers, maxPluginLayers, endlayer);
   }
-  updateTrackPtrs(); // adjust tracks for moved layers
+
+  UpdateLayerPtrInTracks(); // adjust tracks for moved layers
 
   if (redraw) // rotate one track
   {
+    int track = TRACK_INDEX(pLayer->pTrack);
+
     // move one track to the saved slot above the usable part of the stack
-    ShiftStack(false, track, maxPluginTracks, (track + 1));
+    ShiftStack(false, track, track, maxPluginTracks);
 
     // shift one track down to replace the one just moved
-    ShiftStack(false, (track + 1), track, (track + 1));
+    ShiftStack(false, (track + 1), (track + 1), track);
 
     // move saved track to the opened slot above previous shift
-    ShiftStack(false, maxPluginTracks, (track + 1), maxPluginLayers);
+    ShiftStack(false, maxPluginTracks, maxPluginLayers, (track + 1));
 
-    updateLayerPtrs(); // adjust layers for moved tracks
+    UpdateTrackPtrInLayers(); // adjust layers for moved tracks
   }
 
   return Status_Success;
