@@ -195,7 +195,7 @@ long PixelNutSupport::clipValue(long inval, long out_min, long out_max)
   return inval;
 }
 
-void PixelNutSupport::sendForce(PixelNutHandle handle, byte id, short force)
+void PixelNutSupport::sendForce(PixelNutHandle handle, uint16_t id, short force)
 {
   PixelNutEngine *pEngine = (PixelNutEngine*)handle;
   pEngine->triggerForce(id, force);

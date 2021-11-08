@@ -88,7 +88,8 @@ public:
     else if (force >= 0) dorepeat = false;
     else doit = false;
 
-    //pixelNutSupport.msgFormat(F("CometHeads: doit=%d dorepeat=%d force=%d mode=%d"), doit, dorepeat, force, repMode);
+    //pixelNutSupport.msgFormat(F("CometHeads: doit=%d heads=%d repmode=%d dorepeat=%d force=%d"),
+    //                            doit, headCount, repMode, dorepeat, force);
 
     if (doit) headCount = pixelNutComets.cometHeadAdd(cdata, dorepeat, pixLength);
     forceVal = force;
@@ -96,7 +97,7 @@ public:
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
-    //pixelNutSupport.msgFormat(F("CometHeads: force=%d mode=%d"), forceVal, repMode);
+    //pixelNutSupport.msgFormat(F("CometHeads: force=%d repmode=%d"), forceVal, repMode);
 
     uint16_t count = pixelNutComets.cometHeadDraw(cdata, pdraw, handle, pixLength);
     if (count != headCount)
