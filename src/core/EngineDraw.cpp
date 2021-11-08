@@ -112,13 +112,15 @@ void PixelNutEngine::RestorePropVals(PluginTrack *pTrack,
 
 bool PixelNutEngine::updateEffects(void)
 {
+  if (!patternEnabled) return false;
+
   bool doshow = (msTimeUpdate == 0);
 
   uint32_t time = pixelNutSupport.getMsecs();
   bool rollover = (msTimeUpdate > time);
   msTimeUpdate = time;
 
-  RepeatTriger(rollover);
+  RepeatTriger(rollover); //check if need to generate a trigger
 
   // first have any redraw effects that are ready draw into its own buffers...
 
@@ -127,13 +129,12 @@ bool PixelNutEngine::updateEffects(void)
     PluginTrack *pTrack = TRACK_MAKEPTR(i);
     PluginLayer *pLayer = pTrack->pLayer;
 
-    //DBGOUT((F("Update: id=%d active=%d trig=%d disable=%d"),
-    //        pLayer->thisLayerID, pTrack->active, pLayer->trigActive, pLayer->disable));
+    //DBGOUT((F("Update: id=%d trig=%d disable=%d"),
+    //        pLayer->thisLayerID, pLayer->trigActive, pLayer->disable));
 
-    // skip if at top of active tracks now or not triggered yet
-    if (!pTrack->active || !pLayer->trigActive) continue;
+    if (!pLayer->trigActive) continue; // not triggered yet
 
-    if (pLayer->disable) // track is muted, but still use update pixels
+    if (pLayer->disable) // track is muted, but still update with pixels
     {
       doshow = true;
       continue;
@@ -187,9 +188,6 @@ bool PixelNutEngine::updateEffects(void)
     for (int i = 0; i <= indexTrackStack; ++i) // for each plugin that can redraw
     {
       PluginTrack *pTrack = TRACK_MAKEPTR(i);
-
-      if (!pTrack->active) break; // at top of active tracks now
-
       PluginLayer *pLayer = pTrack->pLayer;
 
       // don't show if layer is disabled or not triggered yet,

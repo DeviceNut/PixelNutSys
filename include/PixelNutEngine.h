@@ -84,8 +84,8 @@ public:
   // Must be enabled with the "I" command for each effect layer to be effected.
   void triggerForce(short force);
 
-  // Used by plugins to trigger based on the effect layer, enabled by the "A" command.
-  void triggerForce(byte layer, short force);
+  // Used by plugins to trigger based on the effect layer ID, enabled by the "A" command.
+  void triggerForce(uint16_t id, short force);
 
   // Parses and executes a pattern command string, returning a status code.
   // An empty string (or one with only spaces), is ignored.
@@ -167,14 +167,13 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 25-27 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 
     PixelNutSupport::DrawProps draw;            // drawing properties for this track
     uint32_t msTimeRedraw;                      // time of next redraw of plugin in msecs
 
-    bool active;                                // true if has been activated (G command)
     byte ctrlBits;                              // controls setting properties (ExtControlBit_xx)
     byte lcount;                                // number of layers in this track (>= 1)
 
@@ -190,7 +189,8 @@ protected:
   PluginTrack *pluginTracks;                    // plugin tracks that have properties
   short maxPluginTracks;                        // max number of tracks possible
   short indexTrackStack = -1;                   // index into the plugin properties stack
-  short indexTrackEnable = -1;                  // higher indices are not yet activated
+
+  bool patternEnabled = false;                  // true once pattern enabled for drawing
 
   uint32_t msTimeUpdate = 0;                    // time of previous call to update
   uint16_t maxDelayMsecs = 500;                 // delay time in msecs needed to get 1Hz
@@ -222,6 +222,10 @@ protected:
                           PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
   void BeginPluginLayer(PluginLayer *pLayer);
 
+  void ShowAllTracks(void);
+  void ShowAllLayers(void);
+
+  void UpdateSourceTriggers(void);
   void UpdateLayerPtrInTracks(void);
   void UpdateTrackPtrInLayers(void);
 

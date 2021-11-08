@@ -81,8 +81,6 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 {
   for (int i = 0; i <= indexLayerStack; ++i) // for each plugin layer
   {
-    if (!pluginLayers[i].pTrack->active) break; // not enabled yet
-
     // just always reset trigger time after rollover event
     if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
       pluginLayers[i].trigTimeMsecs = msTimeUpdate;
@@ -115,7 +113,6 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 // external: called from client command
 void PixelNutEngine::triggerForce(short force)
 {
-  //DBGOUT((F("Client trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
@@ -123,12 +120,11 @@ void PixelNutEngine::triggerForce(short force)
 }
 
 // internal: called from effect plugins
-void PixelNutEngine::triggerForce(byte layer, short force)
+void PixelNutEngine::triggerForce(uint16_t id, short force)
 {
-  //DBGOUT((F("Plugin trigger: max layers=%d"), indexLayerStack));
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
         (pluginLayers[i].trigType & TrigTypeBit_Internal) &&
-        (pluginLayers[i].trigLayerIndex == layer))
+        (pluginLayers[i].trigLayerID == id))
       TriggerLayer((pluginLayers + i), force);
 }

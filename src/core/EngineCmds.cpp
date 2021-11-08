@@ -70,7 +70,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
       if (layer >= 0)
       {
-        DBGOUT((F("LayerCmd: %d max=%d"), layer, indexLayerStack));
+        DBGOUT((F("LayerCmd: cur=%d max=%d"), layer, indexLayerStack));
         curlayer = layer;        
       }
       else
@@ -117,8 +117,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             status = AddPluginLayer(curlayer+1, (uint16_t)plugin);
           }
           else DeletePluginLayer(curlayer);
-
-          indexTrackEnable = indexTrackStack;
           break;
         }
         case 'X': // offset into output display of the track by pixel index
@@ -296,18 +294,28 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           pluginLayers[curlayer].trigRepRange = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_RANGE, 0);
           break;
         }
-        case 'G': // Go: activate newly added effect tracks
+        case 'G': // Go: activate all effects in entire pattern
         {
-          if (indexTrackEnable != indexTrackStack)
+          if (!patternEnabled)
           {
-            DBGOUT((F("Activate tracks %d-%d"), indexTrackEnable+1, indexTrackStack));
+            DBGOUT((F("Activate %d tracks"), indexTrackStack+1));
+            patternEnabled = true;
 
-            // TODO: assign trigLayerID to any layers with TrigTypeBit_Internal set
-
-            for (int i = indexTrackEnable+1; i <= indexTrackStack; ++i)
-              (TRACK_MAKEPTR(i))->active = true;
-
-            indexTrackEnable = indexTrackStack;
+            // assign trigLayerID for layers with TrigTypeBit_Internal set
+            PluginLayer *pLayer = pluginLayers;
+            for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
+            {
+              if (pLayer->trigType & TrigTypeBit_Internal)
+              {
+                int index = pLayer->trigLayerIndex;
+                if (index > indexLayerStack)
+                {
+                  DBGOUT((F("Invalid trigger index=%d for layer=%d"), index, i));
+                  pLayer->trigType &= ~TrigTypeBit_Internal;
+                }
+                else pLayer->trigLayerID = pluginLayers[index].thisLayerID;
+              }
+            }
           }
           break;
         }
