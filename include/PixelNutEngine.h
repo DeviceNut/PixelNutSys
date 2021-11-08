@@ -152,7 +152,7 @@ protected:
 
     byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
     bool trigActive;                            // true once layer has been triggered once
-    byte trigLayerIndex;                        // layer stack index of effect trigger
+    byte trigLayerIndex;                        // layer index of effect trigger when created
     uint16_t trigLayerID;                       //  and the layerID of that layer
     short trigForce;                            // amount of force to apply (-1 for random)
 
