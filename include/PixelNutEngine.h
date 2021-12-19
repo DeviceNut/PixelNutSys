@@ -222,8 +222,7 @@ protected:
                           PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
   void BeginPluginLayer(PluginLayer *pLayer);
 
-  void ShowAllTracks(void);
-  void ShowAllLayers(void);
+  void ShowAllStacks(void);
 
   void UpdateSourceTriggers(void);
   void UpdateLayerPtrInTracks(void);

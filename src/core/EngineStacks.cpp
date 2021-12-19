@@ -29,7 +29,7 @@ void PixelNutEngine::clearStacks(void)
   msTimeUpdate = 0;
 }
 
-void PixelNutEngine::ShowAllTracks(void)
+void PixelNutEngine::ShowAllStacks(void)
 {
   DBGOUT((F("Tracks:")));
   for (int i = 0; i <= indexTrackStack; ++i)
@@ -37,10 +37,7 @@ void PixelNutEngine::ShowAllTracks(void)
     PluginTrack *pTrack = TRACK_MAKEPTR(i);
     DBGOUT((F("  %d: layer=%d count=%d"), i, (pTrack->pLayer - pluginLayers), pTrack->lcount));
   }  
-}
 
-void PixelNutEngine::ShowAllLayers(void)
-{
   DBGOUT((F("Layers:")));
   PluginLayer *pLayer = pluginLayers;
   for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
@@ -194,6 +191,8 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
 
   DBGOUT((F("Append plugin: #%d redraw=%d"), iplugin, redraw));
 
+  ShowAllStacks();
+
   PixelNutPlugin *pPlugin;
   Status rc = MakeNewPlugin(iplugin, &pPlugin);
   if (rc != Status_Success) return rc;
@@ -210,6 +209,8 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
   ++(pTrack->lcount); // one more layer to track
 
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin,  redraw);
+
+  ShowAllStacks();
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -244,6 +245,8 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
     return Status_Error_BadVal;
   }
 
+  ShowAllStacks();
+
   PixelNutPlugin *pPlugin;
   Status rc = MakeNewPlugin(iplugin, &pPlugin);
   if (rc != Status_Success) return rc;
@@ -276,7 +279,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
   // this iterates layers, so they must all be initialized
   UpdateLayerPtrInTracks(); // adjust tracks for moved layers
 
-  DBGOUT((F("Add: stacks=(track=%d layer=%d)"), indexTrackStack, indexLayerStack));
+  ShowAllStacks();
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -334,6 +337,8 @@ void PixelNutEngine::DeletePluginLayer(short layer)
 
   delete pLayer->pPlugin;
 
+  ShowAllStacks();
+
   if (pLayer->redraw)
   {
     int lcount = pLayer->pTrack->lcount;
@@ -377,7 +382,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
     --(pLayer->pTrack->lcount);
   }
 
-  DBGOUT((F("Delete: stacks=(track=%d layer=%d)"), indexTrackStack, indexLayerStack));
+  ShowAllStacks();
 }
 
 // Copy the memory for the layer(s) to swap (if a track layer
@@ -406,8 +411,7 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
     return Status_Error_BadVal;
   }
 
-  ShowAllTracks();
-  ShowAllLayers();
+  ShowAllStacks();
 
   if (redraw) // rotate the track first
   {
@@ -439,8 +443,7 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
 
   UpdateTrackPtrInLayers(); // adjust track pointers in moved layers
 
-  ShowAllTracks();
-  ShowAllLayers();
+  ShowAllStacks();
 
   return Status_Success;
 }
