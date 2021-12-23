@@ -142,7 +142,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'K': // number of pixels in the track by percent
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
-          pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
+          if (pcent == 0) pdraw->pixLen = numPixels - pdraw->pixStart;
+          else pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F("Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
