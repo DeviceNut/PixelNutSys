@@ -227,16 +227,16 @@ void ExecAppCmd(char *instr)
       doUpdate = true;
       break;
     }
-    case '-': // set external mode on/off
+    case '|': // set external mode on/off
     {
       bool mode = (atoi(instr+1) != 0);
       FlashSetXmode(mode);
       pPixelNutEngine->setPropertyMode(mode);
       break;
     }
-    case '+': // set color hue/white and count properties
+    case '{': // set color hue/white and count properties
     {
-      ++instr; // skip past '='
+      ++instr; // skip past '+'
       short hue = atoi(instr);
 
       instr = skipNumber(instr); // skip number digits
