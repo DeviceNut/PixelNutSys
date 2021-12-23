@@ -114,7 +114,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "Z"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            status = AddPluginLayer(curlayer+1, (uint16_t)plugin);
+            DBGOUT((F("Layer=%d Append plugin=%d"), curlayer, plugin));
+            status = AddPluginLayer(curlayer, (uint16_t)plugin);
           }
           else DeletePluginLayer(curlayer);
           break;
