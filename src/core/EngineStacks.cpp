@@ -239,12 +239,6 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
 
   DBGOUT((F("Add plugin: #%d redraw=%d layer=%d"), iplugin, redraw, layer));
 
-  if (redraw != pLayer->redraw) // must be same as current layer
-  {
-    DBGOUT((F("Unexpected plugin(%d) for layer=%d"), iplugin, layer));
-    return Status_Error_BadVal;
-  }
-
   ShowAllStacks();
 
   PixelNutPlugin *pPlugin;
