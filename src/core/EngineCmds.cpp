@@ -128,7 +128,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         }
         case 'Y': // number of pixels in the track by pixel index
         {
-          pdraw->pixLen = (uint16_t)GetNumValue(cmd+1, 0, numPixels);
+          pdraw->pixLen = (uint16_t)GetNumValue(cmd+1, 1, numPixels);
           DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
@@ -353,6 +353,7 @@ static bool addstr(char **pcmdstr, char *addstr, int* pmaxlen)
   *pmaxlen -= slen;
   return true;
 }
+
 // forms command string from current track/layer stacks
 bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 {
