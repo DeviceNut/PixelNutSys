@@ -85,30 +85,27 @@ void PixelNutEngine::RepeatTriger(bool rollover)
     if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
       pluginLayers[i].trigTimeMsecs = msTimeUpdate;
 
-    if (patternEnabled) // allow rollover handling even when not displaying
+    // if repeat triggering is set and have count (or infinite) and time has expired
+    if (!pluginLayers[i].disable &&
+        (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&
+        (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
+        (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
     {
-      // if repeat triggering is set and have count (or infinite) and time has expired
-      if (!pluginLayers[i].disable &&
-          (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&
-          (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
-          (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
-      {
-        DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
-                  pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
-                  pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
+      DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
+                pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
+                pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
 
-        short force = ((pluginLayers[i].trigForce >= 0) ? 
-                        pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
+      short force = ((pluginLayers[i].trigForce >= 0) ? 
+                      pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
 
-        TriggerLayer((pluginLayers + i), force);
+      TriggerLayer((pluginLayers + i), force);
 
-        pluginLayers[i].trigTimeMsecs = msTimeUpdate +
-            (1000 * random(pluginLayers[i].trigRepOffset,
-                          (pluginLayers[i].trigRepOffset +
-                          pluginLayers[i].trigRepRange+1)));
+      pluginLayers[i].trigTimeMsecs = msTimeUpdate +
+          (1000 * random(pluginLayers[i].trigRepOffset,
+                        (pluginLayers[i].trigRepOffset +
+                        pluginLayers[i].trigRepRange+1)));
 
-        if (pluginLayers[i].trigDnCounter > 0) --pluginLayers[i].trigDnCounter;
-      }
+      if (pluginLayers[i].trigDnCounter > 0) --pluginLayers[i].trigDnCounter;
     }
   }
 }

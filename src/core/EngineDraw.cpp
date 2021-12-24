@@ -120,8 +120,6 @@ bool PixelNutEngine::updateEffects(void)
 
   RepeatTriger(rollover); //check if need to generate a trigger
 
-  if (!patternEnabled) return doshow;
-
   // first have any redraw effects that are ready draw into its own buffers...
 
   for (int i = 0; i <= indexTrackStack; ++i) // for each plugin that can redraw

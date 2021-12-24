@@ -191,8 +191,6 @@ protected:
   short maxPluginTracks;                        // max number of tracks possible
   short indexTrackStack = -1;                   // index into the plugin properties stack
 
-  bool patternEnabled = false;                  // true once pattern enabled for drawing
-
   uint32_t msTimeUpdate = 0;                    // time of previous call to update
   uint16_t maxDelayMsecs = 500;                 // delay time in msecs needed to get 1Hz
                                                 // (needs to be calibrated on bootup) TODO

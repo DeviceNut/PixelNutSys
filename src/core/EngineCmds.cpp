@@ -43,8 +43,8 @@ static short GetNumValue(char *str, int curval, int maxval)
 PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 {
   Status status = Status_Success;
-
   short curlayer = indexLayerStack;
+  bool neweffects = false;
 
   for (int i = 0; cmdstr[i]; ++i) // convert to upper case
     cmdstr[i] = toupper(cmdstr[i]);
@@ -84,6 +84,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
       status = AppendPluginLayer((uint16_t)plugin);
       curlayer = indexLayerStack;
+      neweffects = true;
     }
     else if (pdraw != NULL)
     {
@@ -93,10 +94,14 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           bool disable = GetBoolValue(cmd+1, true);
           DBGOUT((F("Layer=%d Disable=%d"), curlayer, disable));
+
           PluginLayer *pLayer = (pluginLayers + curlayer);
           pLayer->disable = disable;
+
           if (disable && pLayer->redraw)
             memset(TRACK_BUFFER(pLayer->pTrack), 0, pixelBytes);
+
+          neweffects = true;
           break;
         }
         case 'S': // switch/swap effect for existing track ("S" swaps with next track/layer)
@@ -107,6 +112,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             status = SwitchPluginLayer(curlayer, (uint16_t)plugin);
           }
           else status = SwapPluginLayers(curlayer);
+
+          neweffects = true;
           break;
         }
         case 'Z': // append/remove track/layer ("Z" to delete, else value is effect to insert)
@@ -118,6 +125,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             status = AddPluginLayer(curlayer, (uint16_t)plugin);
           }
           else DeletePluginLayer(curlayer);
+
+          neweffects = true;
           break;
         }
         case 'X': // offset into output display of the track by pixel index
@@ -255,12 +264,14 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
-            pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
             pluginLayers[curlayer].trigLayerIndex = (byte)GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
-            DBGOUT((F("Triggering assigned to layer %d"), pluginLayers[curlayer].trigLayerIndex));
-            // MUST assign tigLayerID for this layer when activated
+            DBGOUT((F("Triggering for layer=%d assigned to layer=%d"), curlayer, pluginLayers[curlayer].trigLayerIndex));
+
+            pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Internal;
+
+          neweffects = true;
           break;
         }
         case 'R': // sets repeat trigger ("R0" to disable, "R" for forever count, else "R<count>")
@@ -320,11 +331,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
   }
   while (cmd != NULL);
 
-  if ((status == Status_Success) && !patternEnabled)
+  if ((status == Status_Success) && neweffects)
   {
-    DBGOUT((F("Activate %d tracks"), indexTrackStack+1));
-    patternEnabled = true;
-
     // assign trigLayerID for layers with TrigTypeBit_Internal set
     PluginLayer *pLayer = pluginLayers;
     for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)

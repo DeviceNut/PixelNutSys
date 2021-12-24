@@ -22,7 +22,6 @@ void PixelNutEngine::clearStacks(void)
 
   indexLayerStack = -1;
   indexTrackStack = -1;
-  patternEnabled  = false;
 
   // clear all pixels and force redisplay
   memset(pDisplayPixels, 0, pixelBytes);
