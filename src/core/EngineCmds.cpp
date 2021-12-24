@@ -59,12 +59,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
     DBGOUT((F(">> Cmd=%s len=%d layer=%d"), cmd, strlen(cmd), curlayer));
 
-    if (cmd[0] == 'P') // Pop all plugins from the stack
-    {
-      clearStacks();
-      curlayer = indexLayerStack;
-    }
-    else if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
+    if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
       int layer = GetNumValue(cmd+1, indexLayerStack); // returns -1 if not in range
 
