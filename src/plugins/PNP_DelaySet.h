@@ -34,7 +34,6 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    force = abs(force);
     // invert values: larger forces reduce the delay time
     pdraw->pcentDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, MAX_PERCENTAGE, 0);
   }

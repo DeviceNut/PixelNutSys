@@ -6,7 +6,6 @@
 // Calling trigger():
 //
 //    Saves force value to pass on when it reaches the maximum extent.
-//    Sends the negative of the force at the minimum extent.
 //
 // Calling nextstep():
 //
@@ -66,7 +65,7 @@ public:
       if ((headPos == pixCenter) || (tailPos == pixCenter))
       {
         goForward = true;
-        pixelNutSupport.sendForce(handle, myid, -forceVal);
+        pixelNutSupport.sendForce(handle, myid, forceVal);
       }
     }
 

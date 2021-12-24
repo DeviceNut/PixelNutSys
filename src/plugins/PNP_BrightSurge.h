@@ -48,7 +48,6 @@ public:
     if (minBright == (uint16_t)-1) minBright = pdraw->pcentBright; // set on very first trigger
 
     // map force directly to brightness
-    force = abs(force);
     pdraw->pcentBright = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, minBright, MAX_PERCENTAGE);
     stepCount = 0;
 

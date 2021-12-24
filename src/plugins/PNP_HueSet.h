@@ -29,7 +29,6 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    force = abs(force);
     pdraw->degreeHue = (uint16_t)(((float)force / MAX_FORCE_VALUE) * MAX_DEGREES_HUE);
 
     pixelNutSupport.makeColorVals(pdraw);

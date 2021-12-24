@@ -5,7 +5,7 @@
 // Calling trigger():
 //
 //    Sets new pixel count value by scaling the force value, so that the maximum force sets
-//    the maximum pixel count. A force of 0 is ignored.
+//    the maximum pixel count.
 //
 // Calling nextstep():
 //
@@ -31,11 +31,7 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    if (force != 0)
-    {
-      force = abs(force);
-      pdraw->pixCount = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, 1, pixLength);
-    }
+    pdraw->pixCount = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, 1, pixLength);
   }
 
 private:

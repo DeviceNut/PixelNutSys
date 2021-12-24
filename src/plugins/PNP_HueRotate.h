@@ -46,7 +46,7 @@ public:
     // change hue by at most the number of degrees that "fit" exactly into the number of pixels
     addDegrees = (((float)force / MAX_FORCE_VALUE) * (MAX_DEGREES_HUE / (float)pixLength));
 
-    if (abs(force) == MAX_FORCE_VALUE)
+    if (force == MAX_FORCE_VALUE)
     {
       doResetAtEnd = true;
       pixChanged = 0;

@@ -29,17 +29,17 @@ public:
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
     // apply current color adjusted with the force value
-    float pcentforce = ((float)abs(force) / MAX_FORCE_VALUE);
+    float pcentforce = ((float)force / MAX_FORCE_VALUE);
 
     //pixelNutSupport.msgFormat(F("ColorModify1: force=%d%% hue=%d white=%d"),
     //    (int)(pcentforce*100), pdraw->degreeHue, pdraw->pcentWhite);
  
-    uint16_t addhue = (uint16_t)(pcentforce * MAX_DEGREES_HUE/10);
+    uint16_t addhue = (uint16_t)(pcentforce * MAX_DEGREES_HUE / 10);
     if (!addhue) addhue = 1;
     pdraw->degreeHue += addhue;
-    pdraw->degreeHue %= (MAX_DEGREES_HUE+1);
+    pdraw->degreeHue %= (MAX_DEGREES_HUE + 1);
 
-    uint16_t addwhite = (uint16_t)(pcentforce * MAX_PERCENTAGE/10);
+    uint16_t addwhite = (uint16_t)(pcentforce * MAX_PERCENTAGE / 10);
     if (!addwhite) addwhite = 1;
     pdraw->pcentWhite += addwhite;
     pdraw->pcentWhite %= 30; // keep under 30% white

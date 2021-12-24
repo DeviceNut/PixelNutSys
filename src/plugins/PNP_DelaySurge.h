@@ -48,7 +48,6 @@ public:
     if (maxDelay == (uint16_t)-1) maxDelay = pdraw->pcentDelay; // set on very first trigger
 
     // map inverse force between 0 and the max value (more force is less delay)
-    force = abs(force);
     pdraw->pcentDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, maxDelay, 0);
     stepCount = 0;
 

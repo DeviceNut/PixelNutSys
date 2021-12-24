@@ -6,7 +6,6 @@
 // Calling trigger():
 //
 //    Saves force value to pass on when it reaches the end.
-//    Sends the negative of the force when it reaches the beginning.
 //
 // Calling nextstep():
 //
@@ -91,7 +90,7 @@ public:
       if (headPos <= 0)
       {
         goForward = true;
-        pixelNutSupport.sendForce(handle, myid, -forceVal);
+        pixelNutSupport.sendForce(handle, myid, forceVal);
       }
     }
 

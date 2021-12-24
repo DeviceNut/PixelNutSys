@@ -49,7 +49,7 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    forceVal = abs(force);
+    forceVal = force;
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)

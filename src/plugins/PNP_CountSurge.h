@@ -39,7 +39,7 @@ public:
   {
     if (!baseCount) baseCount = pdraw->pixCount;
 
-    pdraw->pixCount = pixelNutSupport.mapValue(abs(force), 0, MAX_FORCE_VALUE, baseCount, pixLength);
+    pdraw->pixCount = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, baseCount, pixLength);
 
     //pixelNutSupport.msgFormat(F("CountSurge: base=%d count=%d"), baseCount, pdraw->pixCount);
   }
