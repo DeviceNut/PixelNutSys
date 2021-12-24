@@ -31,11 +31,10 @@ typedef struct ATTR_PACKED
 {
   byte count;                   // number of heads that are supported
   byte inuse;                   // number of heads currently in use
-  uint16_t filler;
   CometHead heads[0];           // internally allocated head data starts here
 }
 CometHeadData;   // defines data for list of heads for the comet effect
-C_ASSERT(sizeof(CometHeadData) == 4);
+C_ASSERT(sizeof(CometHeadData) == 2);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

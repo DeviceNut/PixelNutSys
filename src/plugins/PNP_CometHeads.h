@@ -10,17 +10,7 @@
 //
 // Calling trigger():
 //
-//    The very first time this is called determines the mode:
-//
-//    1) The original force is 0: nothing happens the first time. Subsequent calls
-//       cause a comet to be created but not repeated only if the force >= 0.
-//       This mode allows for one-shot comets if new forces are positive.
-//
-//    2) The original force is !0: The first time a comet is created and repeated.
-//       Subsequent calls will create a comet, which is repeated if the force >= 0.
-//       This mode allows for additional repetitive comets if new forces are positive.
-//
-//    Note that in all modes negative forces are ignored.
+//    Starts a new comet, either a one-shot or continuous depending on the property.
 //
 // Sending a trigger:
 //
@@ -65,40 +55,19 @@ public:
     //pixelNutSupport.msgFormat(F("CometHeads: maxheads=%d cdata=0x%08X"), maxheads, cdata);
 
     headCount = 0; // no heads drawn yet
-    firstime = true;
   }
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
-    bool doit = true;
-    bool dorepeat = true;
-
-    if (firstime)
-    {
-      if (force == 0)
-      {
-        doit = false;
-        repMode = false;
-      }
-      else repMode = true;
-
-      firstime = false;
-    }
-    else if (repMode) dorepeat = (force >= 0);
-    else if (force >= 0) dorepeat = false;
-    else doit = false;
-
-    //pixelNutSupport.msgFormat(F("CometHeads: doit=%d heads=%d repmode=%d dorepeat=%d force=%d"),
-    //                            doit, headCount, repMode, dorepeat, force);
-
-    if (doit) headCount = pixelNutComets.cometHeadAdd(cdata, dorepeat, pixLength);
+    headCount = pixelNutComets.cometHeadAdd(cdata, !pdraw->noRepeating, pixLength);
     forceVal = force;
+
+    //pixelNutSupport.msgFormat(F("CometHeads: heads=%d dorepeat=%d force=%d"),
+    //  headCount, pdraw->continuous, force);
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
-    //pixelNutSupport.msgFormat(F("CometHeads: force=%d repmode=%d"), forceVal, repMode);
-
     uint16_t count = pixelNutComets.cometHeadDraw(cdata, pdraw, handle, pixLength);
     if (count != headCount)
     {
@@ -109,7 +78,6 @@ public:
 
 private:
   uint16_t myid;
-  bool firstime, repMode;
   short forceVal;
   uint16_t pixLength, headCount;
   PixelNutComets::cometData cdata;

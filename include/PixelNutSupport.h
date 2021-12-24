@@ -55,7 +55,7 @@ public:
   // and the Plugins to draw into pixel buffers and handle trigger events.
 
   // properties that can be modified at any time by commands/plugins:
-  typedef struct ATTR_PACKED // 16 bytes
+  typedef struct ATTR_PACKED // 18 bytes
   {
       uint16_t pixStart, pixLen;  // start/length of range of pixels to be drawn (0...)
       uint16_t pixCount;          // pixel count property (from 1)
@@ -69,6 +69,8 @@ public:
 
       bool goBackwards;           // direction of drawing (true for end-to-start)
       bool pixOrValues;           // whether pixels overwrite or are OR'ed
+      bool noRepeating;           // true for one-shot, else continuous
+      bool reserved;
   }
   DrawProps; // defines properties used in drawing an effect
 

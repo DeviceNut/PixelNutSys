@@ -114,6 +114,7 @@ protected:
   #define DEF_PCENTCOUNT    50
   #define DEF_BACKWARDS     false
   #define DEF_PIXORVALS     false
+  #define DEF_NOREPEATING   false
   #define DEF_FORCEVAL      (MAX_FORCE_VALUE/2)
   #define DEF_TRIG_FOREVER  0  // repeat forever
   #define DEF_TRIG_OFFSET   0
@@ -167,7 +168,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 26-28 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 

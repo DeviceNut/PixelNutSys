@@ -220,6 +220,11 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           pdraw->pixOrValues = GetBoolValue(cmd+1, !DEF_PIXORVALS);
           break;
         }
+        case 'G': // do not repeat ("G" for not default, else sets value)
+        {
+          pdraw->noRepeating = GetBoolValue(cmd+1, !DEF_NOREPEATING);
+          break;
+        }
         case 'F': // force value to be used by trigger ("F" for random force)
         {
           if (isdigit(*(cmd+1))) // there is a value after "F" (clip to 0-MAX_FORCE_VALUE)
@@ -296,31 +301,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           pluginLayers[curlayer].trigRepRange = (uint16_t)GetNumValue(cmd+1, DEF_TRIG_RANGE, 0);
           break;
         }
-        case 'G': // Go: activate all effects in entire pattern
-        {
-          if (!patternEnabled)
-          {
-            DBGOUT((F("Activate %d tracks"), indexTrackStack+1));
-            patternEnabled = true;
-
-            // assign trigLayerID for layers with TrigTypeBit_Internal set
-            PluginLayer *pLayer = pluginLayers;
-            for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
-            {
-              if (pLayer->trigType & TrigTypeBit_Internal)
-              {
-                int index = pLayer->trigLayerIndex;
-                if (index > indexLayerStack)
-                {
-                  DBGOUT((F("Invalid trigger index=%d for layer=%d"), index, i));
-                  pLayer->trigType &= ~TrigTypeBit_Internal;
-                }
-                else pLayer->trigLayerID = pluginLayers[index].thisLayerID;
-              }
-            }
-          }
-          break;
-        }
         default:
         {
           status = Status_Error_BadCmd;
@@ -339,6 +319,28 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     cmd = strtok(NULL, " ");
   }
   while (cmd != NULL);
+
+  if ((status == Status_Success) && !patternEnabled)
+  {
+    DBGOUT((F("Activate %d tracks"), indexTrackStack+1));
+    patternEnabled = true;
+
+    // assign trigLayerID for layers with TrigTypeBit_Internal set
+    PluginLayer *pLayer = pluginLayers;
+    for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
+    {
+      if (pLayer->trigType & TrigTypeBit_Internal)
+      {
+        int index = pLayer->trigLayerIndex;
+        if (index > indexLayerStack)
+        {
+          DBGOUT((F("Invalid trigger index=%d for layer=%d"), index, i));
+          pLayer->trigType &= ~TrigTypeBit_Internal;
+        }
+        else pLayer->trigLayerID = pluginLayers[index].thisLayerID;
+      }
+    }
+  }
 
   DBGOUT((F(">> Exec: status=%d"), status));
   return status;
@@ -490,11 +492,6 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
     }
 
     DBGOUT((F("Make: layer=%d plugin=%d str=\"%s\""), i, pLayer->iplugin, basestr));
-  }
-
-  if (strlen(basestr) > 0)
-  {
-    if (!addstr(&cmdstr, (char*)"G", &addlen)) goto error;
   }
 
   return true;

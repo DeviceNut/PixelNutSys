@@ -149,6 +149,7 @@ void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
   SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
   SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
   SETVAL_IF_NONZERO(pProps->pixOrValues, DEF_PIXORVALS);
+  SETVAL_IF_NONZERO(pProps->noRepeating, DEF_NOREPEATING);
 
   pixelNutSupport.makeColorVals(pProps); // create RGB values
 }
