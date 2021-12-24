@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -47,8 +47,7 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
 {
   PluginTrack *pTrack = pLayer->pTrack;
 
-  DBGOUT((F("Trigger: track=%d layer=%d force=%d"),
-            TRACK_INDEX(pTrack), LAYER_INDEX(pLayer), force));
+  DBGOUT((F("Trigger: track=%d layer=%d force=%d"), TRACK_INDEX(pTrack), LAYER_INDEX(pLayer), force));
 
   short pixCount = 0;
   short degreeHue = 0;

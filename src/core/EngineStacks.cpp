@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -28,6 +28,7 @@ void PixelNutEngine::clearStacks(void)
   msTimeUpdate = 0;
 }
 
+#if DEBUG_OUTPUT
 void PixelNutEngine::ShowAllStacks(void)
 {
   DBGOUT((F("Tracks:")));
@@ -44,6 +45,7 @@ void PixelNutEngine::ShowAllStacks(void)
     DBGOUT((F("  %d: track=%d redraw=%d"), i, TRACK_INDEX(pLayer->pTrack), pLayer->redraw));
   }  
 }
+#endif
 
 // call after changing number of layers or ordering of tracks:
 // for each redraw layer: update the layer pointer in its track
@@ -191,7 +193,7 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
 
   DBGOUT((F("Append plugin: #%d redraw=%d"), iplugin, redraw));
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   PixelNutPlugin *pPlugin;
   Status rc = MakeNewPlugin(iplugin, &pPlugin);
@@ -210,7 +212,7 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
 
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin,  redraw);
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -239,7 +241,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
 
   DBGOUT((F("Add plugin: #%d redraw=%d layer=%d"), iplugin, redraw, layer));
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   PixelNutPlugin *pPlugin;
   Status rc = MakeNewPlugin(iplugin, &pPlugin);
@@ -273,7 +275,7 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
   // this iterates layers, so they must all be initialized
   UpdateLayerPtrInTracks(); // adjust tracks for moved layers
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   BeginPluginLayer(pLayer);
   return Status_Success;
@@ -331,7 +333,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
 
   delete pLayer->pPlugin;
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   if (pLayer->redraw)
   {
@@ -376,7 +378,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
     --(pLayer->pTrack->lcount);
   }
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 }
 
 // Copy the memory for the layer(s) to swap (if a track layer
@@ -405,7 +407,7 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
     return Status_Error_BadVal;
   }
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   if (redraw) // rotate the track first
   {
@@ -437,7 +439,7 @@ PixelNutEngine::Status PixelNutEngine::SwapPluginLayers(short layer)
 
   UpdateTrackPtrInLayers(); // adjust track pointers in moved layers
 
-  ShowAllStacks();
+  DBG( ShowAllStacks(); )
 
   return Status_Success;
 }

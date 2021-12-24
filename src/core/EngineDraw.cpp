@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file (must also set in main.h)
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "core.h"
 #include "PixelNutPlugin.h"

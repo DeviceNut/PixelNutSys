@@ -7,11 +7,11 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#if !defined(DEBUG_OUTPUT)
-#define DEBUG_OUTPUT 1 // 1 to compile serial console debugging code
+#if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
+#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
 #endif
 
-#if DEBUG_OUTPUT // defined either in main.h or in particular source file
+#if DEBUG_OUTPUT
 #define DBG(x) x
 #define DBGOUT(x) MsgFormat x
 #define DEBUG_SIGNON            "PixelNut!"
