@@ -115,7 +115,7 @@ public:
           //pixelNutSupport.msgFormat(F("Spectra: %d) hue=%d"), i, (uint16_t)hue);
           hueVals[i] = (uint16_t)hue;
           hue += inc;
-          if (hue >= MAX_DEGREES_HUE) hue = 0.0;
+          if (hue > MAX_DEGREES_HUE) hue = 0.0;
         }
       }
       else FreqFFT_Fini();

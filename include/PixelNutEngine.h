@@ -109,7 +109,7 @@ protected:
   // default values for propertes and control settings:
   #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
   #define DEF_PCENTDELAY    (MAX_PERCENTAGE/2)
-  #define DEF_DEGREESHUE    275
+  #define DEF_DEGREESHUE    192 // purple
   #define DEF_PCENTWHITE    0
   #define DEF_PCENTCOUNT    50
   #define DEF_BACKWARDS     false
@@ -168,7 +168,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 26-28 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 
