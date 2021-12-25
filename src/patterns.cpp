@@ -14,7 +14,7 @@ See license.txt for the terms of this license.
 
 #if PLUGIN_PLASMA
 #define PLASMA_NAME "Plasma"
-#define PLASMA_DESC "Creates a \"plasma\" type of effect by using Lissajious curve mathematics. Increase the Count Property for faster motion."
+#define PLASMA_DESC "Creates a \"plasma\" type of effect by using Lissajious curve mathematics. Increase the 'Count' Property for faster motion."
 static PROGMEM const char PLASMA_PATTERN[] = "E80 Q4 T E120 F100 I T";
 #endif
 
