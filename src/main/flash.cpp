@@ -166,7 +166,7 @@ void FlashSetProperties(void)
   pPixelNutEngine->setCountProperty(     FlashGetValue(FLASHOFF_SDATA_XT_CNT));
 }
 
-  void FlashStartup(void)
+void FlashStartup(void)
 {
   FlashStart();
 

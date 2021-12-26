@@ -21,7 +21,7 @@ class WiFiSoftAp : public CustomCode
 public:
 
   #if EEPROM_FORMAT
-  void flash(void) { setName(DEFAULT_DEVICE_NAME); }
+  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
   #endif
 
   void setup(void);

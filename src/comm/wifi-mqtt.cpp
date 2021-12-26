@@ -59,7 +59,7 @@ class WiFiMqtt : public CustomCode
 public:
 
   #if EEPROM_FORMAT
-  void flash(void) { setName(DEFAULT_DEVICE_NAME); }
+  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
   #endif
 
   void setup(void);
@@ -199,18 +199,22 @@ void WiFiMqtt::sendReply(char *instr)
 
 void WiFiMqtt::setName(char *name)
 {
+  #if !EEPROM_FORMAT
   DBGOUT(("Unsubscribe to: %s", devnameTopic));
   mqttClient.subscribe(devnameTopic);
 
   DBGOUT(("Disconnect from Mqtt..."));
   mqttClient.disconnect();
+  #endif
 
   FlashSetDevName(name);
   strcpy(deviceName, name);
 
+  #if !EEPROM_FORMAT
   // re-connect with new name next loop
   MakeMqttStrs();
   nextConnectTime = 0;
+  #endif
 }
 
 void WiFiMqtt::setup(void)

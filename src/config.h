@@ -26,23 +26,30 @@ See license.txt for the terms of this license.
 extern void MsgFormat(const char *fmtstr, ...);
 
 // to initilize the flash, set this to 1 to clear the EEPROM; must be 0 for normal operation
-#define EEPROM_FORMAT           0           // 1 to write 0 to entire flash data space
+#define EEPROM_FORMAT           0           // 1 to clear entire flash data space
 
 // these are defaults for particular global settings:
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
 #define PIXEL_OFFSET            0           // start drawing at the first pixel
-#define DIRECTION_UP            true        // draw from start to end by default
 
+#define LARGE_RAM               1           // 1 for larger ram processors
 // minimize these to reduce memory consumption:
+#if LARGE_RAM
+#define MAXLEN_PATSTR           1024        // must be long enough for patterns
+#define MAXLEN_PATNAME          32          // max length for name of pattern
+#define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
+#define NUM_PLUGIN_LAYERS       64          // must be multiple of TRACKS
+#else
 #define MAXLEN_PATSTR           300         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
-#define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
+#define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
+#endif
 
 // for device plugins and patterns:
-#define DEV_PATTERNS            1           // 1 to add device patterns
-#define DEV_PLUGINS             1           // 1 to add device plugins
-#define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
+#define DEV_PATTERNS            0           // 1 to add device patterns
+#define DEV_PLUGINS             0           // 1 to add device plugins
+#define PLUGIN_PLASMA           0           // uses Lissajious curves for effect
 #define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
 // NOTE: Spectra only works on ARM processors right now
 
