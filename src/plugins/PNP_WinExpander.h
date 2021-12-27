@@ -27,10 +27,10 @@ public:
   void begin(uint16_t id, uint16_t pixlen)
   {
     myid = id;
-    forceVal = 0;
-    goForward = true; // start by expanding
 
+    goForward = true; // start by expanding
     pixCenter = pixlen >> 1; // middle of strand
+
     headPos = tailPos = pixCenter;
     if (!(pixlen & 1)) --headPos;
 
@@ -39,11 +39,14 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
+    active = true;
     forceVal = force;
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
+    if (!active) return;
+
     int16_t count = pdraw->pixCount;
     if (count < 4) count = 4;
 
@@ -56,16 +59,18 @@ public:
     {
       if (headPos <= (pixCenter - (count >> 1)))
       {
-        goForward = false;
         pixelNutSupport.sendForce(handle, myid, forceVal);
+        if (pdraw->noRepeating) active = false;
+        goForward = false;
       }
     }
     else // contract
     {
       if ((headPos == pixCenter) || (tailPos == pixCenter))
       {
-        goForward = true;
         pixelNutSupport.sendForce(handle, myid, forceVal);
+        if (pdraw->noRepeating) active = false;
+        goForward = true;
       }
     }
 
@@ -84,6 +89,7 @@ public:
 private:
   uint16_t myid;
   short forceVal;
+  bool active;
   bool goForward;
   int16_t pixCenter, headPos, tailPos;
 };

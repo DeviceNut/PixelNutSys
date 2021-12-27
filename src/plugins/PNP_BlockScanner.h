@@ -37,11 +37,14 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
   {
+    active = true;
     forceVal = force;
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
+    if (!active) return;
+
     int16_t count = pdraw->pixCount;
     if (count>= pixLength) --count; // need at least one pixel free
 
@@ -79,8 +82,9 @@ public:
 
       if (tailpos >= (pixLength-1))
       {
-        goForward = false;
+        if (pdraw->noRepeating) active = false;
         pixelNutSupport.sendForce(handle, myid, forceVal);
+        goForward = false;
       }
     }
     else
@@ -89,8 +93,9 @@ public:
 
       if (headPos <= 0)
       {
-        goForward = true;
+        if (pdraw->noRepeating) active = false;
         pixelNutSupport.sendForce(handle, myid, forceVal);
+        goForward = true;
       }
     }
 
@@ -101,6 +106,7 @@ public:
 private:
   uint16_t myid;
   short forceVal;
+  bool active;
   bool goForward;
   int16_t pixLength, lastCount, headPos;
 };
