@@ -5,7 +5,7 @@
     See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "core.h"
 #include "PixelNutPlugin.h"
@@ -320,7 +320,7 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t i
 // update the layer pointers for each track. 
 //
 // If this is the track layer, then move the track memory down one track
-// as well, then decrement the track count. Finally, update all the track
+// as well, then decrement the track count. Then, update all the track
 // pointers for each layer.
 //
 // Finally, decrement the layer count by the number of layers deleted;

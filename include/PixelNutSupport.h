@@ -57,18 +57,19 @@ public:
   // properties that can be modified at any time by commands/plugins:
   typedef struct ATTR_PACKED // 16 bytes
   {
-      uint16_t pixStart, pixLen;  // start/length of range of pixels to be drawn (0...)
+      uint16_t pixStart;          // start of pixel draw range (from 0)
+      uint16_t pixLen;            // length of pixels to drawn (1-max)
       uint16_t pixCount;          // pixel count property (from 1)
 
       byte pcentBright;           // percent brightness (0-MAX_PERCENTAGE)
-      byte pcentDelay;            // determines msecs delay after each redraw
+      byte pcentDelay;            // determines delay after each redraw
 
       byte degreeHue;             // hue in degrees (0-MAX_DEGREES_HUE)
       byte pcentWhite;            // percent whiteness (0-MAX_PERCENTAGE)
-      byte r,g,b;                 // RGB calculated from the above 3 values
+      byte r,g,b;                 // RGB calculated from (hue,white,bright)
 
       bool goBackwards;           // direction of drawing (true for end-to-start)
-      bool pixOrValues;           // whether pixels overwrite or are OR'ed
+      bool pixOrValues;           // whether pixels overwrite or are combined
       bool noRepeating;           // true for one-shot, else continuous
   }
   DrawProps; // defines properties used in drawing an effect
