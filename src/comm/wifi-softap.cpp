@@ -49,12 +49,12 @@ CustomCode *pCustomCode = &wifiSAP;
 
 void WiFiSoftAp::setup(void)
 {
-  char devname[MAXLEN_DEVICE_NAME + PREFIX_LEN_DEVNAME + 1];
+  char devname[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   strcpy(devname, PREFIX_DEVICE_NAME);
-  FlashGetDevName(devname + PREFIX_LEN_DEVNAME);
+  FlashGetDevName(strlen(PREFIX_DEVICE_NAME) + devname);
 
   DBGOUT(("---------------------------------------"));
-  DBGOUT(("SoftAP Device: \"%s\"", deviceName));
+  DBGOUT(("SoftAP Device: \"%s\"", devname));
   DBGOUT((F("Setting up ...")));
 
   WiFi.softAP(devname, NULL);
@@ -114,7 +114,7 @@ void WiFiSoftAp::loop(void)
           }
           else if (foundcmd)
           {
-            char *instr = line.c_str();
+            char *instr = (char*)line.c_str();
             replyString[0] = 0;
 
             DBGOUT(("SoftAP RX: \"%s\"", instr));

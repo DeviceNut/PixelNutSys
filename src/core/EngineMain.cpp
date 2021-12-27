@@ -8,8 +8,6 @@
 #define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "core.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
 
 bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
                           byte num_layers, byte num_tracks,

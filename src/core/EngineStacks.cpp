@@ -8,8 +8,6 @@
 #define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "core.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
 
 extern PluginFactory *pPluginFactory; // used to create effect plugins
 

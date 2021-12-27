@@ -17,12 +17,6 @@ See license.txt for the terms of this license.
 #include <PubSubClient.h>
 
 #include "mycredentials.h"
-/* Wifi SSID/Password and MQTT Broker in the following format:
-#define WIFI_CREDS_SSID "SSID"
-#define WIFI_CREDS_PASS "PASSWORD"
-#define MQTT_BROKER_IPADDR "192.168.1.4"
-#define MQTT_BROKER_PORT 1883
-*/
 
 /*****************************************************************************************
  Protocol used with MQTT:
@@ -38,9 +32,6 @@ See license.txt for the terms of this license.
     <cmdstr> is a PixelNut command string.
 
  4) If command starts with "?" then client will reply (topic="PixelNutReply"): <reply>
-    <reply> is one or more lines of text with information, depending on the command.
-
- 4) If command is "?P" then the reply is a list of custom patterns stored in the device.
 
 *****************************************************************************************/
 
@@ -51,8 +42,8 @@ See license.txt for the terms of this license.
 #define STR_CONNECT_SEPARATOR ","
 #define STRLEN_SEPARATOR      1
 
-#define MAXLEN_DEVICE_IPSTR   15 // aaa.bbb.ccc.ddd
-#define MSECS_CONNECT_PUB     2000 // msecs between connect publishes
+#define MAXLEN_DEVICE_IPSTR   15    // aaa.bbb.ccc.ddd
+#define MSECS_CONNECT_PUB     2000  // msecs between connect publishes
 
 class WiFiMqtt : public CustomCode
 {
@@ -73,7 +64,7 @@ public:
   // creates the topic name for sending cmds
   // needs to be public to be used in callback
   char deviceName[MAXLEN_DEVICE_NAME + 1];
-  char hostName[PREFIX_LEN_DEVNAME + MAXLEN_DEVICE_NAME + 1];
+  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   char replyStr[1000]; // long enough for all segments
 
 private:

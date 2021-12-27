@@ -8,8 +8,6 @@
 #define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "core.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
 
 // returns true if value present and > 0 else 'nullval'
 static bool GetBoolValue(char *str, bool nullval)

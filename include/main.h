@@ -6,16 +6,8 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#include <stdlib.h>
-#include <Arduino.h>
-#include <NeoPixelShow.h>
-
-#include "config.h"
+#include "core.h"
 #include "custom.h"
-
-#include "PixelNutSupport.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
 
 extern byte codePatterns;
 extern bool doUpdate;

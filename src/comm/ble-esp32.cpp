@@ -144,9 +144,9 @@ class CharCallbacks: public BLECharacteristicCallbacks
 void BleEsp32::setup(void)
 {
   FlashGetDevName(deviceName);
-  char str[PREFIX_LEN_DEVNAME + MAXLEN_DEVICE_NAME + 1];
+  char str[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   strcpy(str, PREFIX_DEVICE_NAME);
-  strcpy((str+PREFIX_LEN_DEVNAME), deviceName);
+  strcpy((str + strlen(PREFIX_DEVICE_NAME)), deviceName);
 
   DBGOUT(("---------------------------------------"));
   DBGOUT(("BLE Device: \"%s\"", deviceName));

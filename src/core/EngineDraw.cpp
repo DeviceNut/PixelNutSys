@@ -8,8 +8,6 @@
 #define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "core.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
 
 void PixelNutEngine::setPropertyMode(bool enable)
 {
@@ -132,7 +130,7 @@ bool PixelNutEngine::updateEffects(void)
 
     if (!pLayer->trigActive) continue; // not triggered yet
 
-    if (pLayer->disable) // track is muted, but still update with pixels
+    if (pLayer->disable) // track is muted, but still update with its pixels
     {
       doshow = true;
       continue;
