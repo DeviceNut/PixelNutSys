@@ -25,6 +25,8 @@ See license.txt for the terms of this license.
 #define F(x) x
 extern void MsgFormat(const char *fmtstr, ...);
 
+#define PIXELNUT_VERSION        20          // 2.0 - this is a rework of the 1st version
+
 // to initilize the flash, set this to 1 to clear the EEPROM; must be 0 for normal operation
 #define EEPROM_FORMAT           0           // 1 to clear entire flash data space
 
@@ -32,26 +34,37 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
 #define PIXEL_OFFSET            0           // start drawing at the first pixel
 
+#if defined(__arm__) && defined(__MKL26Z64__)
+#define TEENSY_LC               1
+#endif
+#if defined(__arm__) && defined(__MK20DX256__)
+#define TEENSY_32               1
+#endif
+
+// small RAM if AVR or TeensyLC
+#if defined(__AVR__) || TEENSY_LC
+#define LARGE_RAM               0           // has only 2k of RAM
+#else
 #define LARGE_RAM               1           // 1 for larger ram processors
+#endif
+
 // minimize these to reduce memory consumption:
 #if LARGE_RAM
 #define MAXLEN_PATSTR           1024        // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       64          // must be multiple of TRACKS
+#define DEV_PLUGINS             0           // cannot support additional plugins
 #else
 #define MAXLEN_PATSTR           300         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
-#endif
-
-// for device plugins and patterns:
-#define DEV_PATTERNS            0           // 1 to add device patterns
 #define DEV_PLUGINS             0           // 1 to add device plugins
 #define PLUGIN_PLASMA           0           // uses Lissajious curves for effect
 #define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
-// NOTE: Spectra only works on ARM processors right now
+                                            // ** only works on ARM processors right now
+#endif
 
 // these depend on what hardware is used and how it is wired:
 #define STRAND_COUNT            1           // physically separate strands
@@ -85,17 +98,30 @@ extern void MsgFormat(const char *fmtstr, ...);
 */
 
 // for use with external client: only one can be set:
+#if defined(__AVR__) || TEENSY_LC || TEENSY_32
+#define BLE_ESP32               0           // BLE on ESP32 only
+#define WIFI_MQTT               0           // MQTT over WiFi
+#define WIFI_SOFTAP             0           // SoftAP over WiFi
+#define COM_SERIAL              0           // serial over COM
+#else
 #define BLE_ESP32               0           // BLE on ESP32 only
 #define WIFI_MQTT               1           // MQTT over WiFi
 #define WIFI_SOFTAP             0           // SoftAP over WiFi
 #define COM_SERIAL              0           // serial over COM
-
+#endif
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
 #define MAXLEN_DEVICE_NAME      16          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
-#define PREFIX_LEN_DEVNAME      2           // length of this prefix
+
 #define CLIENT_APP              1           // have external application
+#if defined(PLUGIN_PLASMA) || defined(PLUGIN_PLASMA)
+#define DEV_PATTERNS            1           // 1 to add device patterns
+#else
+#define DEV_PATTERNS            0           // no additional patterns defined
+#endif
 #else
 #define CLIENT_APP              0           // only hardware controls
+#define DEV_PATTERNS            1           // must have internal patterns
 #endif
+
