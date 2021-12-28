@@ -60,9 +60,9 @@ public:
 
   // Sets the color properties for tracks that have set either the ExtControlBit_DegreeHue
   // or ExtControlBit_PcentWhite bits. These values can be individually controlled. The
-  // 'hue_degree' is a value from 0...MAX_DEGREES_CIRCLE, and the 'white_percent' value
+  // 'hue_degree' is a value from 0...MAX_DEGREES_HUE, and the 'white_percent' value
   // is a percentage from 0...MAX_PERCENTANGE.
-  void setColorProperty(short hue_degree, byte white_percent);
+  void setColorProperty(byte hue_degree, byte white_percent);
 
   // Sets the pixel count property for tracks that have set the ExtControlBit_PixCount bit.
   // The 'pixcount_percent' value is a percentage from 0...MAX_PERCENTAGE.
@@ -192,8 +192,7 @@ protected:
   short indexTrackStack = -1;                   // index into the plugin properties stack
 
   uint32_t msTimeUpdate = 0;                    // time of previous call to update
-  uint16_t maxDelayMsecs = 500;                 // delay time in msecs needed to get 1Hz
-                                                // (needs to be calibrated on bootup) TODO
+  uint16_t maxDelayMsecs = 500;                 // maximum delay time in msecs (2Hz)
 
   uint16_t firstPixel = 0;                      // offset to the start of the drawing array
   bool goBackwards = false;                     // false to draw from start to end, else reverse

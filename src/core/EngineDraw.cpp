@@ -45,7 +45,7 @@ void PixelNutEngine::SetPropColor(void)
   }
 }
 
-void PixelNutEngine::setColorProperty(short hue_degree, byte white_percent)
+void PixelNutEngine::setColorProperty(byte hue_degree, byte white_percent)
 {
   externDegreeHue = pixelNutSupport.clipValue(hue_degree, 0, MAX_DEGREES_HUE);
   externPcentWhite = pixelNutSupport.clipValue(white_percent, 0, MAX_PERCENTAGE);
