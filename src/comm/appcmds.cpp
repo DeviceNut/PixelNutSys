@@ -12,7 +12,7 @@ See license.txt for the terms of this license.
 extern PluginFactory *pPluginFactory; // used to enumerate effect plugins
 
 // Note: this modifies 'pattern'
-void ExecPattern(char *pattern)
+void ExecPattern(char* pattern)
 {
   PixelNutEngine::Status status = pPixelNutEngine->execCmdStr(pattern);
   if (status != PixelNutEngine::Status_Success)
@@ -26,19 +26,55 @@ void ExecPattern(char *pattern)
 
 #include "flash.h"
 
-static char* skipSpaces(char *instr)
+static char* skipSpaces(char* instr)
 {
   while (*instr == ' ') ++instr;   // skip spaces
   return instr;
 }
 
-static char* skipNumber(char *instr)
+static char* skipNumber(char* instr)
 {
   while (isdigit(*instr)) ++instr; // skip digits
   return instr;
 }
 
-void ExecAppCmd(char *instr)
+static char* jsonStr(char* outstr, const char* name, const char* value, bool doterm=false)
+{
+  sprintf(outstr, "\"%s\":\"%s\"%s", name, value, doterm ? "}" : ",\n");
+  return outstr;
+}
+
+static char* jsonNum(char* outstr, const char* name, int value, bool doterm=false)
+{
+  sprintf(outstr, "\"%s\":%d%s", name, value, doterm ? "}" : ",\n");
+  return outstr;
+}
+
+static char* jsonArrayStart(char* outstr, const char* name)
+{
+  sprintf(outstr, "\"%s\":[{", name);
+  return outstr;
+}
+
+static char* jsonArraydEnd(char* outstr)
+{
+  sprintf(outstr, "],");
+  return outstr;
+}
+
+static int calcPcount(void)
+{
+  int pcount = 0;
+  byte *plist = pPluginFactory->pluginList();
+
+  if (plist != NULL)
+    for (int i = 0; plist[i] != 0; ++i)
+      ++pcount;
+
+  return pcount;
+}
+
+void ExecAppCmd(char* instr)
 {
   DBGOUT((F("CmdExec: \"%s\""), instr));
 
@@ -53,90 +89,99 @@ void ExecAppCmd(char *instr)
       else { DBGOUT((F("Unknown command: %s"), instr)); }
       break;
     }
-    case '?': // sends reply with configuration strings
+    case '?': // sends reply in JSON format
     {
-      char outstr[MAXLEN_PATSTR+1];
+      char outstr[FLASHLEN_PATSTR+1];
+      char patstr[FLASHLEN_PATSTR+1];
+      char patname[FLASHLEN_PATNAME+1];
+      int pcount = calcPcount();
 
-      if (instr[1] == 'S') // send info about each strand
+      pCustomCode->sendReply((char*)"?<");
+      pCustomCode->sendReply((char*)"{");
+
+      pCustomCode->sendReply( jsonNum(outstr, "nstrands",   STRAND_COUNT) );
+      pCustomCode->sendReply( jsonNum(outstr, "maxstrlen",  MAXLEN_PATSTR) );
+      pCustomCode->sendReply( jsonNum(outstr, "numlayers",  NUM_PLUGIN_LAYERS) );
+      pCustomCode->sendReply( jsonNum(outstr, "numtracks",  NUM_PLUGIN_TRACKS) );
+      pCustomCode->sendReply( jsonNum(outstr, "npatterns",  codePatterns) );
+      pCustomCode->sendReply( jsonNum(outstr, "nplugins",   pcount) );
+
+      pCustomCode->sendReply( jsonArrayStart(outstr, "strands") );
+
+      byte pixcounts[] = PIXEL_COUNTS;
+      int curstrand = FlashSetStrand(0);
+
+      for (int i = 0; i < STRAND_COUNT; ++i)
       {
-        byte pixcounts[] = PIXEL_COUNTS;
-        int curstrand = FlashSetStrand(0);
+        FlashSetStrand(i);
 
-        for (int i = 0; i < STRAND_COUNT; ++i)
-        {
-          FlashSetStrand(i);
+        pCustomCode->sendReply( jsonNum(outstr, "pixels",   pixcounts[i]) );
+        pCustomCode->sendReply( jsonNum(outstr, "bright",   FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT)) );
+        pCustomCode->sendReply( jsonNum(outstr, "delay",    FlashGetValue(FLASHOFF_SDATA_PC_DELAY)) );
+        pCustomCode->sendReply( jsonNum(outstr, "first",    FlashGetValue(FLASHOFF_SDATA_FIRSTPOS)) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_mode",  FlashGetValue(FLASHOFF_SDATA_XT_MODE)) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_hue",   FlashGetValue(FLASHOFF_SDATA_XT_HUE)) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_white", FlashGetValue(FLASHOFF_SDATA_XT_WHT)) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_count", FlashGetValue(FLASHOFF_SDATA_XT_CNT)) );
+        pCustomCode->sendReply( jsonNum(outstr, "force",    FlashGetValue(FLASHOFF_SDATA_FORCE)) );
 
-          uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) +
-                        (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
+        FlashGetPatName(patname);
+        pCustomCode->sendReply( jsonStr(outstr, "patname", patname) );
 
-          sprintf(outstr, "%d %d %d %d\n%d %d %d %d %d",
-                        pixcounts[i],
-                        FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT),
-                        FlashGetValue(FLASHOFF_SDATA_PC_DELAY),
-                        FlashGetValue(FLASHOFF_SDATA_FIRSTPOS),
+        // returns empty string on error
+        if (!pPixelNutEngine->makeCmdStr(patstr, MAXLEN_PATSTR))
+          ErrorHandler(4, 1, false); // blink for error and continue
 
-                        FlashGetValue(FLASHOFF_SDATA_XT_MODE), hue,
-                        FlashGetValue(FLASHOFF_SDATA_XT_WHT),
-                        FlashGetValue(FLASHOFF_SDATA_XT_CNT),
-                        FlashGetValue(FLASHOFF_SDATA_FORCE));
-          pCustomCode->sendReply(outstr);
-
-          // returns empty string on error
-          if (!pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
-            ErrorHandler(4, 1, false); // blink for error and continue
-
-          pCustomCode->sendReply(outstr);
-
-          FlashGetPatName(outstr);          
-          pCustomCode->sendReply(outstr);
-        }
-
-        FlashSetStrand(curstrand); // restore current strand
-      }
-      else if (instr[1] == 'P') // about internal patterns
-      {
-        #if DEV_PATTERNS
-
-        for (int i = 0; i < codePatterns; ++i)
-        {
-          pCustomCode->sendReply((char*)devPatNames[i]);
-          pCustomCode->sendReply((char*)devPatDesc[i]);
-          pCustomCode->sendReply((char*)devPatCmds[i]);
-        }
-        #endif
-      }
-      else if (instr[1] == 'G') // about internal plugins
-      {
-        #if DEV_PLUGINS
-
-        byte *plist = pPluginFactory->pluginList();
-        for (int i = 0; plist[i] != 0; ++i)
-        {
-          uint16_t plugin = plist[i];
-          pCustomCode->sendReply( pPluginFactory->pluginName(plugin) );
-          pCustomCode->sendReply( pPluginFactory->pluginDesc(plugin) );
-          sprintf(outstr, "%d %04X", plugin, pPluginFactory->pluginBits(plugin));
-          pCustomCode->sendReply( outstr );
-        }
-
-        #endif
-      }
-      else if (instr[1] == 0) // nothing after ?
-      {
-        int pcount = 0;
-        byte *plist = pPluginFactory->pluginList();
-        if (plist != NULL)
-          for (int i = 0; plist[i] != 0; ++i)
-            ++pcount;
-
-        sprintf(outstr, "P!!\n%d %d %d %d %d %d", 
-                        STRAND_COUNT, MAXLEN_PATSTR,
-                        NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS,
-                        codePatterns, pcount);
+        jsonStr(outstr, "patstr", patstr, true);
+        if (i+1 < STRAND_COUNT) strcat(outstr, ",{");
         pCustomCode->sendReply(outstr);
       }
-      else { DBGOUT((F("Unknown ? modifier: %c"), instr[1])); }
+      FlashSetStrand(curstrand); // restore current strand
 
+      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+
+      #if DEV_PATTERNS
+      pCustomCode->sendReply( jsonArrayStart(outstr, "patterns") );
+
+      for (int i = 0; i < codePatterns; ++i)
+      {
+
+        pCustomCode->sendReply( jsonStr(outstr, "text", devPatNames[i]) );
+        pCustomCode->sendReply( jsonStr(outstr, "desc", devPatDesc[i]) );
+        pCustomCode->sendReply( jsonStr(outstr, "pcmd", devPatCmds[i]) );
+
+        jsonNum(outstr, "id", i, true);
+        if (i+1 < codePatterns) strcat(outstr, ",{");
+        pCustomCode->sendReply(outstr);
+      }
+
+      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+      #endif
+
+      #if DEV_PLUGINS
+      pCustomCode->sendReply( jsonArrayStart(outstr, "plugins") );
+
+      byte *plist = pPluginFactory->pluginList();
+      for (int i = 0; plist[i] != 0; ++i)
+      {
+        uint16_t plugin = plist[i];
+        pCustomCode->sendReply( jsonStr(outstr, "text", pPluginFactory->pluginName(plugin)) );
+        pCustomCode->sendReply( jsonStr(outstr, "desc", pPluginFactory->pluginDesc(plugin)) );
+
+        sprintf(patname, "%04X", pPluginFactory->pluginBits(plugin));
+        pCustomCode->sendReply( jsonStr(outstr, "bits", patname) );
+
+        jsonNum(outstr, "id", plugin, true);
+        if (plist[i+1] != 0) strcat(outstr, ",{");
+        pCustomCode->sendReply(outstr);
+      }
+
+      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+      #endif
+
+      pCustomCode->sendReply( jsonNum(outstr, "version", PIXELNUT_VERSION, true) );
+
+      pCustomCode->sendReply((char*)">?");
       break;
     }
     case '<': // return current pattern to client
