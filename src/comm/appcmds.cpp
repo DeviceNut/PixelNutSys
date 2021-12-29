@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "main.h"
 
@@ -40,13 +40,13 @@ static char* skipNumber(char* instr)
 
 static char* jsonStr(char* outstr, const char* name, const char* value, bool doterm=false)
 {
-  sprintf(outstr, "\"%s\":\"%s\"%s", name, value, doterm ? "}" : ",\n");
+  sprintf(outstr, "\"%s\":\"%s\"%s", name, value, doterm ? "}" : ",");
   return outstr;
 }
 
 static char* jsonNum(char* outstr, const char* name, int value, bool doterm=false)
 {
-  sprintf(outstr, "\"%s\":%d%s", name, value, doterm ? "}" : ",\n");
+  sprintf(outstr, "\"%s\":%d%s", name, value, doterm ? "}" : ",");
   return outstr;
 }
 
@@ -246,13 +246,13 @@ void ExecAppCmd(char* instr)
       #endif
       break;
     }
-    case '%': // set max brightness percentage
+    case '%': // set brightness percentage
     {
       pPixelNutEngine->setBrightPercent(atoi(instr+1));
       FlashSetBright();
       break;
     }
-    case '&': // set max delay percentage
+    case '&': // set delay percentage
     {
       pPixelNutEngine->setDelayPercent( atoi(instr+1) );
       FlashSetDelay();
