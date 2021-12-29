@@ -14,17 +14,54 @@ See license.txt for the terms of this license.
 
 #if PLUGIN_PLASMA
 #define PLASMA_NAME "Plasma"
-#define PLASMA_DESC "Creates a \"plasma\" type of effect by using Lissajious curve mathematics. Increase the Count property for faster motion."
+#define PLASMA_DESC "Creates a 'plasma' type of effect by using Lissajious curve mathematics. Increase the Count property for faster motion."
 static PROGMEM const char PLASMA_PATTERN[] = "E80 Q4 T E120 F100 I T";
 #endif
 
 #if PLUGIN_SPECTRA
 #define SPECTRUM_NAME "Spectrum"
-#define SPECTRUM_DESC "Creates a \"spectrum\" effect using an FFT from audio data out of a microphone."
+#define SPECTRUM_DESC "Creates a 'spectrum' effect using an FFT from audio data out of a microphone."
 static PROGMEM const char SPECTRUM_PATTERN[] = "E0 B60 H250 W50 T E70 V T";
 #endif
 
-#if !CLIENT_APP
+#if CLIENT_APP
+
+const char* const devPatNames[] =
+{
+  #if PLUGIN_PLASMA
+  PLASMA_NAME,
+  #endif
+
+  #if PLUGIN_SPECTRA
+  SPECTRUM_NAME,
+  #endif
+};
+
+const char* const devPatDesc[] =
+{
+  #if PLUGIN_PLASMA
+  PLASMA_DESC,
+  #endif
+
+  #if PLUGIN_SPECTRA
+  SPECTRUM_DESC,
+  #endif
+};
+
+const char* const devPatCmds[] =
+{
+  #if PLUGIN_PLASMA
+  PLASMA_PATTERN,
+  #endif
+
+  #if PLUGIN_SPECTRA
+  SPECTRUM_PATTERN,
+  #endif
+  
+  0 // NULL terminator
+};
+
+#else // !CLIENT_APP
 
 //********************************************************************************************************************************************
 // Each plugin ("E" command) must end with a "T" command to have it start drawing right away, else it must be externally Triggered.
@@ -112,7 +149,7 @@ static PROGMEM const char pattern_13[] = PATTERN_MASHUP;
 
 const char* const devPatCmds[] =
 {
-  #if !EXTERNAL_COMM
+  #if !CLIENT_APP
   pattern_1,
   pattern_2,
   pattern_3,
@@ -136,43 +173,6 @@ const char* const devPatCmds[] =
   SPECTRUM_PATTERN,
   #endif
 
-  0 // NULL terminator
-};
-
-#else // CLIENT_APP
-
-const char* const devPatNames[] =
-{
-  #if PLUGIN_PLASMA
-  PLASMA_NAME
-  #endif
-
-  #if PLUGIN_SPECTRA
-  SPECTRUM_NAME
-  #endif
-};
-
-const char* const devPatDesc[] =
-{
-  #if PLUGIN_PLASMA
-  PLASMA_DESC
-  #endif
-
-  #if PLUGIN_SPECTRA
-  SPECTRUM_DESC
-  #endif
-};
-
-const char* const devPatCmds[] =
-{
-  #if PLUGIN_PLASMA
-  PLASMA_PATTERN,
-  #endif
-
-  #if PLUGIN_SPECTRA
-  SPECTRUM_PATTERN,
-  #endif
-  
   0 // NULL terminator
 };
 
