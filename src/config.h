@@ -45,7 +45,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #if defined(__AVR__) || TEENSY_LC
 #define LARGE_RAM               0           // has only 2k of RAM
 #else
-#define LARGE_RAM               1           // 1 for larger ram processors
+#define LARGE_RAM               1           // 1 for processors with larger RAM
 #endif
 
 // minimize these to reduce memory consumption:
@@ -54,16 +54,16 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       64          // must be multiple of TRACKS
-#define DEV_PLUGINS             0           // cannot support additional plugins
+#define DEV_PLUGINS             1           // cannot support additional plugins
+#define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
+#define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
+                                            // ** only works on ARM processors right now
 #else
 #define MAXLEN_PATSTR           300         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
 #define DEV_PLUGINS             0           // 1 to add device plugins
-#define PLUGIN_PLASMA           0           // uses Lissajious curves for effect
-#define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
-                                            // ** only works on ARM processors right now
 #endif
 
 // these depend on what hardware is used and how it is wired:
@@ -109,6 +109,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define WIFI_SOFTAP             0           // SoftAP over WiFi
 #define COM_SERIAL              0           // serial over COM
 #endif
+
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
 #define MAXLEN_DEVICE_NAME      16          // maxlen for device name
