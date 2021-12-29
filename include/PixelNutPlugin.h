@@ -21,7 +21,7 @@ public:
 
   // Trigger a change to the effect with an amount of "force" to be applied.
   // Guaranteed to be called here first before any calls to nextstep().
-  virtual void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force) {}
+  virtual void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force) {}
 
   // Perform the next step of an effect by this plugin using the current drawing
   // properties. The rate at which this is called depends on the delay property.

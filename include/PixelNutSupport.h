@@ -15,11 +15,11 @@
 #define DEGREES_PER_CIRCLE  360             // degrees in a circle
 
 // maximum values for properties:
-#define MAX_BYTE_VALUE            255     // max value in 8 bits (unsigned)
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
-#define MAX_DEGREES_HUE           255     // hue value is 0-255
 #define MAX_PIXEL_VALUE           255     // max value for pixel
-#define MAX_FORCE_VALUE           1000    // max value for force
+#define MAX_LAYER_VALUE           255     // max number of layers in pattern
+#define MAX_DEGREES_HUE           255     // hue value is 0-255
+#define MAX_FORCE_VALUE           255     // max value for force
 #define MAX_PLUGIN_VALUE          32000   // max value for plugin
 
 typedef void* PixelNutHandle;   // context to call methods with
@@ -88,7 +88,7 @@ public:
   long clipValue(long inval, long out_min, long out_max);
 
   // sends trigger force to any other effect that has been assigned to this 'id'
-  void sendForce(PixelNutHandle p, uint16_t id, short force);
+  void sendForce(PixelNutHandle p, uint16_t id, byte force);
 };
 
 extern PixelNutSupport pixelNutSupport; // single statically allocated instance

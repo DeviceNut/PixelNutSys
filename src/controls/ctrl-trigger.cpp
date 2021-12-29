@@ -28,7 +28,7 @@ static void CheckTriggerButton(void)
 
   if ( bc_trigger.CheckForChange() != UIDeviceButton::Retcode_NoChange)
   {
-    short force;
+    byte force;
 
     #if defined(APIN_TRIGGER_POT)
     force = pixelNutSupport.clipValue(pc_trigger.newValue, 0, MAX_FORCE_VALUE);

@@ -27,7 +27,7 @@ class PNP_HueSet : public PixelNutPlugin
 {
 public:
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     pdraw->degreeHue = (uint16_t)(((float)force / MAX_FORCE_VALUE) * MAX_DEGREES_HUE);
 

@@ -21,7 +21,7 @@ See license.txt for the terms of this license.
 #endif
 
 // for each strand:
-#define FLASHLEN_STRAND_DATA          11
+#define FLASHLEN_STRAND_DATA        10
 
 // offsets within each strand space:
 #define FLASHOFF_SDATA_PATNUM       0
@@ -32,7 +32,7 @@ See license.txt for the terms of this license.
 #define FLASHOFF_SDATA_XT_HUE       6
 #define FLASHOFF_SDATA_XT_WHT       7
 #define FLASHOFF_SDATA_XT_CNT       8
-#define FLASHOFF_SDATA_FORCE        9  // 2 bytes
+#define FLASHOFF_SDATA_FORCE        9
 
 #if CLIENT_APP
 #define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
@@ -70,7 +70,7 @@ extern void FlashSetFirst();
 extern void FlashSetPatNum(byte pattern);
 extern void FlashSetXmode(bool enable);
 extern void FlashSetExterns(byte hue, byte wht, byte cnt);
-extern void FlashSetForce(short force);
+extern void FlashSetForce(byte force);
 extern short FlashGetForce(void);
 extern void FlashSetProperties(void);
 extern void FlashStartup(void);

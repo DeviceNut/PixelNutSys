@@ -34,7 +34,7 @@ public:
     forceVal = 0;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     forceVal = force;
     curHue = -1; // immediately draw current color
@@ -97,7 +97,7 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal;
+  byte forceVal;
   int16_t curHue, curWhite;
   int16_t endHue, endWhite;
   float stepWhite;

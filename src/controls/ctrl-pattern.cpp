@@ -42,7 +42,7 @@ static void CheckPatternButton(void)
     #if !defined(DPIN_TRIGGER_BUTTON)
     case UIDeviceButton::Retcode_Double:
     {
-      short force;
+      byte force;
       uint16_t msecs = bc_pattern.msecsPressed;
       // 1 second press == MAX_FORCE_VALUE
       if (msecs > MAX_FORCE_VALUE)
@@ -77,7 +77,7 @@ static void CheckPatternButton(void)
     #if !defined(DPIN_TRIGGER_BUTTON)
     case UIDeviceButton::Retcode_Double:
     {
-      short force;
+      byte force;
       uint16_t msecs = bc_pat_prev.msecsPressed;
       // 1 second press == MAX_FORCE_VALUE
       if (msecs > MAX_FORCE_VALUE)

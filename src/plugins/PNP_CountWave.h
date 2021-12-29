@@ -48,7 +48,7 @@ public:
     angleNext = 0.0;    // starting angle
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     forceVal = force; // can be negative
   }
@@ -81,7 +81,8 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal, baseValue;
+  byte forceVal;
+  uint16_t baseValue;
   uint16_t pixLength;
   float angleNext;
 };

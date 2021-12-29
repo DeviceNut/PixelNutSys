@@ -37,7 +37,7 @@ public:
     //pixelNutSupport.msgFormat(F("WinXpand: pixlen=%d head.tail=%d.%d"), pixlen, headPos, tailPos);
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     active = true;
     forceVal = force;
@@ -88,7 +88,7 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal;
+  byte forceVal;
   bool active;
   bool goForward;
   int16_t pixCenter, headPos, tailPos;

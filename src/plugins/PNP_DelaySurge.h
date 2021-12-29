@@ -43,7 +43,7 @@ public:
     maxDelay = -1;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     if (maxDelay == (uint16_t)-1) maxDelay = pdraw->pcentDelay; // set on very first trigger
 

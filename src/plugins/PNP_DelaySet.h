@@ -32,7 +32,7 @@ class PNP_DelaySet : public PixelNutPlugin
 {
 public:
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     // invert values: larger forces reduce the delay time
     pdraw->pcentDelay = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, MAX_PERCENTAGE, 0);

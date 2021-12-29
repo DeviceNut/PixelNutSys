@@ -302,9 +302,13 @@ void ExecAppCmd(char* instr)
     }
     case '!': // causes a trigger given specified force
     {
-      short force = atoi(instr+1);
-      pPixelNutEngine->triggerForce(force);
-      FlashSetForce(force);
+      uint32_t force = atoi(instr+1);
+      if (force <= MAX_FORCE_VALUE)
+      {
+        pPixelNutEngine->triggerForce(force);
+        FlashSetForce(force);
+      }
+      else ErrorHandler(4, 1, false); // blink for error and continue
       break;
     }
     case '@': // change the device name

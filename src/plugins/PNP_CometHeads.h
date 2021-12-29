@@ -57,7 +57,7 @@ public:
     headCount = 0; // no heads drawn yet
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     headCount = pixelNutComets.cometHeadAdd(cdata, !pdraw->noRepeating, pixLength);
     forceVal = force;
@@ -78,7 +78,7 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal;
+  byte forceVal;
   uint16_t pixLength, headCount;
   PixelNutComets::cometData cdata;
 };

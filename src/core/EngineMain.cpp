@@ -41,7 +41,7 @@ bool PixelNutEngine::init(uint16_t num_pixels, byte num_bytes,
 }
 
 // called by all of the following triggering functions
-void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, short force)
+void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, byte force)
 {
   PluginTrack *pTrack = pLayer->pTrack;
 
@@ -92,7 +92,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
                 pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
 
-      short force = ((pluginLayers[i].trigForce >= 0) ? 
+      byte force = ((pluginLayers[i].trigForce >= 0) ? 
                       pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
 
       TriggerLayer((pluginLayers + i), force);
@@ -108,7 +108,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 }
 
 // external: called from client command
-void PixelNutEngine::triggerForce(short force)
+void PixelNutEngine::triggerForce(byte force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&
@@ -117,7 +117,7 @@ void PixelNutEngine::triggerForce(short force)
 }
 
 // internal: called from effect plugins
-void PixelNutEngine::triggerForce(uint16_t id, short force)
+void PixelNutEngine::triggerForce(uint16_t id, byte force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
     if (!pluginLayers[i].disable &&

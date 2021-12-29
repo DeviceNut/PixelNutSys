@@ -29,7 +29,7 @@ public:
     pixLength = pixlen;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     pdraw->pixCount = pixelNutSupport.mapValue(force, 0, MAX_FORCE_VALUE, 1, pixLength);
   }

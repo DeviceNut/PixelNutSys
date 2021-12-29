@@ -35,7 +35,7 @@ public:
     stepCount = 0;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     if (!baseCount) baseCount = pdraw->pixCount;
 

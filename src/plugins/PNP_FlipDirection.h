@@ -23,7 +23,7 @@ class PNP_FlipDirection : public PixelNutPlugin
 {
 public:
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     pdraw->goBackwards = !pdraw->goBackwards;
   }

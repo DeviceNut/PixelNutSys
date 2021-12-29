@@ -34,7 +34,7 @@ public:
     pixLength = pixlen;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     forceVal = force; // if <=0 then drawing stops after cycle
     doDraw = true;
@@ -75,6 +75,6 @@ public:
 private:
   uint16_t myid;
   bool doDraw;
-  short forceVal;
+  byte forceVal;
   uint16_t pixLength, curPos;
 };

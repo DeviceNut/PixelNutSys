@@ -178,7 +178,7 @@ void PixelNutEngine::BeginPluginLayer(PluginLayer *pLayer)
 
   if (pLayer->trigType & TrigTypeBit_AtStart)
   {
-    short force = pLayer->trigForce;
+    byte force = pLayer->trigForce;
     if (force < 0) force = random(0, MAX_FORCE_VALUE+1);
     TriggerLayer(pLayer, force);
   }

@@ -12,7 +12,7 @@ See license.txt for the terms of this license.
 
 #include "PNP_Spectra.h"
 #include "PNP_Plasma.h"
-// effect capability bits
+// effect capability bits (these must agree with client defines)
 #define PNP_EBIT_COLOR          0x0001  // changing color changes effect
 #define PNP_EBIT_COUNT          0x0002  // changing count changes effect
 #define PNP_EBIT_DELAY          0x0004  // changing delay changes effect

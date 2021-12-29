@@ -35,7 +35,7 @@ public:
     forceVal = 0;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     active = true;
     forceVal = force;
@@ -105,7 +105,7 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal;
+  byte forceVal;
   bool active;
   bool goForward;
   int16_t pixLength, lastCount, headPos;

@@ -79,13 +79,12 @@ public:
   byte  getPropertyWhite()   { return externPcentWhite; }
   byte  getPropertyCount()   { return externPcentCount; }
 
-  // Triggers effect layers with a range value of -MAX_FORCE_VALUE..MAX_FORCE_VALUE.
-  // (Negative values are not utilized by most plugins: they take the absolute value.)
+  // Triggers effect layers with a range value of 0..MAX_FORCE_VALUE.
   // Must be enabled with the "I" command for each effect layer to be effected.
-  void triggerForce(short force);
+  void triggerForce(byte force);
 
   // Used by plugins to trigger based on the effect layer ID, enabled by the "A" command.
-  void triggerForce(uint16_t id, short force);
+  void triggerForce(uint16_t id, byte force);
 
   // Parses and executes a pattern command string, returning a status code.
   // An empty string (or one with only spaces), is ignored.
@@ -209,7 +208,7 @@ protected:
   void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
 
-  void TriggerLayer(PluginLayer *pLayer, short force);
+  void TriggerLayer(PluginLayer *pLayer, byte force);
   void RepeatTriger(bool rollover);
 
   void ShiftStack(bool dolayer, int isrc, int idst, int iend);

@@ -32,7 +32,7 @@ public:
     curPos = 0;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     forceVal = force;
   }
@@ -52,6 +52,6 @@ public:
 
 private:
   uint16_t myid;
-  short forceVal;
+  byte forceVal;
   uint16_t pixLength, curPos;
 };

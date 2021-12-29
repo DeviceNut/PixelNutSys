@@ -130,9 +130,9 @@ void FlashGetPatName(char *name)
 
 void FlashSetPatNum(byte pattern) { FlashSetValue(FLASHOFF_SDATA_PATNUM, pattern); FlashDone(); }
 
-void FlashSetBright()    { FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, pPixelNutEngine->getBrightPercent());  FlashDone(); }
-void FlashSetDelay()     { FlashSetValue(FLASHOFF_SDATA_PC_DELAY,  pPixelNutEngine->getDelayPercent());   FlashDone(); }
-void FlashSetFirst()     { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,  pPixelNutEngine->getFirstPosition());  FlashDone(); }
+void FlashSetBright() { FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, pPixelNutEngine->getBrightPercent());  FlashDone(); }
+void FlashSetDelay()  { FlashSetValue(FLASHOFF_SDATA_PC_DELAY,  pPixelNutEngine->getDelayPercent());   FlashDone(); }
+void FlashSetFirst()  { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,  pPixelNutEngine->getFirstPosition());  FlashDone(); }
 
 void FlashSetXmode(bool enable) { FlashSetValue(FLASHOFF_SDATA_XT_MODE, enable);  FlashDone(); }
 
@@ -144,10 +144,9 @@ void FlashSetExterns(byte hue, byte wht, byte cnt)
   FlashDone();
 }
 
-void FlashSetForce(short force)
+void FlashSetForce(byte force)
 {
   FlashSetValue(FLASHOFF_SDATA_FORCE, force);
-  FlashSetValue(FLASHOFF_SDATA_FORCE+1, (force >> 8));
   FlashDone();
 }
 

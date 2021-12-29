@@ -43,7 +43,7 @@ public:
     minBright = -1;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     if (minBright == (uint16_t)-1) minBright = pdraw->pcentBright; // set on very first trigger
 

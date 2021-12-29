@@ -41,7 +41,7 @@ public:
     doResetAtEnd = false;
   }
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     // change hue by at most the number of degrees that "fit" exactly into the number of pixels
     addDegrees = (((float)force / MAX_FORCE_VALUE) * (MAX_DEGREES_HUE / (float)pixLength));

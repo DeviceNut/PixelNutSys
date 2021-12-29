@@ -239,7 +239,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (GetBoolValue(cmd+1, true))
           {
             pluginLayers[curlayer].trigType |= TrigTypeBit_AtStart;
-            short force = pluginLayers[curlayer].trigForce;
+            byte force = pluginLayers[curlayer].trigForce;
             if (force < 0) force = random(0, MAX_FORCE_VALUE+1);
             TriggerLayer((pluginLayers + curlayer), force); // trigger immediately
           }
@@ -257,7 +257,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
-            pluginLayers[curlayer].trigLayerIndex = (byte)GetNumValue(cmd+1, MAX_BYTE_VALUE, MAX_BYTE_VALUE);
+            pluginLayers[curlayer].trigLayerIndex = (byte)GetNumValue(cmd+1, MAX_LAYER_VALUE, MAX_LAYER_VALUE);
             DBGOUT((F("Triggering for layer=%d assigned to layer=%d"), curlayer, pluginLayers[curlayer].trigLayerIndex));
 
             pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;

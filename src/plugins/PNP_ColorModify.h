@@ -26,7 +26,7 @@ class PNP_ColorModify : public PixelNutPlugin
 {
 public:
 
-  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, short force)
+  void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     // apply current color adjusted with the force value
     float pcentforce = ((float)force / MAX_FORCE_VALUE);

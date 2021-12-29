@@ -95,9 +95,9 @@ static void HSVtoRGB(int hue, byte sat, byte val, byte *rptr, byte *gptr, byte *
   }
   }
 
-  *rptr = GammaCorrection(r * MAX_BYTE_VALUE);
-  *gptr = GammaCorrection(g * MAX_BYTE_VALUE);
-  *bptr = GammaCorrection(b * MAX_BYTE_VALUE);
+  *rptr = GammaCorrection(r * MAX_PIXEL_VALUE);
+  *gptr = GammaCorrection(g * MAX_PIXEL_VALUE);
+  *bptr = GammaCorrection(b * MAX_PIXEL_VALUE);
 }
 
 static PixelValOrder *pPixOrder;
@@ -162,8 +162,8 @@ void PixelNutSupport::setPixel(PixelNutHandle handle, uint16_t pos, byte r, byte
   {
     byte *ppixs = (pEngine->pDrawPixels + (pos * 3));
 
-    byte brightval = (scale * pEngine->getBrightPercent() * MAX_BYTE_VALUE) / MAX_PERCENTAGE;
-    float factor = ((float)GammaCorrection(brightval) / MAX_BYTE_VALUE);
+    byte brightval = (scale * pEngine->getBrightPercent() * MAX_PIXEL_VALUE) / MAX_PERCENTAGE;
+    float factor = ((float)GammaCorrection(brightval) / MAX_PIXEL_VALUE);
 
     ppixs[pPixOrder->r] = r * factor;
     ppixs[pPixOrder->g] = g * factor;
@@ -196,7 +196,7 @@ long PixelNutSupport::clipValue(long inval, long out_min, long out_max)
   return inval;
 }
 
-void PixelNutSupport::sendForce(PixelNutHandle handle, uint16_t id, short force)
+void PixelNutSupport::sendForce(PixelNutHandle handle, uint16_t id, byte force)
 {
   PixelNutEngine *pEngine = (PixelNutEngine*)handle;
   pEngine->triggerForce(id, force);
