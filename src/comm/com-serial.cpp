@@ -71,13 +71,13 @@ void ComSerial::loop(void)
     }
     else if (ch != '\r')
     {
-      inputStr[inputPos++] = ch;
       if (inputPos >= MAXLEN_INPUTSTR)
       {
-        DBGOUT(("Serial command too long"));
+        DBGOUT(("Serial command > %d", MAXLEN_INPUTSTR));
         ErrorHandler(3, 3, false);
         inputPos = 0;
       }
+      else inputStr[inputPos++] = ch;
     }
   }
 }

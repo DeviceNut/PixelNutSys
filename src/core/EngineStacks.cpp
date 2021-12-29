@@ -338,7 +338,7 @@ void PixelNutEngine::DeletePluginLayer(short layer)
     int lcount = pLayer->pTrack->lcount;
     int track = TRACK_INDEX(pLayer->pTrack);
 
-    DBGOUT((F("Delete: lcount=%d layers end=%d last=%d"), lcount, (layer + lcount - 1), indexLayerStack));
+    DBGOUT((F("Delete: lcount=%d layers (end=%d last=%d)"), lcount, (layer + lcount - 1), indexLayerStack));
 
     if ((layer + lcount - 1) < indexLayerStack)
     {

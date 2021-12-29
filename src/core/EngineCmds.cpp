@@ -68,7 +68,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       }
       else
       {
-        DBGOUT((F("Layer %d not valid: max=%d"), layer, indexLayerStack));
+        DBGOUT((F("Layer %d not valid: max=%d"), atoi(cmd+1), indexLayerStack));
         status = Status_Error_BadVal;
       }
     }
@@ -117,7 +117,11 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             DBGOUT((F("Layer=%d Append plugin=%d"), curlayer, plugin));
             status = AddPluginLayer(curlayer, (uint16_t)plugin);
           }
-          else DeletePluginLayer(curlayer);
+          else
+          {
+            DeletePluginLayer(curlayer);
+            curlayer = indexLayerStack;
+          }
 
           neweffects = true;
           break;
