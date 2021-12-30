@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "flash.h"
@@ -30,7 +30,6 @@ public:
 
 private:
 
-  char deviceName[MAXLEN_DEVICE_NAME + 1];
   char inputStr[MAXLEN_INPUTSTR + 1];
   int inputPos = 0;
 };
@@ -46,16 +45,18 @@ void ComSerial::sendReply(char *instr)
 void ComSerial::setName(char *name)
 {
   FlashSetDevName(name);
-  strcpy(deviceName, name);
 }
 
 void ComSerial::setup(void)
 {
+  #if DEBUG_OUTPUT
+  char deviceName[MAXLEN_DEVICE_NAME + 1];
   FlashGetDevName(deviceName);
 
   DBGOUT(("---------------------------------------"));
   DBGOUT(("Serial Device: \"%s\"", deviceName));
   DBGOUT(("---------------------------------------"));
+  #endif
 }
 
 void ComSerial::loop(void)
