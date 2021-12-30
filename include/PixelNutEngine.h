@@ -237,7 +237,7 @@ class PluginFactory
   public: virtual byte*    pluginList(void) { return NULL; }
   public: virtual char*    pluginName(uint16_t plugin) { return (char*)"Unknown"; }
   public: virtual char*    pluginDesc(uint16_t plugin) { return (char*)""; }
-  public: virtual uint32_t pluginBits(uint16_t plugin) { return 0; }
+  public: virtual uint16_t pluginBits(uint16_t plugin) { return 0; }
   public: virtual bool     pluginDraws(uint16_t plugin);
   public: virtual PixelNutPlugin *pluginCreate(uint16_t plugin);
 };

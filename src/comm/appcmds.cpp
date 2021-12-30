@@ -168,7 +168,7 @@ void ExecAppCmd(char* instr)
         pCustomCode->sendReply( jsonStr(outstr, "text", pPluginFactory->pluginName(plugin)) );
         pCustomCode->sendReply( jsonStr(outstr, "desc", pPluginFactory->pluginDesc(plugin)) );
 
-        sprintf(patname, "%08X", pPluginFactory->pluginBits(plugin));
+        sprintf(patname, "%04X", pPluginFactory->pluginBits(plugin));
         pCustomCode->sendReply( jsonStr(outstr, "bits", patname) );
 
         jsonNum(outstr, "id", plugin, true);
