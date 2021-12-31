@@ -97,12 +97,16 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define APIN_WHITE_POT          0         // sets white property
 */
 
+#if defined(__AVR__)
+#define CLIENT_APP              0           // only hardware controls
+#define DEV_PATTERNS            1           // must have internal patterns
+#else
 // for use with external client: only one can be set:
-#if defined(__AVR__) || TEENSY_LC || TEENSY_32
-#define BLE_ESP32               0           // BLE on ESP32 only
-#define WIFI_MQTT               0           // MQTT over WiFi
-#define WIFI_SOFTAP             0           // SoftAP over WiFi
-#define COM_SERIAL              0           // serial over COM
+#define CLIENT_APP              1           // have external application
+#define DEV_PATTERNS            1           // 1 to add device patterns
+
+#if TEENSY_LC || TEENSY_32
+#define COM_SERIAL              1           // serial over COM
 #else
 #define BLE_ESP32               0           // BLE on ESP32 only
 #define WIFI_MQTT               1           // MQTT over WiFi
@@ -114,15 +118,5 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
 #define MAXLEN_DEVICE_NAME      16          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
-
-#define CLIENT_APP              1           // have external application
-#if defined(PLUGIN_PLASMA) || defined(PLUGIN_PLASMA)
-#define DEV_PATTERNS            1           // 1 to add device patterns
-#else
-#define DEV_PATTERNS            0           // no additional patterns defined
 #endif
-#else
-#define CLIENT_APP              0           // only hardware controls
-#define DEV_PATTERNS            1           // must have internal patterns
 #endif
-

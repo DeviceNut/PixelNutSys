@@ -8,6 +8,7 @@ See license.txt for the terms of this license.
 #include "flash.h"
 
 #if DEV_PATTERNS
+
 void CountPatterns(void)
 {
   DBGOUT((F("Stored Patterns:")));
@@ -33,9 +34,6 @@ void CountPatterns(void)
   // cannot continue if cannot find any patterns
   if (!codePatterns) ErrorHandler(1, 1, true);
 }
-#endif
-
-#if !CLIENT_APP // else controlled from client app
 
 void LoadCurPattern()
 {
@@ -68,5 +66,4 @@ void GetPrevPattern(void)
   LoadCurPattern();
 }
 
-#endif // !CLIENT_APP
-
+#endif

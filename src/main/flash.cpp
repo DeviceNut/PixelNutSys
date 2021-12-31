@@ -167,13 +167,13 @@ void FlashStartup(void)
 {
   FlashStart();
 
-  #if !CLIENT_APP
+  #if DEV_PATTERNS
   curPattern = FlashGetValue(FLASHOFF_SDATA_PATNUM);
   if (!curPattern || (curPattern > codePatterns))
     curPattern = 1; // 1..codePatterns
   DBGOUT((F("Flash: pattern=#%d"), curPattern));
   #endif
- 
+
   byte bright = FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT);
   if (!bright || (bright > MAX_BRIGHTNESS))
   {

@@ -14,11 +14,14 @@ extern void SetupLED(void);
 extern void SetupDBG(void);
 extern void LoadCurPattern();
 
-byte codePatterns = 0;            // number of internal patterns
 bool doUpdate = true;             // false to not update display
 
-#if !CLIENT_APP
+#if DEV_PATTERNS
+byte codePatterns = 0;            // number of internal patterns
 byte curPattern = 1;              // current pattern (1..codePatterns)
+#endif
+
+#if !CLIENT_APP
 CustomCode customcode;            // create empty base class
 CustomCode *pCustomCode = &customcode;
 #endif

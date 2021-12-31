@@ -9,11 +9,7 @@ See license.txt for the terms of this license.
 #include "core.h"
 #include "custom.h"
 
-extern byte codePatterns;
 extern bool doUpdate;
-#if !CLIENT_APP
-extern byte curPattern;
-#endif
 
 extern CustomCode *pCustomCode;
 extern PixelNutEngine pixelNutEngines[STRAND_COUNT];
@@ -26,6 +22,8 @@ extern void ExecAppCmd(char *cmdstr);
 extern void ExecPattern(char *pattern);
 
 #if DEV_PATTERNS
+extern byte codePatterns;
+extern byte curPattern;
 extern const char* const devPatCmds[];
 extern void CountPatterns(void);
 #if CLIENT_APP

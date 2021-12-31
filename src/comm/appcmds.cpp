@@ -9,6 +9,11 @@ See license.txt for the terms of this license.
 
 #include "main.h"
 
+#if DEV_PATTERNS
+extern void GetPrevPattern(void);
+extern void GetNextPattern(void);
+#endif
+
 extern PluginFactory *pPluginFactory; // used to enumerate effect plugins
 
 // Note: this modifies 'pattern'
@@ -62,7 +67,7 @@ static char* jsonArraydEnd(char* outstr)
   return outstr;
 }
 
-static int calcPcount(void)
+static int calcPlugins(void)
 {
   int pcount = 0;
   byte *plist = pPluginFactory->pluginList();
@@ -73,6 +78,22 @@ static int calcPcount(void)
 
   return pcount;
 }
+
+#if (STRAND_COUNT > 1)
+static void loadStrandPattern(void)
+{
+  int curstrand = FlashSetStrand(0);
+  for (int i = 0; i < STRAND_COUNT; ++i)
+  {
+    if (i != curstrand)
+    {
+      FlashSetStrand(i);
+      LoadCurPattern();
+    }
+  }
+  FlashSetStrand(curstrand);
+}
+#endif
 
 void ExecAppCmd(char* instr)
 {
@@ -94,7 +115,8 @@ void ExecAppCmd(char* instr)
       char outstr[FLASHLEN_PATSTR+1];
       char patstr[FLASHLEN_PATSTR+1];
       char patname[FLASHLEN_PATNAME+1];
-      int pcount = calcPcount();
+
+      int plugins = calcPlugins();
 
       pCustomCode->sendReply((char*)"?<");
       pCustomCode->sendReply((char*)"{");
@@ -103,9 +125,13 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply( jsonNum(outstr, "maxstrlen",  MAXLEN_PATSTR) );
       pCustomCode->sendReply( jsonNum(outstr, "numlayers",  NUM_PLUGIN_LAYERS) );
       pCustomCode->sendReply( jsonNum(outstr, "numtracks",  NUM_PLUGIN_TRACKS) );
-      pCustomCode->sendReply( jsonNum(outstr, "npatterns",  codePatterns) );
-      pCustomCode->sendReply( jsonNum(outstr, "nplugins",   pcount) );
+      pCustomCode->sendReply( jsonNum(outstr, "nplugins",   plugins) );
 
+      #if DEV_PATTERNS
+      pCustomCode->sendReply( jsonNum(outstr, "npatterns",  codePatterns) );
+      #else
+      pCustomCode->sendReply( jsonNum(outstr, "npatterns",  0) );
+      #endif
       pCustomCode->sendReply( jsonArrayStart(outstr, "strands") );
 
       byte pixcounts[] = PIXEL_COUNTS;
@@ -146,11 +172,10 @@ void ExecAppCmd(char* instr)
       for (int i = 0; i < codePatterns; ++i)
       {
 
-        pCustomCode->sendReply( jsonStr(outstr, "text", devPatNames[i]) );
+        pCustomCode->sendReply( jsonStr(outstr, "name", devPatNames[i]) );
         pCustomCode->sendReply( jsonStr(outstr, "desc", devPatDesc[i]) );
-        pCustomCode->sendReply( jsonStr(outstr, "pcmd", devPatCmds[i]) );
 
-        jsonNum(outstr, "id", i, true);
+        jsonStr(outstr, "pcmd", devPatCmds[i], true);
         if (i+1 < codePatterns) strcat(outstr, ",{");
         pCustomCode->sendReply(outstr);
       }
@@ -165,7 +190,7 @@ void ExecAppCmd(char* instr)
       for (int i = 0; plist[i] != 0; ++i)
       {
         uint16_t plugin = plist[i];
-        pCustomCode->sendReply( jsonStr(outstr, "text", pPluginFactory->pluginName(plugin)) );
+        pCustomCode->sendReply( jsonStr(outstr, "name", pPluginFactory->pluginName(plugin)) );
         pCustomCode->sendReply( jsonStr(outstr, "desc", pPluginFactory->pluginDesc(plugin)) );
 
         sprintf(patname, "%04X", pPluginFactory->pluginBits(plugin));
@@ -243,6 +268,26 @@ void ExecAppCmd(char* instr)
         FlashSetStrand(index);
         pPixelNutEngine = pixelNutEngines[index];
       }
+      #endif
+      break;
+    }
+    case '+': // set next custom pattern
+    {
+      #if DEV_PATTERNS
+      GetNextPattern();
+      #if (STRAND_COUNT > 1)
+      loadStrandPattern();
+      #endif
+      #endif
+      break;
+    }
+    case '-': // set prev custom pattern
+    {
+      #if DEV_PATTERNS
+      GetPrevPattern();
+      #if (STRAND_COUNT > 1)
+      loadStrandPattern();
+      #endif
       #endif
       break;
     }
