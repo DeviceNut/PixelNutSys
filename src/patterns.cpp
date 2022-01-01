@@ -14,8 +14,9 @@ See license.txt for the terms of this license.
 
 #if PLUGIN_PLASMA
 #define PLASMA_NAME "Plasma"
-#define PLASMA_DESC "Creates a 'plasma' type of effect by using Lissajious curve mathematics. Increase the Count property for faster motion."
-static PROGMEM const char PLASMA_PATTERN[] = "E80 Q4 T E120 F100 I T";
+#define PLASMA_DESC "Creates a 'plasma' type of effect by using Lissajious curve math. \
+The Count property determines the number of pixels set/cleared at once."
+static PROGMEM const char PLASMA_PATTERN[] = "E80 Q4 T E120 F200 T I";
 #endif
 
 #if PLUGIN_SPECTRA
@@ -78,16 +79,16 @@ const char* const devPatCmds[] =
 // The Force applied changes the amount of color change per pixel. At maximum Force the entire spectrum is displayed.
 // The Force modifies the amount of color change per pixel. At maximum Force the entire spectrum is displayed without moving,
 // with 0 force it's a single color, and any other force value the colors continually change.
-#define PATTERN_RAINBOW_RIPPLE                    "E2 D20 T E101 F255 I T"
+#define PATTERN_RAINBOW_RIPPLE                    "E2 D20 T E101 F255 T I"
 
 // Colors hue changes occur at the head and get pushed down the strip. When the end is reached they start getting cleared,
 // creating a "rolling" effect. Triggering restarts the effect, with the amount of Force determining how fast the colors change.
 // At the maximum Force the entire spectrum is displayed again.
-#define PATTERN_RAINBOW_ROLL                      "E1 D20 I T E101 F255 I T"
+#define PATTERN_RAINBOW_ROLL                      "E1 D20 T I E101 F255 T I"
 
 // This creates a "wave" effect (brightness that changes up and down) that move down the strip, in a single color. Triggering
 // changes the frequency of the waves, with larger Forces making longer waves.
-#define PATTERN_LIGHT_WAVES                       "E10 D60 T E101 T E120 F65 I T"
+#define PATTERN_LIGHT_WAVES                       "E10 D60 T E101 T E120 F65 T I"
 
 // This has bright white twinkling over a soft blue background, like "stars in a blue sky". Triggering causes the background 
 // brightness to swell up and down, with the amount of Force determining the speed of the swelling.
@@ -96,11 +97,11 @@ const char* const devPatCmds[] =
 // This also has bright white twinkling, but without a background. Instead, there are occasional comets that streak up and
 // down the strip, and then disappear. One of the comets is red, is a fixed length, and appears randomly every 3-6 seconds.
 // The other is orange, and appears only when Triggered, with the Force determining its length.
-#define PATTERN_TWINKLE_COMETS                    "E50 B65 D10 H35 W80 T E20 B90 D30 C25 G R O3 N6 E20 B90 D30 H28 C45 U G I T E120 F1 I"
+#define PATTERN_TWINKLE_COMETS                    "E50 B65 D10 H35 W80 T E20 B90 D30 C25 G R O3 N6 E20 B90 D30 H28 C45 U G T I E120 F1 I"
 
 // Comets pairs, one in either direction, both of which change color hue (but not whiteness) occasionaly. Trigging causes 
 // new comets to be added (that keep going around), for a maximum of 12 per direction.
-#define PATTERN_DUELING_COMETS                    "E20 D30 W25 C25 I T E101 F25 T E20 D20 W25 C25 U I T E101 F50 T"
+#define PATTERN_DUELING_COMETS                    "E20 D30 W25 C25 T I E101 F25 T E20 D20 W25 C25 U T I E101 F50 T"
 
 // Two scanners (blocks of same brightness pixels that move back and forth), with only the first one visible initially until
 // a Trigger is applied. The first one changes colors on each change in direction. The second one (once Triggered) is deep
@@ -118,20 +119,20 @@ const char* const devPatCmds[] =
 
 // Random colored blinking that periodically surge in the rate of blinking. Triggering changes the frequency of the blinking,
 // with larger Forces causing faster blinking surges.
-#define PATTERN_BLINK_SURGES                      "E51 D60 C10 T E112 T E131 F255 I T"
+#define PATTERN_BLINK_SURGES                      "E51 D60 C10 T E112 T E131 F255 T I"
 
 // All pixels swell up and down in brightness, with random color hue and whiteness changes every 10 seconds. Triggering 
 // changes the pace of the swelling, with larger Forces causing faster swelling.
-#define PATTERN_BRIGHT_SWELLS                     "E0 B80 T E111 F R10 O10 E142 F65 I T"
+#define PATTERN_BRIGHT_SWELLS                     "E0 B80 T E111 F R10 O10 E142 F65 T I"
 
 // All pixels move through color hue and whiteness transitions that are slow and smooth. A new color is chosen every time
 // the previous target color has been reached, or when Triggered, with the Force determining how large the reoccurring color
 // changes are. The time it takes to reach a new color is proportional to the size of the color change.
-#define PATTERN_COLOR_SMOOTH                      "E0 D30 H21 T E110 F150 I T E111 A1"
+#define PATTERN_COLOR_SMOOTH                      "E0 D30 H21 T E110 F150 T I E111 A1"
 
 // Combination of a purple scanner over a green-ish twinkling background, with a red comet that is fired off every time
 // the scanner bounces off the end of the strip, or when Triggered, which disappear off the end.
-#define PATTERN_MASHUP                            "E50 B65 D10 H71 W30 V T E40 D50 H192 C10 T E20 D15 C20 H0 G A1 I T"
+#define PATTERN_MASHUP                            "E50 B65 D10 H71 W30 V T E40 D50 H192 C10 T E20 D15 C20 H0 G T I A1"
 
 static PROGMEM const char pattern_1[]  = PATTERN_RAINBOW_RIPPLE;
 static PROGMEM const char pattern_2[]  = PATTERN_RAINBOW_ROLL;
