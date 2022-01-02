@@ -32,7 +32,7 @@ See license.txt for the terms of this license.
 #define FLASHOFF_SDATA_XT_HUE       6
 #define FLASHOFF_SDATA_XT_WHT       7
 #define FLASHOFF_SDATA_XT_CNT       8
-#define FLASHOFF_SDATA_FORCE        9
+// Note: byte 9 is unused
 
 #if CLIENT_APP
 #define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
@@ -70,8 +70,6 @@ extern void FlashSetFirst();
 extern void FlashSetPatNum(byte pattern);
 extern void FlashSetXmode(bool enable);
 extern void FlashSetExterns(byte hue, byte wht, byte cnt);
-extern void FlashSetForce(byte force);
-extern short FlashGetForce(void);
 extern void FlashSetProperties(void);
 extern void FlashStartup(void);
 #if EEPROM_FORMAT

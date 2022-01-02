@@ -144,17 +144,6 @@ void FlashSetExterns(byte hue, byte wht, byte cnt)
   FlashDone();
 }
 
-void FlashSetForce(byte force)
-{
-  FlashSetValue(FLASHOFF_SDATA_FORCE, force);
-  FlashDone();
-}
-
-short FlashGetForce(void)
-{
-  return FlashGetValue(FLASHOFF_SDATA_FORCE) + (FlashGetValue(FLASHOFF_SDATA_FORCE+1) << 8);
-}
-
 void FlashSetProperties(void)
 {
   pPixelNutEngine->setPropertyMode(FlashGetValue(FLASHOFF_SDATA_XT_MODE));

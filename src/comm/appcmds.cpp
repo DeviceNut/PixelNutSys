@@ -142,21 +142,19 @@ void ExecAppCmd(char* instr)
         FlashSetStrand(i);
 
         pCustomCode->sendReply( jsonNum(outstr, "pixels",   pixcounts[i]) );
-        pCustomCode->sendReply( jsonNum(outstr, "bright",   FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT)) );
-        pCustomCode->sendReply( jsonNum(outstr, "delay",    FlashGetValue(FLASHOFF_SDATA_PC_DELAY)) );
-        pCustomCode->sendReply( jsonNum(outstr, "first",    FlashGetValue(FLASHOFF_SDATA_FIRSTPOS)) );
-        pCustomCode->sendReply( jsonNum(outstr, "xt_mode",  FlashGetValue(FLASHOFF_SDATA_XT_MODE)) );
-        pCustomCode->sendReply( jsonNum(outstr, "xt_hue",   FlashGetValue(FLASHOFF_SDATA_XT_HUE)) );
-        pCustomCode->sendReply( jsonNum(outstr, "xt_white", FlashGetValue(FLASHOFF_SDATA_XT_WHT)) );
-        pCustomCode->sendReply( jsonNum(outstr, "xt_count", FlashGetValue(FLASHOFF_SDATA_XT_CNT)) );
-        pCustomCode->sendReply( jsonNum(outstr, "force",    FlashGetValue(FLASHOFF_SDATA_FORCE)) );
+        pCustomCode->sendReply( jsonNum(outstr, "bright",   pPixelNutEngine->getBrightPercent()) );
+        pCustomCode->sendReply( jsonNum(outstr, "delay",    pPixelNutEngine->getDelayPercent()) );
+        pCustomCode->sendReply( jsonNum(outstr, "first",    pPixelNutEngine->getFirstPosition()) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_mode",  pPixelNutEngine->getPropertyMode()) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_hue",   pPixelNutEngine->getPropertyHue()) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_white", pPixelNutEngine->getPropertyWhite()) );
+        pCustomCode->sendReply( jsonNum(outstr, "xt_count", pPixelNutEngine->getPropertyCount()) );
 
         FlashGetPatName(patname);
         pCustomCode->sendReply( jsonStr(outstr, "patname", patname) );
 
         // returns empty string on error
-        if (!pPixelNutEngine->makeCmdStr(patstr, MAXLEN_PATSTR))
-          ErrorHandler(4, 1, false); // blink for error and continue
+        pPixelNutEngine->makeCmdStr(patstr, MAXLEN_PATSTR);
 
         jsonStr(outstr, "patstr", patstr, true);
         if (i+1 < STRAND_COUNT) strcat(outstr, ",{");
@@ -209,35 +207,11 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply((char*)">?");
       break;
     }
-    case '<': // return current pattern to client
-    {
-      char outstr[MAXLEN_PATSTR];
-
-      if (pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
-      {
-        ErrorHandler(4, 1, false); // blink for error and continue
-        break;
-      }
-
-      pCustomCode->sendReply(outstr);
-      break;
-    }
-    case '>': // store current pattern to flash
-    {
-      char outstr[MAXLEN_PATSTR];
-
-      if (pPixelNutEngine->makeCmdStr(outstr, MAXLEN_PATSTR))
-      {
-        ErrorHandler(4, 1, false); // blink for error and continue
-        break;
-      }
-
-      FlashSetPatStr(outstr);
-      break;
-    }
-    case '*': // clear pattern
+    case '*': // clear stacks and name/pattern in flash
     {
       pPixelNutEngine->clearStacks(); // clear stack to prepare for new pattern
+      FlashSetPatName((char*)"");
+      FlashSetPatStr((char*)"");
       break;
     }
     case '$': // restart: clear, then execute pattern stored in flash
@@ -349,11 +323,8 @@ void ExecAppCmd(char* instr)
     {
       uint32_t force = atoi(instr+1);
       if (force <= MAX_FORCE_VALUE)
-      {
         pPixelNutEngine->triggerForce(force);
-        FlashSetForce(force);
-      }
-      else ErrorHandler(4, 1, false); // blink for error and continue
+      // else ignore
       break;
     }
     case '@': // change the device name
