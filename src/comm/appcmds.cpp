@@ -300,7 +300,7 @@ void ExecAppCmd(char* instr)
       pPixelNutEngine->setPropertyMode(mode);
       break;
     }
-    case '{': // set color hue/white and count properties
+    case '<': // set color hue/white and count properties
     {
       ++instr; // skip past '+'
       short hue = atoi(instr);
