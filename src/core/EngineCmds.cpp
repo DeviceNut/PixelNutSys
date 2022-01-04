@@ -55,7 +55,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     PixelNutSupport::DrawProps *pdraw = NULL;
     if (curlayer >= 0) pdraw = &pluginLayers[curlayer].pTrack->draw;
 
-    DBGOUT((F(">> Cmd=%s len=%d layer=%d"), cmd, strlen(cmd), curlayer));
+    DBGOUT((F("Exec: Cmd=%s Len=%d Layer=%d"), cmd, strlen(cmd), curlayer));
 
     if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
@@ -63,12 +63,12 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
 
       if (layer >= 0)
       {
-        DBGOUT((F("LayerCmd: cur=%d max=%d"), layer, indexLayerStack));
+        DBGOUT((F("  Layer Cur=%d Max=%d"), layer, indexLayerStack));
         curlayer = layer;        
       }
       else
       {
-        DBGOUT((F("Layer %d not valid: max=%d"), atoi(cmd+1), indexLayerStack));
+        DBGOUT((F("  Layer %d not valid: Max=%d"), atoi(cmd+1), indexLayerStack));
         status = Status_Error_BadVal;
       }
     }
@@ -86,7 +86,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'M': // sets/clears mute state for track/layer ("M" same as "M1")
         {
           bool disable = GetBoolValue(cmd+1, true);
-          DBGOUT((F("Layer=%d Disable=%d"), curlayer, disable));
+          DBGOUT((F("  Layer=%d Disable=%d"), curlayer, disable));
 
           PluginLayer *pLayer = (pluginLayers + curlayer);
           pLayer->disable = disable;
@@ -114,7 +114,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "Z"
           {
             int plugin = GetNumValue(cmd+1, MAX_PLUGIN_VALUE); // returns -1 if not in range
-            DBGOUT((F("Layer=%d Append plugin=%d"), curlayer, plugin));
+            DBGOUT((F("  Layer=%d Append plugin=%d"), curlayer, plugin));
             status = AddPluginLayer(curlayer, (uint16_t)plugin);
           }
           else
@@ -129,28 +129,30 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'X': // offset into output display of the track by pixel index
         {
           pdraw->pixStart = (uint16_t)GetNumValue(cmd+1, 0, numPixels-1);
-          DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("  Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'Y': // number of pixels in the track by pixel index
         {
           pdraw->pixLen = (uint16_t)GetNumValue(cmd+1, 1, numPixels);
-          DBGOUT((F(">> Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("  Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
           break;
         }
         case 'J': // offset into output display of the track by percent
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          pdraw->pcentStart = pcent;
           pdraw->pixStart = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 0, numPixels-1);
-          DBGOUT((F("Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("  PixStart: %d%% => %d"), pcent, pdraw->pixStart));
           break;
         }
-        case 'K': // number of pixels in the track by percent
+        case 'K': // number of pixels in the track by percent (0 for rest of the strand)
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
+          pdraw->pcentLen = pcent;
           if (pcent == 0) pdraw->pixLen = numPixels - pdraw->pixStart;
           else pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
-          DBGOUT((F("Start=%d Len=%d"), pdraw->pixStart, pdraw->pixLen));
+          DBGOUT((F("  PixLen: %d%% => %d"), pcent, pdraw->pixLen));
           break;
         }
         case 'B': // percent brightness property ("B" sets default value)
@@ -162,26 +164,27 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'D': // drawing delay ("D" sets default value)
         {
           pdraw->pcentDelay = (byte)GetNumValue(cmd+1, DEF_PCENTDELAY, MAX_PERCENTAGE);
-          DBGOUT((F("Delay=%d%%"), pdraw->pcentDelay));
+          DBGOUT((F("  Delay=%d%%"), pdraw->pcentDelay));
           break;
         }
-        case 'H': // color Hue degrees property ("H" sets default value)
+        case 'H': // color Hue value property ("H" sets default value)
         {
-          pdraw->degreeHue = (uint16_t)GetNumValue(cmd+1, DEF_DEGREESHUE, MAX_DEGREES_HUE);
+          pdraw->dvalueHue = (uint16_t)GetNumValue(cmd+1, DEF_DVALUE_HUE, MAX_DVALUE_HUE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'W': // percent Whiteness property ("W" sets default value)
+        case 'W': // percent White property ("W" sets default value)
         {
           pdraw->pcentWhite = (byte)GetNumValue(cmd+1, DEF_PCENTWHITE, MAX_PERCENTAGE);
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'C': // pixel count property ("C" sets default value)
+        case 'C': // percent PixelCount property ("C" sets default value)
         {
-          uint16_t percent = (uint16_t)GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
-          pdraw->pixCount = pixelNutSupport.mapValue(percent, 0, MAX_PERCENTAGE, 1, numPixels);
-          DBGOUT((F("PixCount: %d%% => %d"), percent, pdraw->pixCount));
+          uint16_t pcent = (uint16_t)GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
+          pdraw->pcentCount = pcent;
+          pdraw->pixCount = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
+          DBGOUT((F("  PixCount: %d%% => %d"), pcent, pdraw->pixCount));
           break;
         }
         case 'Q': // extern control bits ("Q" is same as "Q0")
@@ -193,21 +196,21 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           {
             if (bits & ExtControlBit_DegreeHue)
             {
-              pdraw->degreeHue = externDegreeHue;
-              DBGOUT((F("SetExtern: layer=%d hue=%d"), curlayer, externDegreeHue));
+              pdraw->dvalueHue = externDegreeHue;
+              DBGOUT((F("  SetExtern: layer=%d hue=%d"), curlayer, externDegreeHue));
             }
 
             if (bits & ExtControlBit_PcentWhite)
             {
               pdraw->pcentWhite = externPcentWhite;
-              DBGOUT((F("SetExtern: layer=%d white=%d"), curlayer, externPcentWhite));
+              DBGOUT((F("  SetExtern: layer=%d white=%d"), curlayer, externPcentWhite));
             }
 
             if (bits & ExtControlBit_PixCount)
             {
               pdraw->pixCount = pixelNutSupport.mapValue(externPcentCount, 0,
                                               MAX_PERCENTAGE, 1, numPixels);
-              DBGOUT((F("SetExtern: layer=%d count=%d"), curlayer, pdraw->pixCount));
+              DBGOUT((F("  SetExtern: layer=%d count=%d"), curlayer, pdraw->pixCount));
             }
 
             pixelNutSupport.makeColorVals(pdraw); // create RGB values
@@ -260,7 +263,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
             pluginLayers[curlayer].trigLayerIndex = (byte)GetNumValue(cmd+1, MAX_LAYER_VALUE, MAX_LAYER_VALUE);
-            DBGOUT((F("Triggering for layer=%d assigned to layer=%d"), curlayer, pluginLayers[curlayer].trigLayerIndex));
+            DBGOUT((F("  Triggering for layer=%d assigned to layer=%d"), curlayer, pluginLayers[curlayer].trigLayerIndex));
 
             pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
           }
@@ -290,7 +293,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
                               (pluginLayers[curlayer].trigRepOffset +
                                pluginLayers[curlayer].trigRepRange+1)));
 
-            DBGOUT((F("RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
+            DBGOUT((F("  RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
                       pluginLayers[curlayer].trigRepOffset, pluginLayers[curlayer].trigRepRange,
                       pluginLayers[curlayer].trigRepCount, pluginLayers[curlayer].trigForce));
           }
@@ -316,7 +319,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     }
     else
     {
-      DBGOUT((F("Must add track before setting draw parms")));
+      DBGOUT((F("!! Must add track before setting draw parms")));
       status = Status_Error_BadCmd;
     }
 
@@ -337,7 +340,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         int index = pLayer->trigLayerIndex;
         if (index > indexLayerStack)
         {
-          DBGOUT((F("Invalid trigger index=%d for layer=%d"), index, i));
+          DBGOUT((F("!! Invalid trigger index=%d for layer=%d"), index, i));
           pLayer->trigType &= ~TrigTypeBit_Internal;
         }
         else pLayer->trigLayerID = pluginLayers[index].thisLayerID;
@@ -345,7 +348,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     }
   }
 
-  DBGOUT((F(">> Exec: status=%d"), status));
+  DBGOUT((F("  Status=%d"), status));
   return status;
 }
 
@@ -386,17 +389,15 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 
     if (pLayer->redraw) // drawing layer
     {
-      if (pdraw->pixStart != 0)
+      if (pdraw->pcentStart != 0)
       {
-        int pcent = pixelNutSupport.mapValue(pdraw->pixStart, 0, numPixels-1, 0, MAX_PERCENTAGE);
-        sprintf(str, "J%d ", pcent);
+        sprintf(str, "J%d ", pdraw->pcentStart);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      if (pdraw->pixLen != numPixels)
+      if (pdraw->pcentLen != MAX_PERCENTAGE)
       {
-        int pcent = pixelNutSupport.mapValue(pdraw->pixLen, 1, numPixels, 0, MAX_PERCENTAGE);
-        sprintf(str, "K%d ", pcent);
+        sprintf(str, "K%d ", pdraw->pcentLen);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
@@ -412,9 +413,9 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      if (pdraw->degreeHue != DEF_DEGREESHUE)
+      if (pdraw->dvalueHue != DEF_DVALUE_HUE)
       {
-        sprintf(str, "H%d ", pdraw->degreeHue);
+        sprintf(str, "H%d ", pdraw->dvalueHue);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
@@ -424,10 +425,9 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 
-      int pcent = ((pdraw->pixCount * MAX_PERCENTAGE) / numPixels);
-      if (pcent != DEF_PCENTCOUNT)
+      if (pdraw->pcentCount != DEF_PCENTCOUNT)
       {
-        sprintf(str, "C%d ", pcent);
+        sprintf(str, "C%d ", pdraw->pcentCount);
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
 

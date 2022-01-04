@@ -138,13 +138,16 @@ void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
 
   // initialize track drawing properties to default values
   PixelNutSupport::DrawProps *pProps = &pTrack->draw;
-  pProps->pixLen = numPixels; // set initial window
+  // pcentStart = pixStart = 0;
+  pProps->pcentLen = MAX_PERCENTAGE; // set initial window
+  pProps->pixLen = numPixels;
+  pProps->pcentCount = DEF_PCENTCOUNT;
   pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT,
                           0,MAX_PERCENTAGE, 1,numPixels);
 
   SETVAL_IF_NONZERO(pProps->pcentBright, DEF_PCENTBRIGHT);
   SETVAL_IF_NONZERO(pProps->pcentDelay,  DEF_PCENTDELAY);
-  SETVAL_IF_NONZERO(pProps->degreeHue,   DEF_DEGREESHUE);
+  SETVAL_IF_NONZERO(pProps->dvalueHue,   DEF_DVALUE_HUE);
   SETVAL_IF_NONZERO(pProps->pcentWhite,  DEF_PCENTWHITE);
   SETVAL_IF_NONZERO(pProps->goBackwards, DEF_BACKWARDS);
   SETVAL_IF_NONZERO(pProps->pixOrValues, DEF_PIXORVALS);
