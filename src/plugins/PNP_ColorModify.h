@@ -19,7 +19,7 @@
 //
 // Properties Affected:
 //
-//    degreeHue, pcentWhite - modified each call to trigger().
+//    dvalueHue, pcentWhite - modified each call to trigger().
 //
 
 class PNP_ColorModify : public PixelNutPlugin
@@ -32,12 +32,12 @@ public:
     float pcentforce = ((float)force / MAX_FORCE_VALUE);
 
     //pixelNutSupport.msgFormat(F("ColorModify1: force=%d%% hue=%d white=%d"),
-    //    (int)(pcentforce*100), pdraw->degreeHue, pdraw->pcentWhite);
+    //    (int)(pcentforce*100), pdraw->dvalueHue, pdraw->pcentWhite);
  
-    uint16_t addhue = (uint16_t)(pcentforce * MAX_DEGREES_HUE / 10);
+    uint16_t addhue = (uint16_t)(pcentforce * MAX_DVALUE_HUE / 10);
     if (!addhue) addhue = 1;
-    pdraw->degreeHue += addhue;
-    pdraw->degreeHue %= (MAX_DEGREES_HUE + 1);
+    pdraw->dvalueHue += addhue;
+    pdraw->dvalueHue %= (MAX_DVALUE_HUE + 1);
 
     uint16_t addwhite = (uint16_t)(pcentforce * MAX_PERCENTAGE / 10);
     if (!addwhite) addwhite = 1;
@@ -45,7 +45,7 @@ public:
     pdraw->pcentWhite %= 30; // keep under 30% white
 
     //pixelNutSupport.msgFormat(F("ColorModify2: force=%d%% hue=%d white=%d"),
-    //    (int)(pcentforce*100), pdraw->degreeHue, pdraw->pcentWhite);
+    //    (int)(pcentforce*100), pdraw->dvalueHue, pdraw->pcentWhite);
  
     pixelNutSupport.makeColorVals(pdraw);
   }

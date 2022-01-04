@@ -48,14 +48,14 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, byte force)
   DBGOUT((F("Trigger: track=%d layer=%d force=%d"), TRACK_INDEX(pTrack), LAYER_INDEX(pLayer), force));
 
   short pixCount = 0;
-  short degreeHue = 0;
+  byte dvalueHue = 0;
   byte pcentWhite = 0;
 
   // prevent filter effects from overwriting properties if in extern mode
   if (externPropMode)
   {
     pixCount = pTrack->draw.pixCount;
-    degreeHue = pTrack->draw.degreeHue;
+    dvalueHue = pTrack->draw.dvalueHue;
     pcentWhite = pTrack->draw.pcentWhite;
   }
 
@@ -65,7 +65,7 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, byte force)
   pLayer->pPlugin->trigger(this, &pTrack->draw, force);
   pDrawPixels = dptr; // restore to the previous value
 
-  if (externPropMode) RestorePropVals(pTrack, pixCount, degreeHue, pcentWhite);
+  if (externPropMode) RestorePropVals(pTrack, pixCount, dvalueHue, pcentWhite);
 
   // if this is the drawing effect for the track then redraw immediately
   if (pLayer->redraw) pTrack->msTimeRedraw = pixelNutSupport.getMsecs();

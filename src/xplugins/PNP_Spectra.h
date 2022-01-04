@@ -54,7 +54,7 @@ static void Spectra_SetPixel(int pos, float value)
 
   for (int i = 0; i < index; ++i)
   {
-    thePdraw->degreeHue = (pos & 1) ? 25+(i*4) : 0;
+    thePdraw->dvalueHue = (pos & 1) ? 25+(i*4) : 0;
     thePdraw->pcentBright = (pos & 1) ? 100 : 0;
     pixelNutSupport.makeColorVals(thePdraw);
     pixelNutSupport.setPixel(theHandle, pix+i, thePdraw->r, thePdraw->g, thePdraw->b);
@@ -62,7 +62,7 @@ static void Spectra_SetPixel(int pos, float value)
     //pixelNutSupport.msgFormat(F("Spectra: %d+%d <= %d"), pix, i, thePdraw->pcentBright);
   }
 
-  thePdraw->degreeHue = 50; // yellowish
+  thePdraw->dvalueHue = 50; // yellowish
   thePdraw->pcentBright = (value * 100);
   pixelNutSupport.makeColorVals(thePdraw);
   pixelNutSupport.setPixel(theHandle, pix+index, thePdraw->r, thePdraw->g, thePdraw->b);
@@ -71,7 +71,7 @@ static void Spectra_SetPixel(int pos, float value)
 
   for (int i = index+1; i < MATRIX_STRIDE; ++i)
   {
-    thePdraw->degreeHue = (pos & 1) ? 0 : 25+((MATRIX_STRIDE-i)*4);
+    thePdraw->dvalueHue = (pos & 1) ? 0 : 25+((MATRIX_STRIDE-i)*4);
     thePdraw->pcentBright = (pos & 1) ? 0 : 100;
     pixelNutSupport.makeColorVals(thePdraw);
     pixelNutSupport.setPixel(theHandle, pix+i, thePdraw->r, thePdraw->g, thePdraw->b);
@@ -80,7 +80,7 @@ static void Spectra_SetPixel(int pos, float value)
   }
 
   #else
-  thePdraw->degreeHue = hueVals[pos];
+  thePdraw->dvalueHue = hueVals[pos];
   thePdraw->pcentBright = (value * 100);
   pixelNutSupport.makeColorVals(thePdraw);
   pixelNutSupport.setPixel(theHandle, pos, thePdraw->r, thePdraw->g, thePdraw->b);
@@ -107,7 +107,7 @@ public:
       {
         // evenly spread hues across all pixels, starting with red
         // TODO: set manually for better color separation
-        float inc = (float)MAX_DEGREES_HUE / (float)pixlen;
+        float inc = (float)MAX_DVALUE_HUE / (float)pixlen;
         float hue = 320.0;
 
         for (int i = 0; i < pixlen; ++i)
@@ -115,7 +115,7 @@ public:
           //pixelNutSupport.msgFormat(F("Spectra: %d) hue=%d"), i, (uint16_t)hue);
           hueVals[i] = (uint16_t)hue;
           hue += inc;
-          if (hue > MAX_DEGREES_HUE) hue = 0.0;
+          if (hue > MAX_DVALUE_HUE) hue = 0.0;
         }
       }
       else FreqFFT_Fini();

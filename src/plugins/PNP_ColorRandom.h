@@ -18,7 +18,7 @@
 //
 // Properties Affected:
 //
-//    degreeHue, pcentWhite - modified each call to nextstep().
+//    dvalueHue, pcentWhite - modified each call to nextstep().
 //
 
 class PNP_ColorRandom : public PixelNutPlugin
@@ -27,10 +27,10 @@ public:
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
-    pdraw->degreeHue  = random(0, MAX_DEGREES_HUE+1);
+    pdraw->dvalueHue  = random(0, MAX_DVALUE_HUE+1);
     pdraw->pcentWhite = random(0, 60); // keep under 60% white
     pixelNutSupport.makeColorVals(pdraw);
 
-    //pixelNutSupport.msgFormat(F("ColorRandom: hue=%d white=%d"), pdraw->degreeHue, pdraw->pcentWhite);
+    //pixelNutSupport.msgFormat(F("ColorRandom: hue=%d white=%d"), pdraw->dvalueHue, pdraw->pcentWhite);
   }
 };

@@ -25,7 +25,7 @@
 //
 // Properties Affected:
 //
-//   degreeHue - advanced by some number of degrees on each call to nextstep()
+//   dvalueHue - advanced by some number of degrees on each call to nextstep()
 //
 
 class PNP_HueRotate : public PixelNutPlugin
@@ -44,7 +44,7 @@ public:
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     // change hue by at most the number of degrees that "fit" exactly into the number of pixels
-    addDegrees = (((float)force / MAX_FORCE_VALUE) * (MAX_DEGREES_HUE / (float)pixLength));
+    addDegrees = (((float)force / MAX_FORCE_VALUE) * (MAX_DVALUE_HUE / (float)pixLength));
 
     if (force == MAX_FORCE_VALUE)
     {
@@ -60,7 +60,7 @@ public:
   {
     //pixelNutSupport.msgFormat(F("HueRotate: degrees=%d"), (int)curDegrees);
 
-    pdraw->degreeHue = (int)curDegrees;
+    pdraw->dvalueHue = (int)curDegrees;
     pixelNutSupport.makeColorVals(pdraw);
 
     if (doResetAtEnd && (++pixChanged >= pixLength))
@@ -71,8 +71,8 @@ public:
     else
     {
       curDegrees += addDegrees;
-      if (curDegrees > MAX_DEGREES_HUE) curDegrees = 0;
-      else if (curDegrees < 0) curDegrees = MAX_DEGREES_HUE;
+      if (curDegrees > MAX_DVALUE_HUE) curDegrees = 0;
+      else if (curDegrees < 0) curDegrees = MAX_DVALUE_HUE;
     }
   }
 

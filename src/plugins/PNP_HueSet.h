@@ -19,8 +19,8 @@
 //
 // Properties Affected:
 //
-//    degreeHue - set to a value determined by the trigger force.
-//    r,g,b - current drawing color is set using new value of degreeHue.
+//    dvalueHue - set to a value determined by the trigger force.
+//    r,g,b - current drawing color is set using new value of dvalueHue.
 //
 
 class PNP_HueSet : public PixelNutPlugin
@@ -29,10 +29,10 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
-    pdraw->degreeHue = (uint16_t)(((float)force / MAX_FORCE_VALUE) * MAX_DEGREES_HUE);
+    pdraw->dvalueHue = (uint16_t)(((float)force / MAX_FORCE_VALUE) * MAX_DVALUE_HUE);
 
     pixelNutSupport.makeColorVals(pdraw);
 
-    //pixelNutSupport.msgFormat(F("SetTheHue: hue=%d"), pdraw->degreeHue);
+    //pixelNutSupport.msgFormat(F("SetTheHue: hue=%d"), pdraw->dvalueHue);
   }
 };

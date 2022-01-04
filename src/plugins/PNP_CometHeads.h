@@ -23,7 +23,7 @@
 //
 // Properties Used:
 //
-//   degreeHue, pcentWhite - determines the color of the comet body.
+//   dvalueHue, pcentWhite - determines the color of the comet body.
 //   pcentBright - starting comet head brightness, fades down tail.
 //   pixLength - length of the comet body.
 //

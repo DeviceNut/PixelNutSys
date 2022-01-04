@@ -46,6 +46,7 @@ public:
 
   void begin(uint16_t id, uint16_t pixlen)
   {
+    phase = 0.0;
     pixLength = pixlen;
     numrows = numcols = (uint16_t)sqrt(pixlen);
     while ((numrows * numcols) < pixlen) ++numcols;
@@ -57,7 +58,7 @@ public:
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)
   {
     uint16_t pcent = ((pdraw->pixCount * MAX_PERCENTAGE) / pixLength / 3);
-    float pinc = (pcent * (MAX_PHASE_INC - MIN_PHASE_INC))/MAX_PERCENTAGE + MIN_PHASE_INC;
+    float pinc = ((pcent * (MAX_PHASE_INC - MIN_PHASE_INC)) / MAX_PERCENTAGE) + MIN_PHASE_INC;
     phase += pinc;
     //DBGOUT((F("Plasma: pcent=%d phase=%.4f pinc=%.4f"), pcent, phase, pinc));
 
@@ -114,7 +115,7 @@ public:
 private:
   uint16_t pixLength;
   uint16_t numrows, numcols, endcol;
-  float phase = 0.0;
+  float phase;
 };
 
 #endif // PLUGIN_PLASMA

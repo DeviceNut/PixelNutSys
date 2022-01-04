@@ -11,7 +11,7 @@ See license.txt for the terms of this license.
 
 #if defined(APIN_HUE_POT) && defined(APIN_WHITE_POT)
 
-UIDeviceAnalog pc_hue(APIN_HUE_POT, 0, MAX_DEGREES_HUE);
+UIDeviceAnalog pc_hue(APIN_HUE_POT, 0, MAX_DVALUE_HUE);
 UIDeviceAnalog pc_white(APIN_WHITE_POT, 0, MAX_PERCENTAGE);
 
 static void SetColorProp(void)

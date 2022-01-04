@@ -14,11 +14,11 @@
 //
 // Properties Used:
 //
-//    degreeHue, pcentWhite - determines the endpoint color.
+//    dvalueHue, pcentWhite - determines the endpoint color.
 //
 // Properties Affected:
 //
-//    degreeHue, pcentWhite - set each call to nextstep().
+//    dvalueHue, pcentWhite - set each call to nextstep().
 //
 
 class PNP_ColorMeld : public PixelNutPlugin
@@ -52,7 +52,7 @@ public:
     if ((curHue == endHue) && (curWhite == endWhite))
       pixelNutSupport.sendForce(handle, myid, forceVal);
 
-    endHue = pdraw->degreeHue;
+    endHue = pdraw->dvalueHue;
     endWhite = pdraw->pcentWhite;
 
     //pixelNutSupport.msgFormat(F("ColorStep2: hue=%d.%d, white=%d.%d"), curHue, endHue, curWhite, endWhite);
@@ -62,12 +62,12 @@ public:
 
     if (curHue < 0) // first time initialization: draw current color
     {
-      curHue = pdraw->degreeHue;
+      curHue = pdraw->dvalueHue;
       curWhite = pdraw->pcentWhite;
     }
     else
     {
-           if (curHue < endHue) curHue = (curHue + 1) % (MAX_DEGREES_HUE + 1);
+           if (curHue < endHue) curHue = (curHue + 1) % (MAX_DVALUE_HUE + 1);
       else if (curHue > endHue) curHue -= 1;
 
       if (curWhite != endWhite)
@@ -86,12 +86,12 @@ public:
 
     //pixelNutSupport.msgFormat(F("ColorStep: hue=%d=>%d, white=%d=>%d"), curHue, endHue, curWhite, endWhite);
 
-    pdraw->degreeHue = curHue;
+    pdraw->dvalueHue = curHue;
     pdraw->pcentWhite = curWhite;
     pixelNutSupport.makeColorVals(pdraw);
 
     // to detect changes
-    pdraw->degreeHue = endHue;
+    pdraw->dvalueHue = endHue;
     pdraw->pcentWhite = endWhite;
   }
 

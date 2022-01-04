@@ -13,7 +13,7 @@
 //
 // Properties Used:
 //
-//    degreeHue, pcentWhite - determines the color.
+//    dvalueHue, pcentWhite - determines the color.
 //    pcentBright - determines the maximum brightness.
 //    pixCount - number of pixels set each nextstep().
 //
@@ -36,7 +36,7 @@ public:
     PixelNutSupport::DrawProps p;
 
     // use current hue and whiteness
-    p.degreeHue = pdraw->degreeHue;
+    p.dvalueHue = pdraw->dvalueHue;
     p.pcentWhite = pdraw->pcentWhite;
 
     for (uint16_t i = 0; i < pdraw->pixCount; ++i)

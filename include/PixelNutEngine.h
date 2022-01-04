@@ -30,7 +30,7 @@ public:
   // By default (no bits set), only predraw effects can change the drawing properties.
   enum ExtControlBit
   {                                 // corresponds to the drawing property:
-    ExtControlBit_DegreeHue  = 1,   //  degreeHue
+    ExtControlBit_DegreeHue  = 1,   //  dvalueHue
     ExtControlBit_PcentWhite = 2,   //  pcentWhite
     ExtControlBit_PixCount   = 4,   //  pixCount
     ExtControlBit_All        = 7    // all bits ORed together
@@ -60,7 +60,7 @@ public:
 
   // Sets the color properties for tracks that have set either the ExtControlBit_DegreeHue
   // or ExtControlBit_PcentWhite bits. These values can be individually controlled. The
-  // 'hue_degree' is a value from 0...MAX_DEGREES_HUE, and the 'white_percent' value
+  // 'hue_degree' is a value from 0...MAX_DVALUE_HUE, and the 'white_percent' value
   // is a percentage from 0...MAX_PERCENTANGE.
   void setColorProperty(byte hue_degree, byte white_percent);
 
@@ -108,7 +108,7 @@ protected:
   // default values for propertes and control settings:
   #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
   #define DEF_PCENTDELAY    (MAX_PERCENTAGE/2)
-  #define DEF_DEGREESHUE    192 // purple
+  #define DEF_DVALUE_HUE    192 // purple
   #define DEF_PCENTWHITE    0
   #define DEF_PCENTCOUNT    50
   #define DEF_BACKWARDS     false
@@ -167,7 +167,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 28-30 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 
@@ -206,7 +206,7 @@ protected:
 
   void SetPropColor(void);
   void SetPropCount(void);
-  void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t degreeHue, byte pcentWhite);
+  void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byte dvalueHue, byte pcentWhite);
 
   void TriggerLayer(PluginLayer *pLayer, byte force);
   void RepeatTriger(bool rollover);
