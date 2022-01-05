@@ -448,6 +448,12 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
         sprintf(str, "V ");
         if (!addstr(&cmdstr, str, &addlen)) goto error;
       }
+
+      if (pdraw->noRepeating != DEF_NOREPEATING)
+      {
+        sprintf(str, "G ");
+        if (!addstr(&cmdstr, str, &addlen)) goto error;
+      }
     }
 
     if (pLayer->trigForce != DEF_FORCEVAL)
