@@ -83,7 +83,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
       pluginLayers[i].trigTimeMsecs = msTimeUpdate;
 
     // if repeat triggering is set and have count (or infinite) and time has expired
-    if (!pluginLayers[i].disable &&
+    if ((pluginLayers[i].muteval != MUTEVAL_ON) &&
         (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
         (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
@@ -112,7 +112,7 @@ void PixelNutEngine::RepeatTriger(bool rollover)
 void PixelNutEngine::triggerForce(byte force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-    if (!pluginLayers[i].disable &&
+    if ((pluginLayers[i].muteval != MUTEVAL_ON) &&
         (pluginLayers[i].trigType & TrigTypeBit_External))
       TriggerLayer((pluginLayers + i), force);
 }
@@ -121,7 +121,7 @@ void PixelNutEngine::triggerForce(byte force)
 void PixelNutEngine::triggerForce(uint16_t id, byte force)
 {
   for (int i = 0; i <= indexLayerStack; ++i)
-    if (!pluginLayers[i].disable &&
+    if ((pluginLayers[i].muteval != MUTEVAL_ON) &&
         (pluginLayers[i].trigType & TrigTypeBit_Internal) &&
         (pluginLayers[i].trigLayerID == id))
       TriggerLayer((pluginLayers + i), force);
