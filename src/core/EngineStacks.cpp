@@ -171,7 +171,7 @@ void PixelNutEngine::InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
   SETVAL_IF_NONZERO(pLayer->trigRepCount,  DEF_TRIG_FOREVER);
   SETVAL_IF_NONZERO(pLayer->trigRepOffset, DEF_TRIG_OFFSET);
   SETVAL_IF_NONZERO(pLayer->trigRepRange,  DEF_TRIG_RANGE);
-  // all other parameters have been initialized to 0
+  // all other parameters have been initialized to 0/false
 }
 
 // begin new plugin and trigger if necessary

@@ -235,17 +235,22 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'F': // force value to be used by trigger ("F" for random force)
         {
           if (isdigit(*(cmd+1))) // there is a value after "F" (clip to 0-MAX_FORCE_VALUE)
-               pluginLayers[curlayer].trigForce = GetNumValue(cmd+1, 0, MAX_FORCE_VALUE);
-          else pluginLayers[curlayer].trigForce = -1; // get random value each time
+          {
+            pluginLayers[curlayer].trigForce = GetNumValue(cmd+1, 0, MAX_FORCE_VALUE);
+            pluginLayers[curlayer].randForce = false;
+          }
+          else pluginLayers[curlayer].randForce = true; // get random value each time
           break;
         }
         case 'T': // trigger plugin layer ("T0" to disable, "T" same as "T1")
         {
           if (GetBoolValue(cmd+1, true))
           {
+            byte force;
             pluginLayers[curlayer].trigType |= TrigTypeBit_AtStart;
-            byte force = pluginLayers[curlayer].trigForce;
-            if (force < 0) force = random(0, MAX_FORCE_VALUE+1);
+            if (pluginLayers[curlayer].randForce)
+                 force = random(0, MAX_FORCE_VALUE+1);
+            else force = pluginLayers[curlayer].trigForce;
             TriggerLayer((pluginLayers + curlayer), force); // trigger immediately
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_AtStart;
@@ -262,8 +267,11 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           if (isdigit(*(cmd+1))) // there is a value after "A"
           {
-            pluginLayers[curlayer].trigLayerIndex = (byte)GetNumValue(cmd+1, MAX_LAYER_VALUE, MAX_LAYER_VALUE);
-            DBGOUT((F("  Triggering for layer=%d assigned to layer=%d"), curlayer, pluginLayers[curlayer].trigLayerIndex));
+            pluginLayers[curlayer].trigLayerIndex =
+                (byte)GetNumValue(cmd+1, MAX_LAYER_VALUE, MAX_LAYER_VALUE);
+
+            DBGOUT((F("  Triggering for layer=%d assigned to layer=%d"),
+                    curlayer, pluginLayers[curlayer].trigLayerIndex));
 
             pluginLayers[curlayer].trigType |= TrigTypeBit_Internal;
           }
@@ -294,8 +302,10 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
                                pluginLayers[curlayer].trigRepRange+1)));
 
             DBGOUT((F("  RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
-                      pluginLayers[curlayer].trigRepOffset, pluginLayers[curlayer].trigRepRange,
-                      pluginLayers[curlayer].trigRepCount, pluginLayers[curlayer].trigForce));
+                      pluginLayers[curlayer].trigRepOffset,
+                      pluginLayers[curlayer].trigRepRange,
+                      pluginLayers[curlayer].trigRepCount,
+                      pluginLayers[curlayer].randForce ? -1 : pluginLayers[curlayer].trigForce));
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Repeating;
           break;
@@ -458,7 +468,7 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
 
     if (pLayer->trigForce != DEF_FORCEVAL)
     {
-      if (pLayer->trigForce < 0) sprintf(str, "F ");
+      if (pLayer->randForce) sprintf(str, "F ");
       else sprintf(str, "F%d ", pLayer->trigForce);
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }

@@ -92,8 +92,9 @@ void PixelNutEngine::RepeatTriger(bool rollover)
                 pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
                 pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
 
-      byte force = ((pluginLayers[i].trigForce >= 0) ? 
-                      pluginLayers[i].trigForce : random(0, MAX_FORCE_VALUE+1));
+      byte force = (pluginLayers[i].randForce) ?
+                      random(0, MAX_FORCE_VALUE+1) :
+                      pluginLayers[i].trigForce;
 
       TriggerLayer((pluginLayers + i), force);
 

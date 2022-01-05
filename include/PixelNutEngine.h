@@ -154,7 +154,8 @@ protected:
     bool trigActive;                            // true once layer has been triggered once
     byte trigLayerIndex;                        // layer index of effect trigger when created
     uint16_t trigLayerID;                       //  and the layerID of that layer
-    short trigForce;                            // amount of force to apply (-1 for random)
+    byte trigForce;                             // amount of force to apply
+    bool randForce;                             // true to use random force
 
                                                 // repeat triggering:
     uint16_t trigRepCount;                      // number of times to trigger (0 to repeat forever)
