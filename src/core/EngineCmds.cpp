@@ -85,7 +85,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       {
         case 'M': // sets/clears mute state for track/layer ("M" same as "M1")
         {
-          byte muteval = GetNumValue(cmd+1, MUTEVAL_OFF);
+          short muteval = GetNumValue(cmd+1, MUTEVAL_OFF);
+          if (muteval < 0) muteval = MUTEVAL_ON;
           DBGOUT((F("  Layer=%d Mute/Solo=%d"), curlayer, muteval));
 
           PluginLayer *pLayer = (pluginLayers + curlayer);
