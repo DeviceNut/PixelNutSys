@@ -23,7 +23,8 @@ void ExecPattern(char* pattern)
   if (status != PixelNutEngine::Status_Success)
   {
     DBGOUT((F("CmdErr: %d"), status));
-    ErrorHandler(2, status, false); // blink for error and continue
+    pPixelNutEngine->clearStacks(); // clear bad pattern
+    ErrorHandler(2, status, false); // blink for error
   }
 }
 
@@ -97,7 +98,7 @@ static void loadStrandPattern(void)
 
 void ExecAppCmd(char* instr)
 {
-  DBGOUT((F("CmdExec: \"%s\""), instr));
+  DBGOUT((F("AppCmd: \"%s\""), instr));
 
   instr = skipSpaces(instr); // skip leading spaces
 
