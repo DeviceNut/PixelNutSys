@@ -55,7 +55,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     PixelNutSupport::DrawProps *pdraw = NULL;
     if (curlayer >= 0) pdraw = &pluginLayers[curlayer].pTrack->draw;
 
-    DBGOUT((F("Exec: Cmd=%s Len=%d Layer=%d"), cmd, strlen(cmd), curlayer));
+    DBGOUT((F("ExecCmd: \"%s\" Len=%d Layer=%d"), cmd, strlen(cmd), curlayer));
 
     if (cmd[0] == 'L') // set plugin layer to modify ('L' uses top of stack)
     {
@@ -83,9 +83,9 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'M': // sets/clears mute state for track/layer ("M" same as "M1")
+        case 'M': // sets/clears mute state for track/layer ("M" same as "M1", "M2" for solo)
         {
-          short muteval = GetNumValue(cmd+1, MUTEVAL_OFF);
+          short muteval = GetNumValue(cmd+1, MUTEVAL_SOLO);
           if (muteval < 0) muteval = MUTEVAL_ON;
           DBGOUT((F("  Layer=%d Mute/Solo=%d"), curlayer, muteval));
 
@@ -231,6 +231,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'G': // do not repeat ("G" for not default, else sets value)
         {
           pdraw->noRepeating = GetBoolValue(cmd+1, !DEF_NOREPEATING);
+          // must now restart the track to be effective
+          status = SwitchPluginLayer(curlayer, pluginLayers[curlayer].iplugin);
           break;
         }
         case 'F': // force value to be used by trigger ("F" for random force)
@@ -358,8 +360,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
       }
     }
   }
-
-  DBGOUT((F("  Status=%d"), status));
   return status;
 }
 

@@ -297,11 +297,16 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t i
     return Status_Error_BadVal;
   }
 
-  PixelNutPlugin *pPlugin;
-  Status rc = MakeNewPlugin(iplugin, &pPlugin);
-  if (rc != Status_Success) return rc;
-
   delete pLayer->pPlugin;
+
+  PixelNutPlugin *pPlugin = pPluginFactory->pluginCreate(iplugin);
+  if (pPlugin == NULL)
+  {
+    pLayer->pPlugin = NULL;
+    pLayer->muteval = MUTEVAL_OFF;
+    return Status_Error_BadVal;
+  }
+
   pLayer->pPlugin = pPlugin;
   pLayer->iplugin = iplugin;
   pLayer->trigActive = false;
