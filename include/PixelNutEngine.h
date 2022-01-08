@@ -120,9 +120,8 @@ protected:
   #define DEF_TRIG_RANGE    0
   #define SETVAL_IF_NONZERO(var,val) {if (val != 0) var = val;}
 
-  #define MUTEVAL_OFF       0       // normal operations
-  #define MUTEVAL_ON        1       // layer is muted
-  #define MUTEVAL_SOLO      2       // layer is solo'ed
+  #define ENABLEBIT_MUTE    1   // layer has mute enabled
+  #define ENABLEBIT_SOLO    2   // layer has solo enabled
 
   #define LAYER_BYTES       (sizeof(PluginLayer))
   #define LAYER_INDEX(p)    (p - pluginLayers)
@@ -151,8 +150,8 @@ protected:
     PixelNutPlugin *pPlugin;                    // pointer to the created plugin object
     uint16_t iplugin;                           // plugin ID value
     bool redraw;                                // true if plugin is drawing else filter
-    byte muteval;                               // allow muting/solo (one of MUTEVAL_ values)
-    byte reserved;
+    bool solo;                                  // retain value for client (not used)
+    bool mute;                                  // true to mute (disable) this layer
 
     byte trigType;                              // which triggers have been set (TrigTypeBit_xx)
     bool trigActive;                            // true once layer has been triggered once

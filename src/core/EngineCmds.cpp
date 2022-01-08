@@ -83,16 +83,17 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'M': // sets/clears mute state for track/layer ("M" same as "M1", "M2" for solo)
+        case 'M': // sets/clears mute/solor states for track/layer ("M" same as "M1")
         {
-          short muteval = GetNumValue(cmd+1, MUTEVAL_SOLO);
-          if (muteval < 0) muteval = MUTEVAL_ON;
-          DBGOUT((F("  Layer=%d Mute/Solo=%d"), curlayer, muteval));
+          short value = GetNumValue(cmd+1, (ENABLEBIT_MUTE | ENABLEBIT_SOLO));
+          if (value < 0) value = ENABLEBIT_MUTE;
+          DBGOUT((F("  Layer=%d Mute/Solo=%d"), curlayer, value));
 
           PluginLayer *pLayer = (pluginLayers + curlayer);
-          pLayer->muteval = (muteval < MUTEVAL_SOLO) ? muteval : MUTEVAL_SOLO;
+          pLayer->solo = !!(value & ENABLEBIT_SOLO);
+          pLayer->mute = !!(value & ENABLEBIT_MUTE);
 
-          if ((muteval == MUTEVAL_ON) && pLayer->redraw)
+          if (pLayer->mute && pLayer->redraw)
             memset(TRACK_BUFFER(pLayer->pTrack), 0, pixelBytes);
 
           neweffects = true;
@@ -392,14 +393,10 @@ bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
     sprintf(str, "E%d ", pLayer->iplugin);
     if (!addstr(&cmdstr, str, &addlen)) goto error;
 
-    if (pLayer->muteval == MUTEVAL_ON)
+    if (pLayer->solo || pLayer->mute)
     {
-      sprintf(str, "M ");
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-    else if (pLayer->muteval == MUTEVAL_SOLO)
-    {
-      sprintf(str, "M2 ");
+      int bits = (pLayer->solo ? ENABLEBIT_SOLO:0) | (pLayer->mute ? ENABLEBIT_MUTE:0);
+      sprintf(str, "M%d ", bits);
       if (!addstr(&cmdstr, str, &addlen)) goto error;
     }
 

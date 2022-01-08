@@ -24,8 +24,7 @@ void PixelNutEngine::SetPropColor(void)
   {
     PluginTrack *pTrack = TRACK_MAKEPTR(i);
 
-    if (pTrack->pLayer->muteval == MUTEVAL_ON)
-      continue;
+    if (pTrack->pLayer->mute) continue;
 
     bool doset = false;
 
@@ -63,8 +62,7 @@ void PixelNutEngine::SetPropCount(void)
   {
     PluginTrack *pTrack = TRACK_MAKEPTR(i);
 
-    if (pTrack->pLayer->muteval == MUTEVAL_ON)
-      continue;
+    if (pTrack->pLayer->mute) continue;
 
     if (pTrack->ctrlBits & ExtControlBit_PixCount)
     {
@@ -86,8 +84,7 @@ void PixelNutEngine::setCountProperty(byte pixcount_percent)
 void PixelNutEngine::RestorePropVals(PluginTrack *pTrack,
                       uint16_t pixCount, byte dvalueHue, byte pcentWhite)
 {
-  if (pTrack->pLayer->muteval == MUTEVAL_ON)
-      return;
+  if (pTrack->pLayer->mute) return;
 
   if (pTrack->ctrlBits & ExtControlBit_PixCount)
     pTrack->draw.pixCount = pixCount;
@@ -130,12 +127,12 @@ bool PixelNutEngine::updateEffects(void)
     PluginTrack *pTrack = TRACK_MAKEPTR(i);
     PluginLayer *pLayer = pTrack->pLayer;
 
-    //DBGOUT((F("Update: id=%d trig=%d muteval=%d"),
-    //        pLayer->thisLayerID, pLayer->trigActive, pLayer->muteval));
+    //DBGOUT((F("Update: id=%d trig=%d mute=%d"),
+    //        pLayer->thisLayerID, pLayer->trigActive, pLayer->mute));
 
     if (!pLayer->trigActive) continue; // not triggered yet
 
-    if (pLayer->muteval == MUTEVAL_ON) // track is muted, but still update with its pixels
+    if (pLayer->mute) // track is muted, but still update with its pixels
     {
       doshow = true;
       continue;
@@ -162,7 +159,7 @@ bool PixelNutEngine::updateEffects(void)
     // call all filter effects for this track if triggered and not disabled
     PluginLayer *pfilter = pLayer + 1;
     for (int j = 1; j < pTrack->lcount; ++j)
-      if (pfilter->trigActive && (pfilter->muteval != MUTEVAL_ON))
+      if (pfilter->trigActive && !pfilter->mute)
         pfilter->pPlugin->nextstep(this, &pTrack->draw);
 
     if (externPropMode) RestorePropVals(pTrack, pixCount, dvalueHue, pcentWhite);
@@ -193,7 +190,7 @@ bool PixelNutEngine::updateEffects(void)
 
       // don't show if layer is muted or not triggered yet,
       // but do draw if just not updated from above
-      if ((pLayer->muteval == MUTEVAL_ON) || !pLayer->trigActive)
+      if (pLayer->mute || !pLayer->trigActive)
         continue;
 
       short pixlast = numPixels-1;
