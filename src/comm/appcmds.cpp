@@ -23,8 +23,10 @@ void ExecPattern(char* pattern)
   if (status != PixelNutEngine::Status_Success)
   {
     DBGOUT((F("CmdErr: %d"), status));
-    pPixelNutEngine->clearStacks(); // clear bad pattern
     ErrorHandler(2, status, false); // blink for error
+
+    pPixelNutEngine->clearStacks(); // clear bad pattern
+    pCustomCode->sendReply((char*)"<CmdFail>"); // signal client
   }
 }
 
