@@ -40,7 +40,7 @@ void PixelNutEngine::ShowAllStacks(void)
   PluginLayer *pLayer = pluginLayers;
   for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
   {
-    DBGOUT((F("  %d: track=%d redraw=%d"), i, TRACK_INDEX(pLayer->pTrack), pLayer->redraw));
+    DBGOUT((F("  %d: track=%d redraw=%d plugin=%d"), i, TRACK_INDEX(pLayer->pTrack), pLayer->redraw, pLayer->iplugin));
   }  
 }
 #endif
@@ -85,14 +85,14 @@ void PixelNutEngine::UpdateTrackPtrInLayers(void)
 // moves stack memory safely
 void PixelNutEngine::ShiftStack(bool dolayer, int isrc, int iend, int idst)
 {
-  byte *base = (dolayer ? (byte*)pluginLayers : (byte*)pluginTracks);
+  byte* base = (dolayer ? (byte*)pluginLayers : (byte*)pluginTracks);
   int size   = (dolayer ? LAYER_BYTES : TRACK_BYTES);
 
   DBGOUT((F("Shift %s: (%d,%d) => %d"), dolayer ? "layers" : "tracks", isrc, iend, idst));
 
   int mlen = size * (iend - isrc + 1);
-  byte *psrc = base + (size * isrc);
-  byte *pdst = base + (size * idst);
+  byte* psrc = base + (size * isrc);
+  byte* pdst = base + (size * idst);
   memmove(pdst, psrc, mlen);
 }
 
@@ -134,7 +134,8 @@ void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
   // clear track and pixel buffer
   memset(pTrack, 0, TRACK_BYTES);
 
-  pTrack->pLayer = pLayer; // this layer not yet initialized
+  pTrack->pLayer = pLayer; // NOTE: layer not yet initialized
+  pTrack->lcount = 1; // starts with single layer
 
   // initialize track drawing properties to default values
   PixelNutSupport::DrawProps *pProps = &pTrack->draw;
@@ -209,7 +210,7 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
   DBGOUT((F("Append: stacks=(track=%d layer=%d)"), indexTrackStack, indexLayerStack));
 
   if (redraw) InitPluginTrack(pTrack, pLayer);
-  ++(pTrack->lcount); // one more layer to track
+  else ++(pTrack->lcount); // one more layer to track
 
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin,  redraw);
 
@@ -219,26 +220,34 @@ PixelNutEngine::Status PixelNutEngine::AppendPluginLayer(uint16_t iplugin)
   return Status_Success;
 }
 
-// Move stack layer memory up one layer starting at the specified layer,
-// or all the layers that make up a track if this is a track plugin.
+// If this operation is appending to the end of the layer stack, then call
+// the append function instead.
+//
+// If this is a track plugin, move the track memory up one track after
+// the current track, then update the track pointers for each layer.
+//
+// Then move the layer memory up one layer starting after the specified layer,
+// or after all the layers that make up a track if this is a track plugin.
 //
 // Initialize this new layer with the requested plugin, then update the
 // layer pointers for each track.
-//
-// If this is a track plugin, then move the track memory up one track after
-// the current track, then update the track pointers for each layer.
 //
 // Return false if unsuccessful for any reason.
 PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplugin)
 {
   PluginLayer *pLayer = (pluginLayers + layer);
-  int lastlayer = layer;
-  if (pLayer->redraw) layer += (pLayer->pTrack->lcount - 1);
-
-  if (lastlayer >= indexLayerStack)
-    return AppendPluginLayer(iplugin);
-
   bool redraw = pPluginFactory->pluginDraws(iplugin);
+
+  if (redraw && !pLayer->redraw)
+  {
+    DBGOUT((F("Layer %d: cannot add plugin: #%d"), layer, iplugin));
+    return Status_Error_BadCmd;
+  }
+
+  if (redraw) layer += pLayer->pTrack->lcount-1;
+
+  if (layer >= indexLayerStack)
+    return AppendPluginLayer(iplugin);
 
   DBGOUT((F("Add plugin: #%d redraw=%d layer=%d"), iplugin, redraw, layer));
 
@@ -248,16 +257,18 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
   Status rc = MakeNewPlugin(iplugin, &pPlugin);
   if (rc != Status_Success) return rc;
 
-  PluginTrack *pTrack = pLayer->pTrack;
-  int lcount = 1;
+  PluginTrack *pTrack; // track for new layer
 
   if (redraw)
   {
-    lcount = pTrack->lcount;
-    int track = TRACK_INDEX(pTrack);
+    // point to first track/layer to move
+    pLayer = (pluginLayers + ++layer);
+    pTrack = pLayer->pTrack;
 
     // open space in track stack for one new track
+    int track = TRACK_INDEX(pTrack);
     ShiftStack(false, track, indexTrackStack, (track + 1));
+    // pTrack now points to the new track to be initialized
 
     ++indexTrackStack; // more more effect on the stack
     InitPluginTrack(pTrack, pLayer);
@@ -265,13 +276,20 @@ PixelNutEngine::Status PixelNutEngine::AddPluginLayer(short layer, uint16_t iplu
     // this iterates tracks, so they must all be initialized
     UpdateTrackPtrInLayers(); // adjust layers for moved tracks
   }
+  else
+  {
+    // not changing tracks
+    pTrack = pLayer->pTrack;
+    // now get first layer to move
+    pLayer = (pluginLayers + ++layer);
+  }
 
-  // open space in layer stack for all layers in the track
-  ShiftStack(true, layer, indexLayerStack, (layer + lcount));
+  // open space in the layer stack for 1 new layer
+  ShiftStack(true, layer, indexLayerStack, (layer + 1));
 
   ++indexLayerStack; // now have another effect layer
   InitPluginLayer(pLayer, pTrack, pPlugin, iplugin, redraw);
-  ++(pTrack->lcount); // one more layer to track
+  if (!redraw) ++(pTrack->lcount); // one more layer to track
 
   // this iterates layers, so they must all be initialized
   UpdateLayerPtrInTracks(); // adjust tracks for moved layers
@@ -303,7 +321,7 @@ PixelNutEngine::Status PixelNutEngine::SwitchPluginLayer(short layer, uint16_t i
   if (pPlugin == NULL)
   {
     pLayer->pPlugin = NULL;
-    pLayer->muteval = MUTEVAL_OFF;
+    pLayer->mute = true;
     return Status_Error_BadVal;
   }
 
