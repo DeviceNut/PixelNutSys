@@ -53,7 +53,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define MAXLEN_PATSTR           1024        // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
-#define NUM_PLUGIN_LAYERS       64          // must be multiple of TRACKS
+#define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
 #define DEV_PLUGINS             1           // cannot support additional plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
 #define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
