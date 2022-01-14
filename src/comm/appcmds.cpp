@@ -25,8 +25,11 @@ void ExecPattern(char* pattern)
     DBGOUT((F("CmdErr: %d"), status));
     ErrorHandler(2, status, false); // blink for error
 
+    char errstr[100];
+    sprintf(errstr, "<CmdFail> code=%d", status);
+
     pPixelNutEngine->clearStacks(); // clear bad pattern
-    pCustomCode->sendReply((char*)"<CmdFail>"); // signal client
+    pCustomCode->sendReply(errstr); // signal client
   }
 }
 
