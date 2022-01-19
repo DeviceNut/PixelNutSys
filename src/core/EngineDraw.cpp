@@ -15,9 +15,24 @@ void PixelNutEngine::setPropertyMode(bool enable)
   externPropMode = enable;
 }
 
-void PixelNutEngine::SetPropColor(void)
+void PixelNutEngine::setColorProperty(byte hue_value, byte white_percent)
 {
-  DBGOUT((F("Engine color properties for tracks:")));
+  externValueHue = pixelNutSupport.clipValue(hue_value, 0, MAX_DVALUE_HUE);
+  externPcentWhite = pixelNutSupport.clipValue(white_percent, 0, MAX_PERCENTAGE);
+}
+
+void PixelNutEngine::setCountProperty(byte pixcount_percent)
+{
+  externPcentCount = pixelNutSupport.clipValue(pixcount_percent, 0, MAX_PERCENTAGE);
+}
+
+// internal: override property values with external ones
+void PixelNutEngine::OverridePropVals(PluginTrack *pTrack)
+{
+  DBGOUT((F("Engine properties for tracks:")));
+
+  // map value into a pixel count (depends on the actual number of pixels)
+  uint16_t count = pixelNutSupport.mapValue(externPcentCount, 0, MAX_PERCENTAGE, 1, numPixels);
 
   // adjust all tracks that allow extern control with Q command
   for (int i = 0; i <= indexTrackStack; ++i)
@@ -28,61 +43,33 @@ void PixelNutEngine::SetPropColor(void)
 
     bool doset = false;
 
+    if (pTrack->ctrlBits & ExtControlBit_PixCount)
+    {
+      DBGOUT((F("  %d) %d => %d"), i, pTrack->draw.pixCount, count));
+      pTrack->draw.pixCount = count;
+    }
+
     if (pTrack->ctrlBits & ExtControlBit_DegreeHue)
     {
-      DBGOUT((F("  %d) hue: %d => %d"), i, pTrack->draw.dvalueHue, externDegreeHue));
-      pTrack->draw.dvalueHue = externDegreeHue;
+      DBGOUT((F("  %d) hue: %d => %d"), i, pTrack->draw.dvalueHue, externValueHue));
+      pTrack->draw.dvalueHue = externValueHue;
       doset = true;
     }
 
     if (pTrack->ctrlBits & ExtControlBit_PcentWhite)
     {
-      DBGOUT((F("  %d) whiteness: %d%% => %d%%"), i, pTrack->draw.pcentWhite, externPcentWhite));
+      DBGOUT((F("  %d) white: %d%% => %d%%"), i, pTrack->draw.pcentWhite, externPcentWhite));
       pTrack->draw.pcentWhite = externPcentWhite;
       doset = true;
     }
 
     if (doset) pixelNutSupport.makeColorVals(&pTrack->draw);
   }
+
 }
 
-void PixelNutEngine::setColorProperty(byte hue_degree, byte white_percent)
-{
-  externDegreeHue = pixelNutSupport.clipValue(hue_degree, 0, MAX_DVALUE_HUE);
-  externPcentWhite = pixelNutSupport.clipValue(white_percent, 0, MAX_PERCENTAGE);
-  if (externPropMode) SetPropColor();
-}
-
-void PixelNutEngine::SetPropCount(void)
-{
-  DBGOUT((F("Engine pixel count property for tracks:")));
-
-  // adjust all tracks that allow extern control with Q command
-  for (int i = 0; i <= indexTrackStack; ++i)
-  {
-    PluginTrack *pTrack = TRACK_MAKEPTR(i);
-
-    if (pTrack->pLayer->mute) continue;
-
-    if (pTrack->ctrlBits & ExtControlBit_PixCount)
-    {
-      uint16_t count = pixelNutSupport.mapValue(externPcentCount, 0, MAX_PERCENTAGE, 1, numPixels);
-      DBGOUT((F("  %d) %d => %d"), i, pTrack->draw.pixCount, count));
-      pTrack->draw.pixCount = count;
-    }
-  }
-}
-
-void PixelNutEngine::setCountProperty(byte pixcount_percent)
-{
-  // clip and map value into a pixel count, dependent on the actual number of pixels
-  externPcentCount = pixelNutSupport.clipValue(pixcount_percent, 0, MAX_PERCENTAGE);
-  if (externPropMode) SetPropCount();
-}
-
-// internal: restore property values for bits set for track
-void PixelNutEngine::RestorePropVals(PluginTrack *pTrack,
-                      uint16_t pixCount, byte dvalueHue, byte pcentWhite)
+// internal: restore property values to previous values
+void PixelNutEngine::RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byte dvalueHue, byte pcentWhite)
 {
   if (pTrack->pLayer->mute) return;
 
@@ -142,18 +129,6 @@ bool PixelNutEngine::updateEffects(void)
     if (rollover) pTrack->msTimeRedraw = msTimeUpdate;
     if (pTrack->msTimeRedraw > msTimeUpdate) continue;
 
-    short pixCount = 0;
-    short dvalueHue = 0;
-    byte pcentWhite = 0;
-
-    // prevent predraw effect from overwriting properties if in extern mode
-    if (externPropMode)
-    {
-      pixCount = pTrack->draw.pixCount;
-      dvalueHue = pTrack->draw.dvalueHue;
-      pcentWhite = pTrack->draw.pcentWhite;
-    }
-
     pDrawPixels = NULL; // prevent drawing by filter effects
 
     // call all filter effects for this track if triggered and not disabled
@@ -162,12 +137,24 @@ bool PixelNutEngine::updateEffects(void)
       if (pfilter->trigActive && !pfilter->mute)
         pfilter->pPlugin->nextstep(this, &pTrack->draw);
 
-    if (externPropMode) RestorePropVals(pTrack, pixCount, dvalueHue, pcentWhite);
+    short pixCount = 0;
+    byte dvalueHue = 0;
+    byte pcentWhite = 0;
+
+    if (externPropMode)
+    {
+      pixCount = pTrack->draw.pixCount;
+      dvalueHue = pTrack->draw.dvalueHue;
+      pcentWhite = pTrack->draw.pcentWhite;
+      OverridePropVals(pTrack);
+    }
 
     // now the main drawing effect is executed for this track
     pDrawPixels = TRACK_BUFFER(pTrack); // switch to drawing buffer
     pLayer->pPlugin->nextstep(this, &pTrack->draw);
     pDrawPixels = pDisplayPixels; // restore to draw from display buffer
+
+    if (externPropMode) RestorePropVals(pTrack, pixCount, dvalueHue, pcentWhite);
 
     short addmsecs = (((maxDelayMsecs * pcentDelay) / MAX_PERCENTAGE) *
                            pTrack->draw.pcentDelay) / MAX_PERCENTAGE;

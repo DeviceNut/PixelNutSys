@@ -60,9 +60,9 @@ public:
 
   // Sets the color properties for tracks that have set either the ExtControlBit_DegreeHue
   // or ExtControlBit_PcentWhite bits. These values can be individually controlled. The
-  // 'hue_degree' is a value from 0...MAX_DVALUE_HUE, and the 'white_percent' value
+  // 'hue_value' is a value from 0...MAX_DVALUE_HUE, and the 'white_percent' value
   // is a percentage from 0...MAX_PERCENTANGE.
-  void setColorProperty(byte hue_degree, byte white_percent);
+  void setColorProperty(byte hue_value, byte white_percent);
 
   // Sets the pixel count property for tracks that have set the ExtControlBit_PixCount bit.
   // The 'pixcount_percent' value is a percentage from 0...MAX_PERCENTAGE.
@@ -74,10 +74,10 @@ public:
   void setPropertyMode(bool enable);
 
   // Retrieves the external property mode settings
-  bool  getPropertyMode()    { return externPropMode;   }
-  short getPropertyHue()     { return externDegreeHue;  }
-  byte  getPropertyWhite()   { return externPcentWhite; }
-  byte  getPropertyCount()   { return externPcentCount; }
+  bool getPropertyMode()  { return externPropMode;   }
+  byte getPropertyHue()   { return externValueHue;  }
+  byte getPropertyWhite() { return externPcentWhite; }
+  byte getPropertyCount() { return externPcentCount; }
 
   // Triggers effect layers with a range value of 0..MAX_FORCE_VALUE.
   // Must be enabled with the "I" command for each effect layer to be effected.
@@ -204,13 +204,12 @@ protected:
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 
   bool externPropMode = false;                  // true to allow external control of properties
-  short externDegreeHue;                        // externally set values property values
+  byte externValueHue;                         // externally set values property values
   byte externPcentWhite;
   byte externPcentCount;
 
-  void SetPropColor(void);
-  void SetPropCount(void);
   void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byte dvalueHue, byte pcentWhite);
+  void OverridePropVals(PluginTrack *pTrack);
 
   void TriggerLayer(PluginLayer *pLayer, byte force);
   void RepeatTriger(bool rollover);

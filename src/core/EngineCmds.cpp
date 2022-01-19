@@ -193,30 +193,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         {
           short bits = GetNumValue(cmd+1, ExtControlBit_All); // returns -1 if not within range
           pluginLayers[curlayer].pTrack->ctrlBits = bits;
-
-          if (externPropMode)
-          {
-            if (bits & ExtControlBit_DegreeHue)
-            {
-              pdraw->dvalueHue = externDegreeHue;
-              DBGOUT((F("  SetExtern: layer=%d hue=%d"), curlayer, externDegreeHue));
-            }
-
-            if (bits & ExtControlBit_PcentWhite)
-            {
-              pdraw->pcentWhite = externPcentWhite;
-              DBGOUT((F("  SetExtern: layer=%d white=%d"), curlayer, externPcentWhite));
-            }
-
-            if (bits & ExtControlBit_PixCount)
-            {
-              pdraw->pixCount = pixelNutSupport.mapValue(externPcentCount, 0,
-                                              MAX_PERCENTAGE, 1, numPixels);
-              DBGOUT((F("  SetExtern: layer=%d count=%d"), curlayer, pdraw->pixCount));
-            }
-
-            pixelNutSupport.makeColorVals(pdraw); // create RGB values
-          }
           break;
         }
         case 'U': // go backwards ("U" for not default, else sets value)

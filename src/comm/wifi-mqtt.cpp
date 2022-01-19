@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "flash.h"
@@ -188,7 +188,7 @@ void CallbackMqtt(char* topic, byte* message, unsigned int msglen)
     strncpy(instr, (char*)message, msglen);
     instr[msglen] = 0;
 
-    //DBGOUT(("Mqtt RX: \"%s\"", instr));
+    DBGOUT(("Mqtt RX: \"%s\"", instr));
     ExecAppCmd(instr);
   }
   else { DBGOUT(("MQTT message too long: %d bytes", msglen)); }
@@ -219,10 +219,10 @@ void WiFiMqtt::MakeMqttStrs(void)
 
 void WiFiMqtt::sendReply(char *instr)
 {
+  DBGOUT(("Mqtt TX: \"%s\"", instr));
+
   char *rstr = wifiMQTT.replyStr;
   sprintf(rstr, "%s\n%s", wifiMQTT.deviceName, instr);
-
-  DBGOUT(("Mqtt TX: \"%s\"", wifiMQTT.replyStr));
   wifiMQTT.mqttClient.publish(MQTT_TOPIC_REPLY, wifiMQTT.replyStr);
 }
 
