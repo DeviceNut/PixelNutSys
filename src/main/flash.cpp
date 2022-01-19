@@ -144,14 +144,6 @@ void FlashSetExterns(byte hue, byte wht, byte cnt)
   FlashDone();
 }
 
-void FlashSetProperties(void)
-{
-  pPixelNutEngine->setPropertyMode(FlashGetValue(FLASHOFF_SDATA_XT_MODE));
-  pPixelNutEngine->setColorProperty(FlashGetValue(FLASHOFF_SDATA_XT_HUE),
-                                    FlashGetValue(FLASHOFF_SDATA_XT_WHT));
-  pPixelNutEngine->setCountProperty(FlashGetValue(FLASHOFF_SDATA_XT_CNT));
-}
-
 void FlashStartup(void)
 {
   FlashStart();
@@ -179,14 +171,16 @@ void FlashStartup(void)
 
   int16_t fpos = FlashGetValue(FLASHOFF_SDATA_FIRSTPOS);
 
+  DBGOUT((F("Flash: bright=%d%% delay=%d%%"), bright, delay));
+
   pPixelNutEngine->setBrightPercent(bright);
   pPixelNutEngine->setDelayPercent(delay);
   pPixelNutEngine->setFirstPosition(fpos);
 
-  DBGOUT((F("Flash: bright=%d%%"), bright));
-  DBGOUT((F("Flash: delay=%d%%"), delay));
-
-  FlashSetProperties();
+  pPixelNutEngine->setPropertyMode(FlashGetValue(FLASHOFF_SDATA_XT_MODE));
+  pPixelNutEngine->setColorProperty(FlashGetValue(FLASHOFF_SDATA_XT_HUE),
+                                    FlashGetValue(FLASHOFF_SDATA_XT_WHT));
+  pPixelNutEngine->setCountProperty(FlashGetValue(FLASHOFF_SDATA_XT_CNT));
 
   FlashDone();
 }

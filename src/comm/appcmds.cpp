@@ -308,7 +308,7 @@ void ExecAppCmd(char* instr)
     }
     case '<': // set color hue/white and count properties
     {
-      ++instr; // skip past '+'
+      ++instr; // skip past '<'
       short hue = atoi(instr);
 
       instr = skipNumber(instr); // skip number digits

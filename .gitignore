@@ -2,3 +2,4 @@
 .vscode
 lib
 workspace.code-workspace
+src/comm/mycredentials.h

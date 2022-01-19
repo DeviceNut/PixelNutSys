@@ -70,7 +70,6 @@ extern void FlashSetFirst();
 extern void FlashSetPatNum(byte pattern);
 extern void FlashSetXmode(bool enable);
 extern void FlashSetExterns(byte hue, byte wht, byte cnt);
-extern void FlashSetProperties(void);
 extern void FlashStartup(void);
 #if EEPROM_FORMAT
 extern void FlashFormat(void);

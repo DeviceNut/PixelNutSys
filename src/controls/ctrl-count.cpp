@@ -12,10 +12,10 @@ See license.txt for the terms of this license.
 
 #if defined(DPIN_COUNT_BUTTON) || defined(APIN_COUNT_POT)
 
-static void SetCountByPercent(byte percent)
+static void SetCountByPercent(byte count_value)
 {
-  DBGOUT((F("Setting count property = %d%%"), percent));
-  pPixelNutEngine->setCountProperty(percent);
+  DBGOUT((F("Setting count property = %d"), count_value));
+  pPixelNutEngine->setCountProperty(count_value);
 }
 
 #endif
