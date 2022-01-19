@@ -270,6 +270,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
             if (value == 0) enable = false;
             else pluginLayers[curlayer].trigRepCount = value;
           }
+          else pluginLayers[curlayer].trigRepCount = 0;
 
           if (enable)
           {
