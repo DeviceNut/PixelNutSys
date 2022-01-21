@@ -87,6 +87,7 @@ void DisplayConfiguration(void)
 
 static byte pinnums[] = PIXEL_PINS;
 static byte pixcounts[] = PIXEL_COUNTS;
+#define PIXEL_BYTES 3 // this is fixed
 
 void ShowPixels(int index)
 {

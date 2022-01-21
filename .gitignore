@@ -3,3 +3,5 @@
 lib
 workspace.code-workspace
 src/comm/mycredentials.h
+src/device.h
+

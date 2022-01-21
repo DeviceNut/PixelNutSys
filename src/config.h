@@ -54,69 +54,63 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
-#define DEV_PLUGINS             1           // cannot support additional plugins
+#define DEV_PLUGINS             1           // we can support additional device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
-#define PLUGIN_SPECTRA          0           // uses audio input (must set APIN_MICROPHONE and FREQ_FFT)
-                                            // ** only works on ARM processors right now
+
 #else
 #define MAXLEN_PATSTR           300         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
-#define DEV_PLUGINS             0           // 1 to add device plugins
+#define DEV_PLUGINS             0           // cannot support additional plugins
 #endif
 
-// these depend on what hardware is used and how it is wired:
-#define STRAND_COUNT            1           // physically separate strands
-#define PIXEL_BYTES             3           // number of bytes per pixel
-#define PIXEL_COUNTS            { 16 }      // pixel counts for each strand
-#define PIXEL_PINS              { 21 }      // pin selects for each strand
-#define DPIN_LED                13          // on-board R-LED for error status (Adafruit Feather)
-#define APIN_SEED               A0          // default pin for seeding randomizer
-#define PIXELS_APA              0           // define default value
-#define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
-
-#if PLUGIN_SPECTRA
-#define APIN_MICROPHONE         0           // pin with microphone attached
-#define FREQ_FFT                0           // FFT applied to audio input
-#endif
-
-// uncomment according to hardware controls used:
+#include "device.h" // put device specific settings here
+// template for your own settings:
 /*
-#define DPIN_PATTERN_BUTTON     0         // device pattern selection (only if !CLIENT_APP)
-#define DPIN_BRIGHT_BUTTON      0         // cycles global max brightness
-#define APIN_BRIGHT_POT         0         // sets global max brightness
-#define DPIN_DELAY_BUTTON       0         // cycles global delay offset
-#define APIN_DELAY_POT          0         // sets global delay offset
-#define DPIN_COUNT_BUTTON       0         // cycles pixel count property
-#define APIN_COUNT_POT          0         // sets pixel count property
-#define DPIN_TRIGGER_BUTTON     0         // initiates global trigger
-#define APIN_TRIGGER_POT        0         // sets trigger force
-#define DPIN_EMODE_BUTTON       0         // enables extern property mode
-#define APIN_HUE_POT            0         // sets hue property
-#define APIN_WHITE_POT          0         // sets white property
+      // these depend on what hardware is used and how it is wired:
+      #define STRAND_COUNT            1           // physically separate strands
+      #define PIXEL_COUNTS            { 16 }      // pixel counts for each strand
+      #define PIXEL_PINS              { 21 }      // pin selects for each strand
+      #define DPIN_LED                13          // on-board R-LED for error status
+
+      #define APIN_MICROPHONE         0           // pin with microphone attached
+      #define APIN_SEED               A0          // default pin for seeding randomizer
+      #define PIXELS_APA              0           // define default value
+      #define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
+
+      // uncomment according to hardware controls used:
+      //#define DPIN_PATTERN_BUTTON     0         // device pattern selection (only if !CLIENT_APP)
+      //#define DPIN_BRIGHT_BUTTON      0         // cycles global max brightness
+      //#define APIN_BRIGHT_POT         0         // sets global max brightness
+      //#define DPIN_DELAY_BUTTON       0         // cycles global delay offset
+      //#define APIN_DELAY_POT          0         // sets global delay offset
+      //#define DPIN_COUNT_BUTTON       0         // cycles pixel count property
+      //#define APIN_COUNT_POT          0         // sets pixel count property
+      //#define DPIN_TRIGGER_BUTTON     0         // initiates global trigger
+      //#define APIN_TRIGGER_POT        0         // sets trigger force
+      //#define DPIN_EMODE_BUTTON       0         // enables extern property mode
+      //#define APIN_HUE_POT            0         // sets hue property
+      //#define APIN_WHITE_POT          0         // sets white property
+
+      // must have device patterns if not client app, or can have both
+      //#define CLIENT_APP              1           // have external application
+      //#define DEV_PATTERNS            1           // 1 to add device patterns
+
+      // for use with external client: only one can be set:
+      //#define BLE_ESP32               1           // BLE on ESP32 only
+      //#define WIFI_MQTT               1           // MQTT over WiFi
+      //#define WIFI_SOFTAP             1           // SoftAP over WiFi
+      //#define COM_SERIAL              1           // serial over COM
 */
 
-#if defined(__AVR__)
-#define CLIENT_APP              0           // only hardware controls
-#define DEV_PATTERNS            1           // must have internal patterns
-#else
-// for use with external client: only one can be set:
-#define CLIENT_APP              1           // have external application
-#define DEV_PATTERNS            1           // 1 to add device patterns
-
-#if TEENSY_LC || TEENSY_32
-#define COM_SERIAL              1           // serial over COM
-#else
-#define BLE_ESP32               0           // BLE on ESP32 only
-#define WIFI_MQTT               1           // MQTT over WiFi
-#define WIFI_SOFTAP             0           // SoftAP over WiFi
-#define COM_SERIAL              0           // serial over COM
+#if defined(__arm__) && defined(APIN_MICROPHONE)
+#define PLUGIN_SPECTRA          1           // uses audio input (only works on ARM processors)
+#define FREQ_FFT                1           // FFT applied to audio input
 #endif
 
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
 #define MAXLEN_DEVICE_NAME      16          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
-#endif
 #endif
