@@ -104,6 +104,10 @@ extern void MsgFormat(const char *fmtstr, ...);
       //#define COM_SERIAL              1           // serial over COM
 */
 
+#if !defined(APIN_SEED)
+#define APIN_SEED               A0          // default pin for seeding randomizer
+#endif
+
 #if defined(__arm__) && defined(APIN_MICROPHONE)
 #define PLUGIN_SPECTRA          1           // uses audio input (only works on ARM processors)
 #define FREQ_FFT                1           // FFT applied to audio input

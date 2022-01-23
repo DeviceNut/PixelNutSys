@@ -10,6 +10,10 @@ See license.txt for the terms of this license.
 
 #include <NeoPixelShow.h>
 
+#define MACRO_TO_STR(s) #s
+#define MACRO_TO_MACRO(s) MACRO_TO_STR(s)
+#pragma message("Building: " MACRO_TO_MACRO(BUILD_DEVICE))
+
 extern void SetupLED(void);
 extern void SetupDBG(void);
 extern void LoadCurPattern();
