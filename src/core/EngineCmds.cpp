@@ -143,7 +143,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'J': // offset into output display of the track by percent
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
-          pdraw->pcentStart = pcent;
           pdraw->pixStart = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 0, numPixels-1);
           DBGOUT((F("  PixStart: %d%% => %d"), pcent, pdraw->pixStart));
           break;
@@ -151,7 +150,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'K': // number of pixels in the track by percent (0 for rest of the strand)
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, 0, MAX_PERCENTAGE);
-          pdraw->pcentLen = pcent;
           if (pcent == 0) pdraw->pixLen = numPixels - pdraw->pixStart;
           else pdraw->pixLen = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F("  PixLen: %d%% => %d"), pcent, pdraw->pixLen));
@@ -166,7 +164,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'D': // drawing delay ("D" sets default value)
         {
           pdraw->pcentDelay = (byte)GetNumValue(cmd+1, DEF_PCENTDELAY, MAX_PERCENTAGE);
-          DBGOUT((F("  Delay=%d%%"), pdraw->pcentDelay));
+          //DBGOUT((F("  Delay=%d%%"), pdraw->pcentDelay));
           break;
         }
         case 'H': // color Hue value property ("H" sets default value)
@@ -184,7 +182,6 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'C': // percent PixelCount property ("C" sets default value)
         {
           uint16_t pcent = (uint16_t)GetNumValue(cmd+1, DEF_PCENTCOUNT, MAX_PERCENTAGE);
-          pdraw->pcentCount = pcent;
           pdraw->pixCount = pixelNutSupport.mapValue(pcent, 0, MAX_PERCENTAGE, 1, numPixels);
           DBGOUT((F("  PixCount: %d%% => %d"), pcent, pdraw->pixCount));
           break;
@@ -339,164 +336,4 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     }
   }
   return status;
-}
-
-// checks for overflow, returns >0 if successful
-static bool addstr(char **pcmdstr, char *addstr, int* pmaxlen)
-{
-  int slen = strlen(addstr);
-  if (slen >= *pmaxlen) return false;
-  strcpy(*pcmdstr, addstr);
-  *pcmdstr += slen;
-  *pmaxlen -= slen;
-  return true;
-}
-
-// forms command string from current track/layer stacks
-bool PixelNutEngine::makeCmdStr(char *cmdstr, int maxlen)
-{
-  DBG( char *basestr = cmdstr; )
-
-  int addlen = maxlen;
-  char str[20];
-  *cmdstr = 0;
-
-  PluginLayer *pLayer = pluginLayers;
-  for (int i = 0; i <= indexLayerStack; ++i, ++pLayer)
-  {
-    PluginTrack *pTrack = pLayer->pTrack;
-    PixelNutSupport::DrawProps *pdraw = &pTrack->draw;
-
-    sprintf(str, "E%d ", pLayer->iplugin);
-    if (!addstr(&cmdstr, str, &addlen)) goto error;
-
-    if (pLayer->solo || pLayer->mute)
-    {
-      int bits = (pLayer->solo ? ENABLEBIT_SOLO:0) | (pLayer->mute ? ENABLEBIT_MUTE:0);
-      sprintf(str, "M%d ", bits);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->redraw) // drawing layer
-    {
-      if (pdraw->pcentStart != 0)
-      {
-        sprintf(str, "J%d ", pdraw->pcentStart);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pcentLen != MAX_PERCENTAGE)
-      {
-        sprintf(str, "K%d ", pdraw->pcentLen);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pcentBright != DEF_PCENTBRIGHT)
-      {
-        sprintf(str, "B%d ", pdraw->pcentBright);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pcentDelay != DEF_PCENTDELAY)
-      {
-        sprintf(str, "D%d ", pdraw->pcentDelay);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->dvalueHue != DEF_DVALUE_HUE)
-      {
-        sprintf(str, "H%d ", pdraw->dvalueHue);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pcentWhite != DEF_PCENTWHITE)
-      {
-        sprintf(str, "W%d ", pdraw->pcentWhite);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pcentCount != DEF_PCENTCOUNT)
-      {
-        sprintf(str, "C%d ", pdraw->pcentCount);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pTrack->ctrlBits != 0)
-      {
-        sprintf(str, "Q%d ", pTrack->ctrlBits);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->goBackwards != DEF_BACKWARDS)
-      {
-        sprintf(str, "U ");
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->pixOrValues != DEF_PIXORVALS)
-      {
-        sprintf(str, "V ");
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pdraw->noRepeating != DEF_NOREPEATING)
-      {
-        sprintf(str, "G ");
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-    }
-
-    if (pLayer->trigForce != DEF_FORCEVAL)
-    {
-      if (pLayer->randForce) sprintf(str, "F ");
-      else sprintf(str, "F%d ", pLayer->trigForce);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigType & TrigTypeBit_AtStart)
-    {
-      sprintf(str, "T ");
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigType & TrigTypeBit_External)
-    {
-      sprintf(str, "I ");
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigType & TrigTypeBit_Internal)
-    {
-      sprintf(str, "A%d ", pLayer->trigLayerIndex);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-    }
-
-    if (pLayer->trigType & TrigTypeBit_Repeating)
-    {
-      if (pLayer->trigRepCount == DEF_TRIG_FOREVER)
-           sprintf(str, "R ");
-      else sprintf(str, "R%d ", pLayer->trigRepCount);
-      if (!addstr(&cmdstr, str, &addlen)) goto error;
-
-      if (pLayer->trigRepOffset != DEF_TRIG_OFFSET)
-      {
-        sprintf(str, "O%d ", pLayer->trigRepOffset);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-
-      if (pLayer->trigRepRange != DEF_TRIG_RANGE)
-      {
-        sprintf(str, "N%d ", pLayer->trigRepRange);
-        if (!addstr(&cmdstr, str, &addlen)) goto error;
-      }
-    }
-
-    DBGOUT((F("Make: layer=%d plugin=%d str=\"%s\""), i, pLayer->iplugin, basestr));
-  }
-
-  return true;
-
-error:
-  DBGOUT((F("Pattern string longer than: %d"), maxlen));
-  return false;
 }

@@ -171,7 +171,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 28-30 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 

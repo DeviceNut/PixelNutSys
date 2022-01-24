@@ -163,9 +163,7 @@ void ExecAppCmd(char* instr)
         FlashGetPatName(patname);
         pCustomCode->sendReply( jsonStr(outstr, "patname", patname) );
 
-        // returns empty string on error
-        pPixelNutEngine->makeCmdStr(patstr, MAXLEN_PATSTR);
-
+        FlashGetPatStr(patstr);
         jsonStr(outstr, "patstr", patstr, true);
         if (i+1 < STRAND_COUNT) strcat(outstr, ",{");
         pCustomCode->sendReply(outstr);

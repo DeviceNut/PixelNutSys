@@ -139,10 +139,7 @@ void PixelNutEngine::InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer)
 
   // initialize track drawing properties to default values
   PixelNutSupport::DrawProps *pProps = &pTrack->draw;
-  // pcentStart = pixStart = 0;
-  pProps->pcentLen = MAX_PERCENTAGE; // set initial window
   pProps->pixLen = numPixels;
-  pProps->pcentCount = DEF_PCENTCOUNT;
   pProps->pixCount = pixelNutSupport.mapValue(DEF_PCENTCOUNT,
                           0,MAX_PERCENTAGE, 1,numPixels);
 
