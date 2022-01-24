@@ -10,6 +10,7 @@ See license.txt for the terms of this license.
 #include "main.h"
 
 #if DEV_PATTERNS
+extern void LoadCurPattern();
 extern void GetPrevPattern(void);
 extern void GetNextPattern(void);
 #endif
@@ -94,10 +95,12 @@ static void loadStrandPattern(void)
     if (i != curstrand)
     {
       FlashSetStrand(i);
+      pPixelNutEngine = &pixelNutEngines[i];
       LoadCurPattern();
     }
   }
   FlashSetStrand(curstrand);
+  pPixelNutEngine = &pixelNutEngines[curstrand];
 }
 #endif
 
@@ -146,6 +149,7 @@ void ExecAppCmd(char* instr)
       for (int i = 0; i < STRAND_COUNT; ++i)
       {
         FlashSetStrand(i);
+        pPixelNutEngine = &pixelNutEngines[i];
 
         pCustomCode->sendReply( jsonNum(outstr, "pixels",   pixcounts[i]) );
         pCustomCode->sendReply( jsonNum(outstr, "bright",   pPixelNutEngine->getBrightPercent()) );
@@ -167,6 +171,7 @@ void ExecAppCmd(char* instr)
         pCustomCode->sendReply(outstr);
       }
       FlashSetStrand(curstrand); // restore current strand
+      pPixelNutEngine = &pixelNutEngines[curstrand];
 
       pCustomCode->sendReply( jsonArraydEnd(outstr) );
 
@@ -228,14 +233,14 @@ void ExecAppCmd(char* instr)
       ExecPattern(cmdstr);
       break;
     }
-    case '=': // store pattern string to flash
-    {
-      FlashSetPatStr(instr+1);
-      break;
-    }
     case '~': // store pattern name to flash
     {
       FlashSetPatName(instr+1);
+      break;
+    }
+    case '=': // store pattern string to flash
+    {
+      FlashSetPatStr(instr+1);
       break;
     }
     case '#': // client is switching strands
@@ -246,7 +251,7 @@ void ExecAppCmd(char* instr)
       {
         DBGOUT((F("Switching to strand #%d"), index));
         FlashSetStrand(index);
-        pPixelNutEngine = pixelNutEngines[index];
+        pPixelNutEngine = &pixelNutEngines[index];
       }
       #endif
       break;

@@ -41,6 +41,9 @@ byte FlashSetStrand(byte strandindex)
 {
   int oldval = (valOffset - FLASHOFF_STRAND_DATA) / FLASHLEN_STRAND_DATA;
   valOffset = FLASHOFF_STRAND_DATA + (strandindex * FLASHLEN_STRAND_DATA);
+  #if CLIENT_APP
+  pinfoOffset = (FLASHOFF_PINFO_START + (strandindex * (FLASHLEN_PATNAME + FLASHLEN_PATSTR)));
+  #endif
   return oldval;
 }
 
@@ -72,41 +75,14 @@ void FlashGetDevName(char *name)
   DBGOUT((F("FlashGetDevName: \"%s\""), name));
 }
 
-void FlashSetPatStr(char *str)
-{
-  DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"),
-          pinfoOffset, str, strlen(str)));
-
-  for (int i = 0; i < MAXLEN_PATSTR; ++i)
-  {
-    EEPROM.write((pinfoOffset + i), str[i]);
-    if (!str[i]) break;
-  }
-
-  FlashDone();
-}
-
-void FlashGetPatStr(char *str)
-{
-  for (int i = 0; i < MAXLEN_PATSTR; ++i)
-  {
-    str[i] = EEPROM.read(pinfoOffset + i);
-    if (!str[i]) break;
-  }
-  str[MAXLEN_PATSTR] = 0; // insure termination
-
-  DBGOUT((F("FlashGetPatStr(@%d): \"%s\" (len=%d)"),
-          pinfoOffset, str, strlen(str)));
-}
-
 void FlashSetPatName(char *name)
 {
   DBGOUT((F("FlashSetPatName(@%d): \"%s\"  (len=%d)"),
-          (pinfoOffset + FLASHLEN_PATSTR), name, strlen(name)));
+          pinfoOffset, name, strlen(name)));
 
   for (int i = 0; i < MAXLEN_PATNAME; ++i)
   {
-    EEPROM.write((pinfoOffset + FLASHLEN_PATSTR + i), name[i]);
+    EEPROM.write((pinfoOffset + i), name[i]);
     if (!name[i]) break;
   }
 
@@ -117,13 +93,40 @@ void FlashGetPatName(char *name)
 {
   for (int i = 0; i < MAXLEN_PATNAME; ++i)
   {
-    name[i] = EEPROM.read(pinfoOffset + FLASHLEN_PATSTR + i);
+    name[i] = EEPROM.read(pinfoOffset + i);
     if (!name[i]) break;
   }
   name[MAXLEN_PATNAME] = 0; // insure termination
 
   DBGOUT((F("FlashGetPatName(@%d): \"%s\"  (len=%d)"),
-          (pinfoOffset + FLASHLEN_PATSTR), name, strlen(name)));
+          pinfoOffset, name, strlen(name)));
+}
+
+void FlashSetPatStr(char *str)
+{
+  DBGOUT((F("FlashSetPatStr(@%d): \"%s\" (len=%d)"),
+          (pinfoOffset + FLASHLEN_PATNAME), str, strlen(str)));
+
+  for (int i = 0; i < MAXLEN_PATSTR; ++i)
+  {
+    EEPROM.write((pinfoOffset + FLASHLEN_PATNAME + i), str[i]);
+    if (!str[i]) break;
+  }
+
+  FlashDone();
+}
+
+void FlashGetPatStr(char *str)
+{
+  for (int i = 0; i < MAXLEN_PATSTR; ++i)
+  {
+    str[i] = EEPROM.read(pinfoOffset + FLASHLEN_PATNAME + i);
+    if (!str[i]) break;
+  }
+  str[MAXLEN_PATSTR] = 0; // insure termination
+
+  DBGOUT((F("FlashGetPatStr(@%d): \"%s\" (len=%d)"),
+          (pinfoOffset + FLASHLEN_PATNAME), str, strlen(str)));
 }
 
 #endif // CLIENT_APP

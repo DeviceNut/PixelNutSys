@@ -50,7 +50,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 // minimize these to reduce memory consumption:
 #if LARGE_RAM
-#define MAXLEN_PATSTR           1024        // must be long enough for patterns
+#define MAXLEN_PATSTR           974         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
@@ -104,7 +104,7 @@ extern void MsgFormat(const char *fmtstr, ...);
       //#define COM_SERIAL              1           // serial over COM
 */
 
-#if !defined(APIN_SEED)
+#if !defined(APIN_SEED) && !ESP32 // ESP32 has random number generator
 #define APIN_SEED               A0          // default pin for seeding randomizer
 #endif
 
