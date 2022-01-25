@@ -189,6 +189,8 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
         case 'Q': // extern control bits ("Q" is same as "Q0")
         {
           short bits = GetNumValue(cmd+1, ExtControlBit_All); // returns -1 if not within range
+          if (bits < 0) bits = 0;
+          DBGOUT((F("  Qbits = 0x%02x"), bits));
           pluginLayers[curlayer].pTrack->ctrlBits = bits;
           break;
         }
