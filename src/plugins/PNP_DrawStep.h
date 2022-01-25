@@ -29,12 +29,12 @@ public:
   {
     myid = id;
     pixLength = pixlen;
-    curPos = 0;
   }
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
     forceVal = force;
+    curPos = 0;
   }
 
   void nextstep(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw)

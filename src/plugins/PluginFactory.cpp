@@ -55,8 +55,8 @@ PixelNutPlugin *PluginFactory::pluginCreate(uint16_t plugin)
     // drawing effects:
 
     case 0:   return new PNP_DrawAll;                     // draws current color to all pixels on each step
-    case 1:   return new PNP_DrawPush;                    // draws current color to one pixel on each step, inserting at the head
-    case 2:   return new PNP_DrawStep;                    // draws current color to one pixel on each step, appending at the tail
+    case 1:   return new PNP_DrawPush;                    // draws current color to one pixel on each step, inserting at the end, then clearing
+    case 2:   return new PNP_DrawStep;                    // draws current color to one pixel on each step, appending at the start
 
     case 10:  return new PNP_LightWave;                   // light waves (brighness changes) that move; count property sets wave frequency
     case 20:  return new PNP_CometHeads;                  // creates "comets": moving head with tail that fades, trigger creates new head

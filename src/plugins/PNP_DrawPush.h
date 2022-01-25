@@ -7,8 +7,7 @@
 // Calling trigger():
 //
 //    Saves the force value to pass on when it reaches the end, and causes a new cycle to begin
-//    from the start of the strip. If the original force was <= 0 then the cycle is not repeated
-//    when it reaches the end of the display window.
+//    from the start of the strip.
 //
 // Calling nextstep():
 //
@@ -36,7 +35,7 @@ public:
 
   void trigger(PixelNutHandle handle, PixelNutSupport::DrawProps *pdraw, byte force)
   {
-    forceVal = force; // if <=0 then drawing stops after cycle
+    forceVal = force;
     doDraw = true;
     curPos = 0;
   }
@@ -62,9 +61,8 @@ public:
     {
       doDraw = false;
       curPos = 0;
-      pixelNutSupport.sendForce(handle, myid, forceVal);
     }
-    else if (forceVal > 0)
+    else if (!pdraw->noRepeating)
     {
       doDraw = true;
       curPos = 0;

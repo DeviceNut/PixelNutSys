@@ -29,7 +29,7 @@ void PixelNutEngine::setCountProperty(byte pixcount_percent)
 // internal: override property values with external ones
 void PixelNutEngine::OverridePropVals(PluginTrack *pTrack)
 {
-  DBGOUT((F("Engine properties for tracks:")));
+  DBGOUT((F("Override Track Properties:")));
 
   // map value into a pixel count (depends on the actual number of pixels)
   uint16_t count = pixelNutSupport.mapValue(externPcentCount, 0, MAX_PERCENTAGE, 1, numPixels);
@@ -45,7 +45,7 @@ void PixelNutEngine::OverridePropVals(PluginTrack *pTrack)
 
     if (pTrack->ctrlBits & ExtControlBit_PixCount)
     {
-      DBGOUT((F("  %d) %d => %d"), i, pTrack->draw.pixCount, count));
+      DBGOUT((F("  %d) cnt: %d => %d"), i, pTrack->draw.pixCount, count));
       pTrack->draw.pixCount = count;
     }
 
@@ -58,7 +58,7 @@ void PixelNutEngine::OverridePropVals(PluginTrack *pTrack)
 
     if (pTrack->ctrlBits & ExtControlBit_PcentWhite)
     {
-      DBGOUT((F("  %d) white: %d%% => %d%%"), i, pTrack->draw.pcentWhite, externPcentWhite));
+      DBGOUT((F("  %d) wht: %d%% => %d%%"), i, pTrack->draw.pcentWhite, externPcentWhite));
       pTrack->draw.pcentWhite = externPcentWhite;
       doset = true;
     }
@@ -73,23 +73,29 @@ void PixelNutEngine::RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byt
 {
   if (pTrack->pLayer->mute) return;
 
-  if (pTrack->ctrlBits & ExtControlBit_PixCount)
+  #if DEBUG_OUTPUT
+  if (pTrack->ctrlBits & (ExtControlBit_PixCount | ExtControlBit_DegreeHue | ExtControlBit_PcentWhite))
+    DBGOUT((F("Track=%d Restore Properties:"), TRACK_INDEX(pTrack)));
+  #endif
+
+  if ((pTrack->ctrlBits & ExtControlBit_PixCount) && (pTrack->draw.pixCount != pixCount))
+  {
+    DBGOUT((F("  cnt: %d => %d"), pTrack->draw.pixCount, pixCount));
     pTrack->draw.pixCount = pixCount;
+  }
 
   bool doset = false;
 
-  if ((pTrack->ctrlBits & ExtControlBit_DegreeHue) &&
-      (pTrack->draw.dvalueHue != dvalueHue))
+  if ((pTrack->ctrlBits & ExtControlBit_DegreeHue) && (pTrack->draw.dvalueHue != dvalueHue))
   {
-    //DBGOUT((F(">>hue: %d->%d"), pTrack->draw.dvalueHue, dvalueHue));
+    DBGOUT((F("  hue: %d => %d"), pTrack->draw.dvalueHue, dvalueHue));
     pTrack->draw.dvalueHue = dvalueHue;
     doset = true;
   }
 
-  if ((pTrack->ctrlBits & ExtControlBit_PcentWhite) &&
-      (pTrack->draw.pcentWhite != pcentWhite))
+  if ((pTrack->ctrlBits & ExtControlBit_PcentWhite) && (pTrack->draw.pcentWhite != pcentWhite))
   {
-    //DBGOUT((F(">>wht: %d->%d"), pTrack->draw.pcentWhite, pcentWhite));
+    DBGOUT((F("  wht: %d => %d"), pTrack->draw.pcentWhite, pcentWhite));
     pTrack->draw.pcentWhite = pcentWhite;
     doset = true;
   }
