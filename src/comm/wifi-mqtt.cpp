@@ -44,7 +44,7 @@ See license.txt for the terms of this license.
 #define STRLEN_SEPARATOR      1
 
 #define MAXLEN_DEVICE_IPSTR   15    // aaa.bbb.ccc.ddd
-#define MSECS_CONNECT_PUB     2000  // msecs between connect publishes
+#define MSECS_CONNECT_PUB     1000  // msecs between connect publishes
 
 class WiFiMqtt : public CustomCode
 {
