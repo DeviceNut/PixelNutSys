@@ -63,7 +63,8 @@ extern void FlashGetPatStr(char *str);
 extern void FlashSetPatName(char *name);
 extern void FlashGetPatName(char *name);
 #endif
-extern byte FlashSetStrand(byte strandindex);
+extern byte FlashGetStrand(void);
+extern void FlashSetStrand(byte strandindex);
 extern void FlashSetBright();
 extern void FlashSetDelay();
 extern void FlashSetFirst();

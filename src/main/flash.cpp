@@ -33,18 +33,17 @@ static void FlashDone(void)
 }
 
 void FlashSetValue(uint16_t offset, byte value) { EEPROM.write(valOffset + offset, value); }
-
 byte FlashGetValue(uint16_t offset) { return EEPROM.read(valOffset + offset); }
 
+byte FlashGetStrand(void) { return (valOffset - FLASHOFF_STRAND_DATA) / FLASHLEN_STRAND_DATA; }
+
 // Note: this is not range checked
-byte FlashSetStrand(byte strandindex)
+void FlashSetStrand(byte strandindex)
 {
-  int oldval = (valOffset - FLASHOFF_STRAND_DATA) / FLASHLEN_STRAND_DATA;
   valOffset = FLASHOFF_STRAND_DATA + (strandindex * FLASHLEN_STRAND_DATA);
   #if CLIENT_APP
   pinfoOffset = (FLASHOFF_PINFO_START + (strandindex * (FLASHLEN_PATNAME + FLASHLEN_PATSTR)));
   #endif
-  return oldval;
 }
 
 #if CLIENT_APP

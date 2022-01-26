@@ -10,9 +10,8 @@ See license.txt for the terms of this license.
 #include "main.h"
 
 #if DEV_PATTERNS
-extern void LoadCurPattern();
-extern void GetPrevPattern(void);
 extern void GetNextPattern(void);
+extern void GetPrevPattern(void);
 #endif
 
 extern PluginFactory *pPluginFactory; // used to enumerate effect plugins
@@ -86,24 +85,6 @@ static int calcPlugins(void)
   return pcount;
 }
 
-#if (STRAND_COUNT > 1)
-static void loadStrandPattern(void)
-{
-  int curstrand = FlashSetStrand(0);
-  for (int i = 0; i < STRAND_COUNT; ++i)
-  {
-    if (i != curstrand)
-    {
-      FlashSetStrand(i);
-      pPixelNutEngine = &pixelNutEngines[i];
-      LoadCurPattern();
-    }
-  }
-  FlashSetStrand(curstrand);
-  pPixelNutEngine = &pixelNutEngines[curstrand];
-}
-#endif
-
 void ExecAppCmd(char* instr)
 {
   DBGOUT((F("AppCmd: \"%s\""), instr));
@@ -144,7 +125,7 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply( jsonArrayStart(outstr, "strands") );
 
       byte pixcounts[] = PIXEL_COUNTS;
-      int curstrand = FlashSetStrand(0);
+      int curstrand = FlashGetStrand();
 
       for (int i = 0; i < STRAND_COUNT; ++i)
       {
@@ -241,36 +222,32 @@ void ExecAppCmd(char* instr)
       FlashSetPatStr(instr+1);
       break;
     }
-    case '#': // client is switching strands
+    case '#': // client is switching strands (goto next one if no value)
     {
       #if (STRAND_COUNT > 1)
-      byte index = *(instr+1)-0x30; // convert ASCII digit to value
-      if (index < STRAND_COUNT)
-      {
-        DBGOUT((F("Switching to strand #%d"), index));
-        FlashSetStrand(index);
-        pPixelNutEngine = &pixelNutEngines[index];
-      }
+      byte value = *(instr+1);
+      byte index;
+      if (value) index = value-0x30; // convert ASCII digit to value
+      else index = FlashGetStrand() + 1;
+      if (index >= STRAND_COUNT) index = 0;
+
+      DBGOUT((F("Switching to strand #%d"), index));
+      FlashSetStrand(index);
+      pPixelNutEngine = &pixelNutEngines[index];
       #endif
       break;
     }
-    case '+': // set next custom pattern
+    case '+': // set next custom pattern on current strand
     {
       #if DEV_PATTERNS
       GetNextPattern();
-      #if (STRAND_COUNT > 1)
-      loadStrandPattern();
-      #endif
       #endif
       break;
     }
-    case '-': // set prev custom pattern
+    case '-': // set prev custom pattern on current strand
     {
       #if DEV_PATTERNS
       GetPrevPattern();
-      #if (STRAND_COUNT > 1)
-      loadStrandPattern();
-      #endif
       #endif
       break;
     }
