@@ -139,7 +139,7 @@ bool PixelNutEngine::updateEffects(void)
 
     // call all filter effects for this track if triggered and not disabled
     PluginLayer *pfilter = pLayer + 1;
-    for (int j = 1; j < pTrack->lcount; ++j)
+    for (int j = 1; j < pTrack->lcount; ++j, ++pfilter)
       if (pfilter->trigActive && !pfilter->mute)
         pfilter->pPlugin->nextstep(this, &pTrack->draw);
 

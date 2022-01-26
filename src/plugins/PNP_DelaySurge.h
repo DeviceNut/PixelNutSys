@@ -1,19 +1,17 @@
 // What Effect Does:
 //
-//    Modulates the delay time property that has been set in the drawing property,
-//    such that any affected animation appears to surge in speed, then evenly slow
-//    down until it is back to its original speed.
+//    Modulates the delay percent property such that any affected animation appears
+//    to surge in speed, then evenly slow down until it is back to its original speed.
 //
 //    This effect only happens after a trigger event, with the force determining the
-//    amount the delay value is decreased with each surge. The number of steps it takes
+//    amount the delay is decreased with each surge. The number of steps it takes
 //    is fixed to be 10 * difference in delay values (10 steps per delay value used).
 //
 //    For example: if the original value is set with 'D20', and the trigger force is
-//    500 (max is 1000), then the surge sets the delay value to 10 (500/1000*20), and
+//    127 (max is 255), then the surge sets the delay value to 10 ((127/255)*20), and
 //    it takes 100 (10*10) calls to 'nextstep()' to bring the value back to 20 again.
 //
-//    Note: if the original value is 0 (the 'D' command is not used or set to 0), then
-//    no modulation is possible and this plugin will have no effect at all.
+//    Note: if the original delay value is 0 this plugin has no effect.
 //
 // Calling trigger():
 //
