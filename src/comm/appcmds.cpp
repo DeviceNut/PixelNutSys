@@ -111,6 +111,8 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply((char*)"?<");
       pCustomCode->sendReply((char*)"{");
 
+      pCustomCode->sendReply( jsonNum(outstr, "ispaused",   !doUpdate) );
+
       pCustomCode->sendReply( jsonNum(outstr, "nstrands",   STRAND_COUNT) );
       pCustomCode->sendReply( jsonNum(outstr, "maxstrlen",  MAXLEN_PATSTR) );
       pCustomCode->sendReply( jsonNum(outstr, "numlayers",  NUM_PLUGIN_LAYERS) );
@@ -192,6 +194,7 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply( jsonArraydEnd(outstr) );
       #endif
 
+      // this ends the main object
       pCustomCode->sendReply( jsonNum(outstr, "version", PIXELNUT_VERSION, true) );
 
       pCustomCode->sendReply((char*)">?");
