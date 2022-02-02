@@ -7,7 +7,8 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#include "device.h" // put device specific settings here
+#include "mydevices.h" // put device specific settings here
+
 // template for your own settings:
 /*
       // these depend on what hardware is used and how it is wired:
@@ -89,7 +90,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 // minimize these to reduce memory consumption:
 #if LARGE_RAM
-#define MAXLEN_PATSTR           974         // must be long enough for patterns
+#define MAXLEN_PATSTR           500         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
 #define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
 #define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
@@ -115,7 +116,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
-#define MAXLEN_DEVICE_NAME      16          // maxlen for device name
+#define MAXLEN_DEVICE_NAME      32          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
 #define CLIENT_APP              1           // have external application
 #else

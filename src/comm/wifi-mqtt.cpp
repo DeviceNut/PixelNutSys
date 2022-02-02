@@ -17,7 +17,7 @@ See license.txt for the terms of this license.
 #include <PubSubClient.h>
 #include <ArduinoOTA.h>
 
-#include "mycredentials.h"
+#include "mydevices.h"
 
 /*****************************************************************************************
  Protocol used with MQTT:
