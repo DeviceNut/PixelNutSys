@@ -126,7 +126,7 @@ void ExecAppCmd(char* instr)
       #endif
       pCustomCode->sendReply( jsonArrayStart(outstr, "strands") );
 
-      byte pixcounts[] = PIXEL_COUNTS;
+      int pixcounts[] = PIXEL_COUNTS;
       int curstrand = FlashGetStrand();
 
       for (int i = 0; i < STRAND_COUNT; ++i)

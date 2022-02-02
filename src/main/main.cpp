@@ -43,6 +43,10 @@ PixelNutSupport pixelNutSupport = PixelNutSupport((GetMsecsTime)millis, &pixorde
 PixelNutEngine pixelNutEngines[STRAND_COUNT];
 PixelNutEngine *pPixelNutEngine; // pointer to current engine
 
+static byte pinnums[] = PIXEL_PINS;
+static int pixcounts[] = PIXEL_COUNTS;
+#define PIXEL_BYTES 3 // this is fixed
+
 #if DEBUG_OUTPUT
 #warning("Debug mode is enabled")
 #endif
@@ -51,7 +55,6 @@ void DisplayConfiguration(void)
 {
   #if DEBUG_OUTPUT
 
-  byte pixcounts[] = PIXEL_COUNTS;
   char numstr[20];
   char strcounts[100];
   strcounts[0] = 0;
@@ -88,10 +91,6 @@ void DisplayConfiguration(void)
 
   #endif
 }
-
-static byte pinnums[] = PIXEL_PINS;
-static byte pixcounts[] = PIXEL_COUNTS;
-#define PIXEL_BYTES 3 // this is fixed
 
 void ShowPixels(int index)
 {
