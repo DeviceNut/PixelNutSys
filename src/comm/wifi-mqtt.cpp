@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "main.h"
 #include "flash.h"
@@ -70,6 +70,7 @@ public:
 
 private:
 
+  bool haveConnection = false;
   WiFiClient wifiClient;
 
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
@@ -81,7 +82,7 @@ private:
   uint32_t nextConnectTime = 0; // next time to send notify string
 
   void ConnectWiFi(void);   // waits for connection to WiFi
-  void ConnectOTA(void);    // connects
+  void ConnectOTA(void);    // connects to OTA if present
   bool ConnectMqtt(void);   // returns True if now connected
 
   void MakeHostName(void);
@@ -93,13 +94,24 @@ CustomCode *pCustomCode = &wifiMQTT;
 
 void WiFiMqtt::ConnectWiFi(void)
 {
-  DBGOUT(("Connect to WiFi..."));
+  DBGOUT(("Connect to WiFi: %s ...", WIFI_CREDS_SSID));
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
   WiFi.setHostname(hostName); // FIXME: make unique?
-  while (WiFi.status() != WL_CONNECTED)
+
+  uint32_t tout = millis() + MSECS_WAIT_WIFI;
+  while (tout <= millis())
+  {
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      haveConnection = true;
+      break;
+    }
     BlinkStatusLED(1, 0);
+  }
+
+  DBG( if (!haveConnection) DBGOUT(("Failed to find WiFi!")); )
 }
 
 void WiFiMqtt::ConnectOTA(void)
@@ -164,7 +176,7 @@ bool WiFiMqtt::ConnectMqtt(void)
   }
 
   DBGOUT(("Mqtt State: %s", mqttClient.state()));
-  BlinkStatusLED(0, 1);
+  BlinkStatusLED(1, 0);
   return false;
 }
 
@@ -219,30 +231,38 @@ void WiFiMqtt::MakeMqttStrs(void)
 
 void WiFiMqtt::sendReply(char *instr)
 {
-  DBGOUT(("Mqtt TX: \"%s\"", instr));
-
-  char *rstr = wifiMQTT.replyStr;
-  sprintf(rstr, "%s\n%s", wifiMQTT.deviceName, instr);
-  wifiMQTT.mqttClient.publish(MQTT_TOPIC_REPLY, wifiMQTT.replyStr);
+  if (haveConnection)
+  {
+    DBGOUT(("Mqtt TX: \"%s\"", instr));
+    char *rstr = wifiMQTT.replyStr;
+    sprintf(rstr, "%s\n%s", wifiMQTT.deviceName, instr);
+    wifiMQTT.mqttClient.publish(MQTT_TOPIC_REPLY, wifiMQTT.replyStr);
+  }
 }
 
 void WiFiMqtt::setName(char *name)
 {
   #if !EEPROM_FORMAT
-  DBGOUT(("Unsubscribe to: %s", devnameTopic));
-  mqttClient.subscribe(devnameTopic);
+  if (haveConnection)
+  {
+    DBGOUT(("Unsubscribe to: %s", devnameTopic));
+    mqttClient.subscribe(devnameTopic);
 
-  DBGOUT(("Disconnect from Mqtt..."));
-  mqttClient.disconnect();
+    DBGOUT(("Disconnect from Mqtt..."));
+    mqttClient.disconnect();
+  }
   #endif
 
   FlashSetDevName(name);
   strcpy(deviceName, name);
 
   #if !EEPROM_FORMAT
-  // re-connect with new name next loop
-  MakeMqttStrs();
-  nextConnectTime = 0;
+  if (haveConnection)
+  {
+    // re-connect with new name next loop
+    MakeMqttStrs();
+    nextConnectTime = 0;
+  }
   #endif
 }
 
@@ -257,29 +277,33 @@ void WiFiMqtt::setup(void)
   ConnectWiFi();
   ConnectOTA();
 
-  mqttClient.setClient(wifiClient);
-  mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
-  mqttClient.setCallback(CallbackMqtt);
+  if (haveConnection)
+  {
+    mqttClient.setClient(wifiClient);
+    mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
+    mqttClient.setCallback(CallbackMqtt);
 
-  strcpy(localIP, WiFi.localIP().toString().c_str());
-  MakeMqttStrs();
+    strcpy(localIP, WiFi.localIP().toString().c_str());
+    MakeMqttStrs();
 
-  DBGOUT(("Mqtt Device: \"%s\"", deviceName));
-  DBGOUT(("  LocalIP=%s", localIP));
-  DBGOUT(("  Hostname=%s", WiFi.getHostname()));
-  DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
-  DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
-  DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
-  DBGOUT(("---------------------------------------"));
+    DBGOUT(("Mqtt Device: \"%s\"", deviceName));
+    DBGOUT(("  LocalIP=%s", localIP));
+    DBGOUT(("  Hostname=%s", WiFi.getHostname()));
+    DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
+    DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
+    DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
+    DBGOUT(("---------------------------------------"));
 
-  ConnectMqtt();
+    ConnectMqtt();
+  }
 }
 
 void WiFiMqtt::loop(void)
 {
   ArduinoOTA.handle();
 
-  if (ConnectMqtt()) mqttClient.loop();
+  if (haveConnection && ConnectMqtt())
+    mqttClient.loop();
 }
 
 #endif // WIFI_MQTT
