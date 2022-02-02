@@ -75,7 +75,7 @@ void ComSerial::loop(void)
       if (inputPos >= MAXLEN_INPUTSTR)
       {
         DBGOUT(("Serial command > %d", MAXLEN_INPUTSTR));
-        ErrorHandler(3, 3, false);
+        ErrorHandler(3, 1, false);
         inputPos = 0;
       }
       else inputStr[inputPos++] = ch;

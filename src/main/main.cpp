@@ -211,9 +211,7 @@ void setup()
   BlinkStatusLED(0, 2); // indicates success
   DBGOUT((F("** Setup complete **")));
 
-  #if CLIENT_APP
   pCustomCode->sendReply((char*)"<Reboot>"); // signal client
-  #endif
 }
 
 void loop()
