@@ -122,3 +122,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #else
 #define CLIENT_APP              0           // no external application
 #endif
+#if !defined(DEV_PATTERNS)
+#define DEV_PATTERNS            0
+#endif
+        
