@@ -74,36 +74,17 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
 #define PIXEL_OFFSET            0           // start drawing at the first pixel
 
-#if defined(__arm__) && defined(__MKL26Z64__)
-#define TEENSY_LC               1
-#endif
 #if defined(__arm__) && defined(__MK20DX256__)
 #define TEENSY_32               1
 #endif
 
-// small RAM if AVR or TeensyLC
-#if defined(__AVR__) || TEENSY_LC
-#define LARGE_RAM               0           // has only 2k of RAM
-#else
-#define LARGE_RAM               1           // 1 for processors with larger RAM
-#endif
-
 // minimize these to reduce memory consumption:
-#if LARGE_RAM
-#define MAXLEN_PATSTR           500         // must be long enough for patterns
 #define MAXLEN_PATNAME          32          // max length for name of pattern
-#define NUM_PLUGIN_TRACKS       16          // must be enough for patterns
+#define MAXLEN_PATSTR           1000        // must be long enough for all patterns
+#define NUM_PLUGIN_TRACKS       16          // must be enough for largest pattern
 #define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
 #define DEV_PLUGINS             1           // we can support additional device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
-
-#else
-#define MAXLEN_PATSTR           300         // must be long enough for patterns
-#define MAXLEN_PATNAME          32          // max length for name of pattern
-#define NUM_PLUGIN_TRACKS       4           // must be enough for patterns
-#define NUM_PLUGIN_LAYERS       16          // must be multiple of TRACKS
-#define DEV_PLUGINS             0           // cannot support additional plugins
-#endif
 
 #if !defined(APIN_SEED) && !ESP32 // ESP32 has random number generator
 #define APIN_SEED               A0          // default pin for seeding randomizer
@@ -125,4 +106,3 @@ extern void MsgFormat(const char *fmtstr, ...);
 #if !defined(DEV_PATTERNS)
 #define DEV_PATTERNS            0
 #endif
-        
