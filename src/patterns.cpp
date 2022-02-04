@@ -111,7 +111,7 @@ const char* const devPatCmds[] =
 // Evenly spaced pixels ("spokes") move together around and around the strip, creating a "Ferris Wheel" effect. The spokes 
 // periodically change to random colors. Triggering toggles the direction, and determines how many spokes there are (larger
 // Forces for more spokes).
-#define PATTERN_FERRIS_WHEEL                      "E30 D60 C20 T E160 I E111 F R O3 N7 T" //E30 C20 D60 T E160 I E120 F250 I E111 F O3 T7 FIXME??
+#define PATTERN_FERRIS_WHEEL                      "E30 D60 C20 T E160 I E111 F T R O3 N7"
 
 // The background is white-ish noise (randomly sets pixels with random brightness of unsaturated colors, slowly and
 // continuously expand and contract, with the Force used when Triggering determining the extent of the expansion.

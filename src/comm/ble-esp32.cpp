@@ -5,6 +5,8 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+
 #include "main.h"
 #include "flash.h"
 

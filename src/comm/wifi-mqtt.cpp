@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "flash.h"
@@ -98,7 +98,7 @@ void WiFiMqtt::ConnectWiFi(void)
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  WiFi.setHostname(hostName); // FIXME: make unique?
+  WiFi.setHostname(hostName);
 
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
@@ -161,7 +161,7 @@ bool WiFiMqtt::ConnectMqtt(void)
   {
     DBGOUT(("Connecting to Mqtt..."));
 
-    // this crash/reboots if no broker found FIXME
+    // this crash/reboots if no broker found FIXME??
     if (mqttClient.connect(deviceName))
     {
       DBGOUT(("Subscribe to: %s", devnameTopic));

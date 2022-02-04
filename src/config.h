@@ -1,6 +1,6 @@
 // Set project specific configuration defines here.
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2022, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
@@ -96,7 +96,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #endif
 
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
-#define DEFAULT_DEVICE_NAME     "PixelNutDevice" // name of the device
+#define DEFAULT_DEVICE_NAME     "PixelNutDevice" // default name of device
 #define MAXLEN_DEVICE_NAME      32          // maxlen for device name
 #define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
 #define CLIENT_APP              1           // have external application
