@@ -101,7 +101,7 @@ void WiFiMqtt::ConnectWiFi(void)
   WiFi.setHostname(hostName); // FIXME: make unique?
 
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
-  while (tout <= millis())
+  while (millis() < tout)
   {
     if (WiFi.status() == WL_CONNECTED)
     {
