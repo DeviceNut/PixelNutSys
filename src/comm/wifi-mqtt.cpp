@@ -1,6 +1,6 @@
-// PixelNutApp WiFi Communications using MQTT
+// WiFi Communications using MQTT
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2022, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
@@ -10,41 +10,14 @@ See license.txt for the terms of this license.
 #include "main.h"
 #include "flash.h"
 
-#if WIFI_MQTT
+#if defined(ESP32) && WIFI_MQTT
 
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
 #include <ArduinoOTA.h>
 
-#include "mydevices.h"
-
-/*****************************************************************************************
- Protocol used with MQTT:
-
- 1) This Client has the Wifi credentials and the Broker's IP hardcoded.
-
- 2) Client sends to Broker (topic="PixelNutNotify"): <DevName>, <IPaddr>
-    IPaddr: local ip address (e.g. 192.168.1.122)
-    DevName: Friendly name of this device (e.g. "My Device")
-    This is sent periodically to maintain a connection.
-
- 3) Broker sends command to Client (topic is <DevName>): <cmdstr>
-    <cmdstr> is a PixelNut command string.
-
- 4) If command starts with "?" then client will reply (topic="PixelNutReply"): <reply>
-
-*****************************************************************************************/
-
-#define MQTT_TOPIC_NOTIFY     "PixelNut/Notify"
-#define MQTT_TOPIC_COMMAND    "PixelNut/Cmd/" // + name
-#define MQTT_TOPIC_REPLY      "PixelNut/Reply"
-
-#define STR_CONNECT_SEPARATOR ","
-#define STRLEN_SEPARATOR      1
-
-#define MAXLEN_DEVICE_IPSTR   15    // aaa.bbb.ccc.ddd
-#define MSECS_CONNECT_PUB     1000  // msecs between connect publishes
+#include "wifi-mqtt-defs.h"
 
 class WiFiMqtt : public CustomCode
 {
@@ -60,18 +33,11 @@ public:
   void setName(char *name);
   void sendReply(char *instr);
 
-  PubSubClient mqttClient;
-
-  // creates the topic name for sending cmds
-  // needs to be public to be used in callback
-  char deviceName[MAXLEN_DEVICE_NAME + 1];
-  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
-  char replyStr[1000]; // long enough for all segments
-
 private:
 
   bool haveConnection = false;
   WiFiClient wifiClient;
+  PubSubClient mqttClient;
 
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
 
@@ -81,6 +47,12 @@ private:
   char connectStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
   uint32_t nextConnectTime = 0; // next time to send notify string
 
+  // creates the topic name for sending cmds
+  // needs to be public to be used in callback
+  char deviceName[MAXLEN_DEVICE_NAME + 1];
+  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
+  char replyStr[1000]; // long enough for all segments
+
   void ConnectWiFi(void);   // waits for connection to WiFi
   void ConnectOTA(void);    // connects to OTA if present
   bool ConnectMqtt(void);   // returns True if now connected
@@ -89,8 +61,7 @@ private:
   void MakeMqttStrs(void);
 };
 
-WiFiMqtt wifiMQTT;
-CustomCode *pCustomCode = &wifiMQTT;
+#include "wifi-mqtt-code.h"
 
 void WiFiMqtt::ConnectWiFi(void)
 {
@@ -180,63 +151,14 @@ bool WiFiMqtt::ConnectMqtt(void)
   return false;
 }
 
-void CallbackMqtt(char* topic, byte* message, unsigned int msglen)
-{
-  //DBGOUT(("Callback for topic: %s", topic));
-
-  // ignore 'topic' as there is only one
-  if (msglen <= 0) return;
-
-  while (*message == ' ')
-  {
-    ++message; // skip spaces
-    --msglen;
-    if (msglen <= 0) return;
-  }
-
-  if (msglen <= MAXLEN_PATSTR) // msglen doesn't include terminator
-  {
-    char instr[MAXLEN_PATSTR+1];
-    strncpy(instr, (char*)message, msglen);
-    instr[msglen] = 0;
-
-    DBGOUT(("Mqtt RX: \"%s\"", instr));
-    ExecAppCmd(instr);
-  }
-  else { DBGOUT(("MQTT message too long: %d bytes", msglen)); }
-}
-
-void WiFiMqtt::MakeHostName(void)
-{
-  strcpy(hostName, PREFIX_DEVICE_NAME);
-  char *str = hostName + strlen(hostName);
-
-  for (int i = 0; i < strlen(deviceName); ++i)
-  {
-    char ch = deviceName[i];
-    if (ch != ' ') *str++ = ch;
-  }
-  *str = 0;
-}
-
-void WiFiMqtt::MakeMqttStrs(void)
-{
-  strcpy(devnameTopic, MQTT_TOPIC_COMMAND);
-  strcat(devnameTopic, deviceName);
-
-  strcpy(connectStr, deviceName);
-  strcat(connectStr, STR_CONNECT_SEPARATOR);
-  strcat(connectStr, localIP);
-}
-
 void WiFiMqtt::sendReply(char *instr)
 {
   if (haveConnection)
   {
     DBGOUT(("Mqtt TX: \"%s\"", instr));
-    char *rstr = wifiMQTT.replyStr;
-    sprintf(rstr, "%s\n%s", wifiMQTT.deviceName, instr);
-    wifiMQTT.mqttClient.publish(MQTT_TOPIC_REPLY, wifiMQTT.replyStr);
+    char *rstr = replyStr;
+    sprintf(rstr, "%s\n%s", deviceName, instr);
+    mqttClient.publish(MQTT_TOPIC_REPLY, replyStr);
   }
 }
 
@@ -246,7 +168,7 @@ void WiFiMqtt::setName(char *name)
   if (haveConnection)
   {
     DBGOUT(("Unsubscribe to: %s", devnameTopic));
-    mqttClient.subscribe(devnameTopic);
+    mqttClient.unsubscribe(devnameTopic);
 
     DBGOUT(("Disconnect from Mqtt..."));
     mqttClient.disconnect();
