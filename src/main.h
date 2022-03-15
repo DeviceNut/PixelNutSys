@@ -7,11 +7,28 @@ See license.txt for the terms of this license.
 #pragma once
 
 #include "core.h"
-#include "custom.h"
 
-extern bool doUpdate;
+class CustomCode
+{
+public:
+  #if EEPROM_FORMAT
+  virtual void flash(void) {}
+  #endif
 
+  // called during setup()
+  virtual void setup(void) {}
+  
+  // called during loop()
+  virtual void loop(void) {}
+
+  // set name for device
+  virtual void setName(char *name) {}
+
+  // send reply to client
+  virtual void sendReply(char *instr) {}
+};
 extern CustomCode *pCustomCode;
+
 extern PixelNutEngine pixelNutEngines[STRAND_COUNT];
 extern PixelNutEngine *pPixelNutEngine;
 
@@ -20,6 +37,8 @@ extern void ErrorHandler(short slow, short fast, bool dostop);
 
 extern void ExecAppCmd(char *cmdstr);
 extern void ExecPattern(char *pattern);
+
+extern bool doUpdate;
 
 #if DEV_PATTERNS
 extern byte codePatterns;

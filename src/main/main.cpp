@@ -5,8 +5,8 @@ See license.txt for the terms of this license.
 */
 
 #include "main.h"
-#include "flash.h"
-#include "controls.h"
+#include "main/flash.h"
+#include "controls/controls.h"
 
 #include <NeoPixelShow.h>
 

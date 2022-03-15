@@ -8,7 +8,7 @@ See license.txt for the terms of this license.
 #define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
-#include "flash.h"
+#include "main/flash.h"
 
 #if COM_SERIAL
 

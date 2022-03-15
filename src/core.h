@@ -8,6 +8,6 @@
 
 #include "config.h" // app configuration
 
-#include "PixelNutSupport.h"
-#include "PixelNutPlugin.h"
-#include "PixelNutEngine.h"
+#include "core/PixelNutSupport.h"
+#include "core/PixelNutPlugin.h"
+#include "core/PixelNutEngine.h"

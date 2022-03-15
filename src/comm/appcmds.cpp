@@ -35,7 +35,7 @@ void ExecPattern(char* pattern)
 
 #if CLIENT_APP
 
-#include "flash.h"
+#include "main/flash.h"
 
 static char* skipSpaces(char* instr)
 {

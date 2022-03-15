@@ -6,7 +6,7 @@ See license.txt for the terms of this license.
 */
 
 #include "main.h"
-#include "flash.h"
+#include "main/flash.h"
 #include "UIDeviceButton.h"
 
 extern void GetPrevPattern(void);

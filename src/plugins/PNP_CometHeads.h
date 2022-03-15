@@ -32,7 +32,7 @@
 //    none
 //
 
-#include "PixelNutComets.h"    // support class for the comet effects
+#include "core/PixelNutComets.h"    // support class for the comet effects
 
 class PNP_CometHeads : public PixelNutPlugin
 {

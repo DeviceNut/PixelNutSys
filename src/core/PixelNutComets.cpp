@@ -9,7 +9,7 @@
 
 #include "core.h"
 
-#include "PixelNutComets.h"     // support class for the comet effects
+#include "core/PixelNutComets.h"     // support class for the comet effects
 PixelNutComets pixelNutComets;  // single statically allocated object instance
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
