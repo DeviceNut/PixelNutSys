@@ -8,7 +8,7 @@ See license.txt for the terms of this license.
 #define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
-#include "flash.h"
+#include "main/flash.h"
 
 #if defined(ESP32) && WIFI_MQTT
 
@@ -151,17 +151,6 @@ bool WiFiMqtt::ConnectMqtt(void)
   return false;
 }
 
-void WiFiMqtt::sendReply(char *instr)
-{
-  if (haveConnection)
-  {
-    DBGOUT(("Mqtt TX: \"%s\"", instr));
-    char *rstr = replyStr;
-    sprintf(rstr, "%s\n%s", deviceName, instr);
-    mqttClient.publish(MQTT_TOPIC_REPLY, replyStr);
-  }
-}
-
 void WiFiMqtt::setName(char *name)
 {
   #if !EEPROM_FORMAT
@@ -212,7 +201,7 @@ void WiFiMqtt::setup(void)
     DBGOUT(("  LocalIP=%s", localIP));
     DBGOUT(("  Hostname=%s", WiFi.getHostname()));
     DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
-    DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
+    DBGOUT(("  PacketSize=%d", MQTT_MAX_PACKET_SIZE));
     DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
     DBGOUT(("---------------------------------------"));
 

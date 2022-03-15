@@ -56,3 +56,14 @@ void WiFiMqtt::MakeMqttStrs(void)
   strcat(connectStr, STR_CONNECT_SEPARATOR);
   strcat(connectStr, localIP);
 }
+
+void WiFiMqtt::sendReply(char *instr)
+{
+  if (haveConnection)
+  {
+    DBGOUT(("Mqtt TX: \"%s\"", instr));
+    char *rstr = replyStr;
+    sprintf(rstr, "%s\n%s", deviceName, instr);
+    mqttClient.publish(MQTT_TOPIC_REPLY, replyStr);
+  }
+}
