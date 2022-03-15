@@ -102,7 +102,7 @@ void ExecAppCmd(char* instr)
     }
     case '?': // sends reply in JSON format
     {
-      char outstr[FLASHLEN_PATSTR+1];
+      char outstr[FLASHLEN_PATSTR+101]; // needs to be greater than 'patstr'
       char patstr[FLASHLEN_PATSTR+1];
       char patname[FLASHLEN_PATNAME+1];
 

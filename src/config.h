@@ -86,7 +86,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define DEV_PLUGINS             1           // we can support additional device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
 
-#if !defined(APIN_SEED) && !ESP32 // ESP32 has random number generator
+#if !defined(APIN_SEED) && !defined(ESP32)  // ESP32 has random number generator
 #define APIN_SEED               A0          // default pin for seeding randomizer
 #endif
 
