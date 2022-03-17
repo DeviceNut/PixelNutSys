@@ -67,3 +67,29 @@ void WiFiMqtt::sendReply(char *instr)
     mqttClient.publish(MQTT_TOPIC_REPLY, replyStr);
   }
 }
+
+void WiFiMqtt::setName(char *name)
+{
+  #if !EEPROM_FORMAT
+  if (haveConnection)
+  {
+    DBGOUT(("Unsubscribe to: %s", devnameTopic));
+    mqttClient.unsubscribe(devnameTopic);
+
+    DBGOUT(("Disconnect from Mqtt..."));
+    mqttClient.disconnect();
+  }
+  #endif
+
+  FlashSetDevName(name);
+  strcpy(deviceName, name);
+
+  #if !EEPROM_FORMAT
+  if (haveConnection)
+  {
+    // re-connect with new name next loop
+    MakeMqttStrs();
+    nextConnectTime = 0;
+  }
+  #endif
+}

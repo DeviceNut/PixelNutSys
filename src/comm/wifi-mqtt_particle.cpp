@@ -1,23 +1,25 @@
-// WiFi Communications using MQTT
+// WiFi Communications using MQTT for Particle Photon
 /*
 Copyright (c) 2022, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "main.h"
 #include "main/flash.h"
 
-#if defined(ESP32) && WIFI_MQTT
-
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <PubSubClient.h>
-#include <ArduinoOTA.h>
+#if defined(PARTICLE) && WIFI_MQTT
 
 #include "wifi-mqtt-defs.h"
+
+#include "MQTT.h" // specific to Photon
+
+SYSTEM_MODE(MANUAL); // prevent connecting to the Particle Cloud
+
+extern void CallbackMqtt(char* topic, byte* message, unsigned int msglen);
+static MQTT mqttClient(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT, MAXLEN_PATSTR+100, CallbackMqtt);
 
 class WiFiMqtt : public CustomCode
 {
@@ -36,8 +38,6 @@ public:
 private:
 
   bool haveConnection = false;
-  WiFiClient wifiClient;
-  PubSubClient mqttClient;
 
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
 
@@ -54,7 +54,6 @@ private:
   char replyStr[1000]; // long enough for all segments
 
   void ConnectWiFi(void);   // waits for connection to WiFi
-  void ConnectOTA(void);    // connects to OTA if present
   bool ConnectMqtt(void);   // returns True if now connected
 
   void MakeHostName(void);
@@ -65,16 +64,15 @@ private:
 
 void WiFiMqtt::ConnectWiFi(void)
 {
-  DBGOUT(("Connect to WiFi: %s ...", WIFI_CREDS_SSID));
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
-  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  DBGOUT(("Connect to WiFi: %s as %s ...", WIFI_CREDS_SSID, hostName));
+  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
   WiFi.setHostname(hostName);
+  WiFi.connect();
 
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
-    if (WiFi.status() == WL_CONNECTED)
+    if (WiFi.ready())
     {
       haveConnection = true;
       break;
@@ -85,54 +83,17 @@ void WiFiMqtt::ConnectWiFi(void)
   DBG( if (!haveConnection) DBGOUT(("Failed to find WiFi!")); )
 }
 
-void WiFiMqtt::ConnectOTA(void)
-{
-  ArduinoOTA
-    .onStart([]()
-    {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
-
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
-    })
-    .onEnd([]()
-    {
-      Serial.println("\nEnd");
-    })
-    .onProgress([](unsigned int progress, unsigned int total)
-    {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    })
-    .onError([](ota_error_t error)
-    {
-      Serial.printf("Error[%u]: ", error);
-
-           if (error == OTA_AUTH_ERROR)     Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR)    Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR)  Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR)  Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR)      Serial.println("End Failed");
-    });
-
-  ArduinoOTA.begin();
-}
-
 bool WiFiMqtt::ConnectMqtt(void)
 {
   if (nextConnectTime >= millis())
-    return mqttClient.connected();
+    return mqttClient.isConnected();
 
   nextConnectTime = millis() + MSECS_CONNECT_PUB;
 
-  if (!mqttClient.connected())
+  if (!mqttClient.isConnected())
   {
-    DBGOUT(("Connecting to Mqtt..."));
+    DBGOUT(("Connecting to Mqtt as %s ...", deviceName));
 
-    // this crash/reboots if no broker found FIXME??
     if (mqttClient.connect(deviceName))
     {
       DBGOUT(("Subscribe to: %s", devnameTopic));
@@ -140,13 +101,13 @@ bool WiFiMqtt::ConnectMqtt(void)
     }
   }
 
-  if (mqttClient.connected())
+  if (mqttClient.isConnected())
   {
-    mqttClient.publish(MQTT_TOPIC_NOTIFY, connectStr, false);
+    mqttClient.publish(MQTT_TOPIC_NOTIFY, connectStr);
     return true;
   }
 
-  DBGOUT(("Mqtt State: %s", mqttClient.state()));
+  DBGOUT(("Mqtt not connected"));
   BlinkStatusLED(1, 0);
   return false;
 }
@@ -157,26 +118,19 @@ void WiFiMqtt::setup(void)
   MakeHostName();
 
   DBGOUT(("---------------------------------------"));
-  DBGOUT((F("Setting up WiFi/Mqtt...")));
+  DBGOUT(("Setting up WiFi/Mqtt..."));
 
   ConnectWiFi();
-  ConnectOTA();
 
   if (haveConnection)
   {
-    mqttClient.setClient(wifiClient);
-    mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
-    mqttClient.setCallback(CallbackMqtt);
-
     strcpy(localIP, WiFi.localIP().toString().c_str());
     MakeMqttStrs();
 
     DBGOUT(("Mqtt Device: \"%s\"", deviceName));
     DBGOUT(("  LocalIP=%s", localIP));
-    DBGOUT(("  Hostname=%s", WiFi.getHostname()));
+    DBGOUT(("  Hostname=%s", WiFi.hostname()));
     DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
-    DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
-    DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
     DBGOUT(("---------------------------------------"));
 
     ConnectMqtt();
@@ -185,8 +139,6 @@ void WiFiMqtt::setup(void)
 
 void WiFiMqtt::loop(void)
 {
-  ArduinoOTA.handle();
-
   if (haveConnection && ConnectMqtt())
     mqttClient.loop();
 }

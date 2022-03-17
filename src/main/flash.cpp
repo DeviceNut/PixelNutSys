@@ -6,8 +6,9 @@ See license.txt for the terms of this license.
 
 #include "main.h"
 #include "main/flash.h"
-
+#if !defined(PARTICLE)
 #include <EEPROM.h>
+#endif
 
 #if (FLASHOFF_PINFO_END > EEPROM_BYTES)
 #error("Not enough flash space to store external pattern strings");

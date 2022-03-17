@@ -10,7 +10,7 @@ See license.txt for the terms of this license.
 /*****************************************************************************************
  Protocol used with MQTT:
 
- 1) This Client has the Wifi credentials and the Broker's IP hardcoded.
+ 1) This Client has the Wifi credentials and the Broker's IP hardcoded in "mydevices.h".
 
  2) Client sends to Broker (topic="PixelNutNotify"): <DevName>, <IPaddr>
     IPaddr: local ip address (e.g. 192.168.1.122)

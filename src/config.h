@@ -47,23 +47,37 @@ See license.txt for the terms of this license.
       //#define COM_SERIAL              1           // serial over COM
 */
 
+// surpress warnings for undefined symbols
+#if !defined(WIFI_SOFTAP)
+#define WIFI_SOFTAP             0
+#endif
+#if !defined(BLE_ESP32)
+#define BLE_ESP32               0
+#endif
+#if !defined(COM_SERIAL)
+#define COM_SERIAL              0
+#endif
+#if !defined(PIXELS_APA)
+#define PIXELS_APA              0
+#endif
+
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
 #define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
 #endif
 
 #if DEBUG_OUTPUT
+#undef F
+#define F(x) x
+extern void MsgFormat(const char *fmtstr, ...);
 #define DBG(x) x
 #define DBGOUT(x) MsgFormat x
 #define DEBUG_SIGNON            "PixelNut!"
 #define SERIAL_BAUD_RATE        115200      // *must* match this in serial monitor
-#define MSECS_WAIT_FOR_USER     0 //15000       // msecs to wait for serial monitor, or 0
+#define MSECS_WAIT_SERIAL       5000        // msecs to wait for serial monitor, or 0
 #else
 #define DBG(x)
 #define DBGOUT(x)
 #endif
-#undef F
-#define F(x) x
-extern void MsgFormat(const char *fmtstr, ...);
 
 #define PIXELNUT_VERSION        20          // 2.0 - this is a rework of the 1st version
 
@@ -73,6 +87,8 @@ extern void MsgFormat(const char *fmtstr, ...);
 // these are defaults for particular global settings:
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
 #define PIXEL_OFFSET            0           // start drawing at the first pixel
+
+#define MSECS_WAIT_WIFI         20000       // msecs to wait for WiFi connection (if used)
 
 #if defined(__arm__) && defined(__MK20DX256__)
 #define TEENSY_32               1
@@ -93,6 +109,8 @@ extern void MsgFormat(const char *fmtstr, ...);
 #if defined(__arm__) && defined(APIN_MICROPHONE)
 #define PLUGIN_SPECTRA          1           // uses audio input (only works on ARM processors)
 #define FREQ_FFT                1           // FFT applied to audio input
+#else
+#define PLUGIN_SPECTRA          0
 #endif
 
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)

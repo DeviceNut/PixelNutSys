@@ -4,7 +4,14 @@
     See license.txt for the terms of this license.
 */
 
+#pragma once
+
+#if defined(PARTICLE)
+#include <Particle.h>
+#include <math.h>
+#else
 #include <Arduino.h>
+#endif
 
 #include "config.h" // app configuration
 

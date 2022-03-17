@@ -1,6 +1,6 @@
-// PixelNutApp Debug and Error Handling Routines
+// Debug and Error Handling Routines
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2022, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
@@ -27,9 +27,9 @@ void SetupDBG(void)
 {
   Serial.begin(SERIAL_BAUD_RATE);
 
-  #if (MSECS_WAIT_FOR_USER > 0)
-  uint32_t tout = millis() + MSECS_WAIT_FOR_USER;
-  #if defined(ESP32)
+  #if (MSECS_WAIT_SERIAL > 0)
+  uint32_t tout = millis() + MSECS_WAIT_SERIAL;
+  #if defined(ESP32) || defined(PARTICLE)
   while (!Serial.available()) // wait for something sent
   #else
   while (!Serial) // wait for serial monitor

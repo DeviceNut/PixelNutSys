@@ -1,12 +1,10 @@
-// PixelNutApp Plugin Factory
+// Plugin Factory
 // Class to create instances of plugins.
 /*
     Copyright (c) 2021, Greg de Valois
     Software License Agreement (MIT License)
     See license.txt for the terms of this license.
 */
-
-#include <Arduino.h>
 
 #include "core.h"
 

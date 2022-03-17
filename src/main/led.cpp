@@ -1,4 +1,4 @@
-// PixelNutApp LED Control
+// LED Control
 // Uses single LED for error/status.
 //========================================================================================
 /*
@@ -19,19 +19,24 @@ See license.txt for the terms of this license.
 #endif
 #define LED_TURN_ON   digitalWrite(DPIN_LED, LED_ON)
 #define LED_TURN_OFF  digitalWrite(DPIN_LED, LED_OFF)
+#elif defined(PARTICLE)
+#define LED_TURN_ON   RGB.control(true); RGB.color(255,0,0)
+#define LED_TURN_OFF  RGB.control(false)
 #endif
 
 void SetupLED(void)
 {
   #if defined(DPIN_LED)
   pinMode(DPIN_LED, OUTPUT);
+  #endif
+  #if defined(DPIN_LED) || defined(PARTICLE)
   LED_TURN_ON;
   #endif
 }
 
 void BlinkStatusLED(uint16_t slow, uint16_t fast)
 {
-  #if defined(DPIN_LED)
+  #if defined(DPIN_LED) || defined(PARTICLE)
   LED_TURN_OFF;
   delay(250);
 
