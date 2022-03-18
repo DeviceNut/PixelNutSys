@@ -1,6 +1,6 @@
 .pio
 .vscode
+*.bin
 lib
 workspace.code-workspace
 src/mydevices.h
-
