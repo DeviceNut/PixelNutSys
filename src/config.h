@@ -59,6 +59,8 @@ See license.txt for the terms of this license.
 #endif
 #if !defined(PIXELS_APA)
 #define PIXELS_APA              0
+#elif !defined(SPI_SETTINGS_FREQ)
+#define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
 #endif
 
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
