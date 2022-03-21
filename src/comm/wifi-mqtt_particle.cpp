@@ -74,9 +74,14 @@ bool WiFiMqtt::ConnectWiFi(void)
   WiFi.connect();
   DBGOUT(("...connection started"));
 
+  WiFi.setHostname(hostName);
+  WiFi.clearCredentials();
+  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
+
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
+    DBGOUT(("WiFi testing..."));
     if (WIFI_TEST(WiFi))
     {
       strcpy(localIP, WiFi.localIP().toString().c_str());
@@ -126,10 +131,6 @@ void WiFiMqtt::setup(void)
 
   DBGOUT(("---------------------------------------"));
   DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
-
-  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
-  WiFi.setHostname(hostName);
-
   DBGOUT(("Mqtt Device: %s", deviceName));
   DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
 
