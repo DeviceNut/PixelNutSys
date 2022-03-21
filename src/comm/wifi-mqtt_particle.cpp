@@ -72,8 +72,8 @@ bool WiFiMqtt::ConnectWiFi(void)
 {
   DBGOUT(("WiFi connecting..."));
   WiFi.connect();
-  DBGOUT(("...connection started"));
 
+  DBGOUT(("WiFi set credentials..."));
   WiFi.setHostname(hostName);
   WiFi.clearCredentials();
   WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
@@ -81,7 +81,7 @@ bool WiFiMqtt::ConnectWiFi(void)
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
-    DBGOUT(("WiFi testing..."));
+    DBGOUT(("WiFi test ready..."));
     if (WIFI_TEST(WiFi))
     {
       strcpy(localIP, WiFi.localIP().toString().c_str());
@@ -91,7 +91,6 @@ bool WiFiMqtt::ConnectWiFi(void)
       return true;
     }
 
-    DBGOUT(("Wifi ready wait..."));
     BlinkStatusLED(1, 0);
   }
 

@@ -74,6 +74,8 @@ bool WiFiMqtt::ConnectWiFi(void)
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
+    DBGOUT(("Wifi check status..."));
+
     if (WiFi.status() == WL_CONNECTED)
     {
       strcpy(localIP, WiFi.localIP().toString().c_str());
@@ -84,7 +86,6 @@ bool WiFiMqtt::ConnectWiFi(void)
       return true;
     }
 
-    DBGOUT(("Wifi ready wait..."));
     BlinkStatusLED(1, 0);
   }
 
