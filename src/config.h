@@ -9,6 +9,13 @@ See license.txt for the terms of this license.
 
 #include "mydevices.h" // put device specific settings here
 
+// IMPORTANT NOTE:
+// When first flashing a new device, you need to compile and flash with
+// EEPROM_FORMAT set to 1, then compile and flash with it set to 0.
+// This clears the EEPROM, otherwise you'll be reading garbage values
+// for some important system settings which will likely prevent proper
+// operation.
+
 // template for your own settings:
 /*
       // these depend on what hardware is used and how it is wired:
@@ -23,7 +30,7 @@ See license.txt for the terms of this license.
       #define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
 
       // uncomment according to hardware controls used:
-      //#define DPIN_PATTERN_BUTTON     0         // device pattern selection (only if !CLIENT_APP)
+      //#define DPIN_PATTERN_BUTTON     0         // device pattern selection
       //#define DPIN_BRIGHT_BUTTON      0         // cycles global max brightness
       //#define APIN_BRIGHT_POT         0         // sets global max brightness
       //#define DPIN_DELAY_BUTTON       0         // cycles global delay offset
@@ -64,13 +71,14 @@ See license.txt for the terms of this license.
 #endif
 
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
+#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
 #endif
+
+extern void MsgFormat(const char *fmtstr, ...);
 
 #if DEBUG_OUTPUT
 #undef F
 #define F(x) x
-extern void MsgFormat(const char *fmtstr, ...);
 #define DBG(x) x
 #define DBGOUT(x) MsgFormat x
 #define DEBUG_SIGNON            "PixelNut!"
