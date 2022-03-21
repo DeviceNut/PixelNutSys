@@ -35,7 +35,6 @@ public:
 
 private:
 
-  bool haveConnection = false;
   WiFiClient wifiClient;
   PubSubClient mqttClient;
 
@@ -44,8 +43,11 @@ private:
   // topic to subscribe to, with device name
   char devnameTopic[sizeof(MQTT_TOPIC_COMMAND) + MAXLEN_DEVICE_NAME + 1];
   // string sent to the MQTT_TOPIC_NOTIFY topic
-  char connectStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
-  uint32_t nextConnectTime = 0; // next time to send notify string
+  char notifyStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
+
+  bool haveWiFi = false;
+  bool haveMqtt = false;
+  uint32_t msecsRetryNotify = 0; // next time to send notify string
 
   // creates the topic name for sending cmds
   // needs to be public to be used in callback
@@ -53,36 +55,71 @@ private:
   char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   char replyStr[1000]; // long enough for all segments
 
-  void ConnectWiFi(void);   // waits for connection to WiFi
-  void ConnectOTA(void);    // connects to OTA if present
-  bool ConnectMqtt(void);   // returns True if now connected
+  bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
+  bool ConnectWiFi(void);               // attempts to connect to WiFi
+  bool ConnectMqtt(void);               // attempts to connect to Mqtt
+  void ConnectOTA(void);                // connects to OTA if present
 
   void MakeHostName(void);
   void MakeMqttStrs(void);
 };
 
+#define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
+#define MQTT_TEST(m)  (m.connected())
+
 #include "wifi-mqtt-code.h"
 
-void WiFiMqtt::ConnectWiFi(void)
+bool WiFiMqtt::ConnectWiFi(void)
 {
-  DBGOUT(("Connect to WiFi: %s ...", WIFI_CREDS_SSID));
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
-  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  WiFi.setHostname(hostName);
-
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
     if (WiFi.status() == WL_CONNECTED)
     {
-      haveConnection = true;
-      break;
+      strcpy(localIP, WiFi.localIP().toString().c_str());
+      MakeMqttStrs(); // uses deviceName and localIP
+
+      DBGOUT(("WiFi ready at: %s", localIP));
+      DBGOUT(("  Hostname=%s", WiFi.getHostname()));
+      return true;
     }
+
+    DBGOUT(("Wifi ready wait..."));
     BlinkStatusLED(1, 0);
   }
 
-  DBG( if (!haveConnection) DBGOUT(("Failed to find WiFi!")); )
+  DBGOUT(("WiFi Connect Failed"));
+  BlinkStatusLED(1, 0);
+  return false;
+}
+
+bool WiFiMqtt::ConnectMqtt(void)
+{
+  if (!MQTT_TEST(mqttClient))
+  {
+    DBGOUT(("Mqtt connecting..."));
+
+    // this crash/reboots if no broker found FIXME??
+    if (mqttClient.connect(deviceName))
+    {
+      mqttClient.setClient(wifiClient);
+      mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
+      mqttClient.setCallback(CallbackMqtt);
+
+      DBGOUT(("Mqtt subscribe: %s", devnameTopic));
+      mqttClient.subscribe(devnameTopic);
+    }
+  }
+
+  if (MQTT_TEST(mqttClient))
+  {
+    mqttClient.publish(MQTT_TOPIC_NOTIFY, notifyStr, false);
+    return true;
+  }
+
+  DBGOUT(("Mqtt Connect Failed: state=%s", mqttClient.state()));
+  BlinkStatusLED(1, 0);
+  return false;
 }
 
 void WiFiMqtt::ConnectOTA(void)
@@ -97,97 +134,60 @@ void WiFiMqtt::ConnectOTA(void)
         type = "filesystem";
 
       // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
+      Serial.println("OTA: Start updating " + type);
     })
     .onEnd([]()
     {
-      Serial.println("\nEnd");
+      Serial.println("\nOTA: End");
     })
     .onProgress([](unsigned int progress, unsigned int total)
     {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
     })
     .onError([](ota_error_t error)
     {
-      Serial.printf("Error[%u]: ", error);
+      Serial.printf("OTA: Error[%u]: ", error);
 
-           if (error == OTA_AUTH_ERROR)     Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR)    Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR)  Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR)  Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR)      Serial.println("End Failed");
+           if (error == OTA_AUTH_ERROR)     Serial.println("OTA: Auth Failed");
+      else if (error == OTA_BEGIN_ERROR)    Serial.println("OTA: Begin Failed");
+      else if (error == OTA_CONNECT_ERROR)  Serial.println("OTA: Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR)  Serial.println("OTA: Receive Failed");
+      else if (error == OTA_END_ERROR)      Serial.println("OTA: End Failed");
     });
 
   ArduinoOTA.begin();
 }
 
-bool WiFiMqtt::ConnectMqtt(void)
-{
-  if (nextConnectTime >= millis())
-    return mqttClient.connected();
-
-  nextConnectTime = millis() + MSECS_CONNECT_PUB;
-
-  if (!mqttClient.connected())
-  {
-    DBGOUT(("Connecting to Mqtt..."));
-
-    // this crash/reboots if no broker found FIXME??
-    if (mqttClient.connect(deviceName))
-    {
-      DBGOUT(("Subscribe to: %s", devnameTopic));
-      mqttClient.subscribe(devnameTopic);
-    }
-  }
-
-  if (mqttClient.connected())
-  {
-    mqttClient.publish(MQTT_TOPIC_NOTIFY, connectStr, false);
-    return true;
-  }
-
-  DBGOUT(("Mqtt State: %s", mqttClient.state()));
-  BlinkStatusLED(1, 0);
-  return false;
-}
-
 void WiFiMqtt::setup(void)
 {
   FlashGetDevName(deviceName);
-  MakeHostName();
+  MakeHostName(); // uses deviceName
 
-  DBGOUT(("---------------------------------------"));
-  DBGOUT((F("Setting up WiFi/Mqtt...")));
-
-  ConnectWiFi();
   ConnectOTA();
 
-  if (haveConnection)
-  {
-    mqttClient.setClient(wifiClient);
-    mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
-    mqttClient.setCallback(CallbackMqtt);
+  DBGOUT(("---------------------------------------"));
+  DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
 
-    strcpy(localIP, WiFi.localIP().toString().c_str());
-    MakeMqttStrs();
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  WiFi.setHostname(hostName);
 
-    DBGOUT(("Mqtt Device: \"%s\"", deviceName));
-    DBGOUT(("  LocalIP=%s", localIP));
-    DBGOUT(("  Hostname=%s", WiFi.getHostname()));
-    DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
-    DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
-    DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
-    DBGOUT(("---------------------------------------"));
+  DBGOUT(("Mqtt Device: %s", deviceName));
+  DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
+  DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
+  DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
 
-    ConnectMqtt();
-  }
+  CheckConnections(true); // initial connection attempt
+
+  DBGOUT(("---------------------------------------"));
 }
 
 void WiFiMqtt::loop(void)
 {
   ArduinoOTA.handle();
 
-  if (haveConnection && ConnectMqtt())
+  if (CheckConnections(false))
     mqttClient.loop();
 }
 

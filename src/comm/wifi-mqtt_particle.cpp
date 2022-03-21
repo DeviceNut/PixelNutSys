@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "main/flash.h"
@@ -37,15 +37,17 @@ public:
 
 private:
 
-  bool haveConnection = false;
-
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
 
   // topic to subscribe to, with device name
   char devnameTopic[sizeof(MQTT_TOPIC_COMMAND) + MAXLEN_DEVICE_NAME + 1];
+
   // string sent to the MQTT_TOPIC_NOTIFY topic
-  char connectStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
-  uint32_t nextConnectTime = 0; // next time to send notify string
+  char notifyStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
+
+  bool haveWiFi = false;
+  bool haveMqtt = false;
+  uint32_t msecsRetryNotify = 0; // next time to retry connections or send notify string
 
   // creates the topic name for sending cmds
   // needs to be public to be used in callback
@@ -53,61 +55,66 @@ private:
   char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   char replyStr[1000]; // long enough for all segments
 
-  void ConnectWiFi(void);   // waits for connection to WiFi
-  bool ConnectMqtt(void);   // returns True if now connected
+  bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
+  bool ConnectWiFi(void);               // attempts to connect to WiFi
+  bool ConnectMqtt(void);               // attempts to connect to Mqtt
 
   void MakeHostName(void);
   void MakeMqttStrs(void);
 };
 
+#define WIFI_TEST(w)  (w.ready())
+#define MQTT_TEST(m)  (m.isConnected())
+
 #include "wifi-mqtt-code.h"
 
-void WiFiMqtt::ConnectWiFi(void)
+bool WiFiMqtt::ConnectWiFi(void)
 {
-  DBGOUT(("Connect to WiFi: %s as %s ...", WIFI_CREDS_SSID, hostName));
-  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
-  WiFi.setHostname(hostName);
+  DBGOUT(("WiFi connecting..."));
   WiFi.connect();
+  DBGOUT(("...connection started"));
 
   uint32_t tout = millis() + MSECS_WAIT_WIFI;
   while (millis() < tout)
   {
-    if (WiFi.ready())
+    if (WIFI_TEST(WiFi))
     {
-      haveConnection = true;
-      break;
+      strcpy(localIP, WiFi.localIP().toString().c_str());
+      MakeMqttStrs(); // uses deviceName and localIP
+
+      DBGOUT(("WiFi ready at: %s", localIP));
+      return true;
     }
+
+    DBGOUT(("Wifi ready wait..."));
     BlinkStatusLED(1, 0);
   }
 
-  DBG( if (!haveConnection) DBGOUT(("Failed to find WiFi!")); )
+  DBGOUT(("WiFi Connect Failed"));
+  BlinkStatusLED(1, 0);
+  return false;
 }
 
 bool WiFiMqtt::ConnectMqtt(void)
 {
-  if (nextConnectTime >= millis())
-    return mqttClient.isConnected();
-
-  nextConnectTime = millis() + MSECS_CONNECT_PUB;
-
-  if (!mqttClient.isConnected())
+  if (!MQTT_TEST(mqttClient))
   {
-    DBGOUT(("Connecting to Mqtt as %s ...", deviceName));
+    DBGOUT(("Mqtt connecting..."));
 
     if (mqttClient.connect(deviceName))
     {
-      DBGOUT(("Subscribe to: %s", devnameTopic));
+      DBGOUT(("Mqtt subscribe: %s", devnameTopic));
       mqttClient.subscribe(devnameTopic);
     }
   }
 
-  if (mqttClient.isConnected())
+  if (MQTT_TEST(mqttClient))
   {
-    mqttClient.publish(MQTT_TOPIC_NOTIFY, connectStr);
+    mqttClient.publish(MQTT_TOPIC_NOTIFY, notifyStr);
     return true;
   }
 
-  DBGOUT(("Mqtt not connected"));
+  DBGOUT(("Mqtt Connect Failed"));
   BlinkStatusLED(1, 0);
   return false;
 }
@@ -115,31 +122,25 @@ bool WiFiMqtt::ConnectMqtt(void)
 void WiFiMqtt::setup(void)
 {
   FlashGetDevName(deviceName);
-  MakeHostName();
+  MakeHostName(); // uses deviceName
 
   DBGOUT(("---------------------------------------"));
-  DBGOUT(("Setting up WiFi/Mqtt..."));
+  DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
 
-  ConnectWiFi();
+  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
+  WiFi.setHostname(hostName);
 
-  if (haveConnection)
-  {
-    strcpy(localIP, WiFi.localIP().toString().c_str());
-    MakeMqttStrs();
+  DBGOUT(("Mqtt Device: %s", deviceName));
+  DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
 
-    DBGOUT(("Mqtt Device: \"%s\"", deviceName));
-    DBGOUT(("  LocalIP=%s", localIP));
-    DBGOUT(("  Hostname=%s", WiFi.hostname()));
-    DBGOUT(("  Broker=%s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
-    DBGOUT(("---------------------------------------"));
+  CheckConnections(true); // initial connection attempt
 
-    ConnectMqtt();
-  }
+  DBGOUT(("---------------------------------------"));
 }
 
 void WiFiMqtt::loop(void)
 {
-  if (haveConnection && ConnectMqtt())
+  if (CheckConnections(false))
     mqttClient.loop();
 }
 

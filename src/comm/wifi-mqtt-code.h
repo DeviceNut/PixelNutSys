@@ -8,6 +8,33 @@ See license.txt for the terms of this license.
 WiFiMqtt wifiMQTT;
 CustomCode *pCustomCode = &wifiMQTT;
 
+bool WiFiMqtt::CheckConnections(bool firstime)
+{
+  if (!firstime)
+  {
+    if (msecsRetryNotify <= millis())
+    {
+      haveWiFi = WIFI_TEST(WiFi);
+      if (!haveWiFi)
+      {
+        mqttClient.disconnect();
+        haveMqtt = false;
+      }
+      else haveMqtt = MQTT_TEST(mqttClient);
+    }
+    else return (haveWiFi && haveMqtt);
+  }
+
+  if (!haveWiFi && ConnectWiFi())
+    haveWiFi = true;
+
+  haveMqtt = haveWiFi && ConnectMqtt();
+
+  msecsRetryNotify = millis() + MSECS_CONNECT_PUB;
+
+  return (haveWiFi && haveMqtt);
+}
+
 void CallbackMqtt(char* topic, byte* message, unsigned int msglen)
 {
   //DBGOUT(("Callback for topic: %s", topic));
@@ -52,14 +79,14 @@ void WiFiMqtt::MakeMqttStrs(void)
   strcpy(devnameTopic, MQTT_TOPIC_COMMAND);
   strcat(devnameTopic, deviceName);
 
-  strcpy(connectStr, deviceName);
-  strcat(connectStr, STR_CONNECT_SEPARATOR);
-  strcat(connectStr, localIP);
+  strcpy(notifyStr, deviceName);
+  strcat(notifyStr, STR_CONNECT_SEPARATOR);
+  strcat(notifyStr, localIP);
 }
 
 void WiFiMqtt::sendReply(char *instr)
 {
-  if (haveConnection)
+  if (haveMqtt)
   {
     DBGOUT(("Mqtt TX: \"%s\"", instr));
     char *rstr = replyStr;
@@ -71,7 +98,7 @@ void WiFiMqtt::sendReply(char *instr)
 void WiFiMqtt::setName(char *name)
 {
   #if !EEPROM_FORMAT
-  if (haveConnection)
+  if (haveMqtt)
   {
     DBGOUT(("Unsubscribe to: %s", devnameTopic));
     mqttClient.unsubscribe(devnameTopic);
@@ -85,11 +112,9 @@ void WiFiMqtt::setName(char *name)
   strcpy(deviceName, name);
 
   #if !EEPROM_FORMAT
-  if (haveConnection)
-  {
-    // re-connect with new name next loop
-    MakeMqttStrs();
-    nextConnectTime = 0;
-  }
+  // re-connect with new name next loop
+  MakeMqttStrs();
+  DBGOUT(("Mqtt Device: %s", deviceName));
+  msecsRetryNotify = 0;
   #endif
 }
