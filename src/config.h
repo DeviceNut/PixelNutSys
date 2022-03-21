@@ -7,7 +7,7 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#include "mydevices.h" // put device specific settings here
+#define PIXELNUT_VERSION        20          // 2.0 - this is a rework of the 1st version
 
 // IMPORTANT NOTE:
 // When first flashing a new device, you need to compile and flash with
@@ -15,6 +15,17 @@ See license.txt for the terms of this license.
 // This clears the EEPROM, otherwise you'll be reading garbage values
 // for some important system settings which will likely prevent proper
 // operation.
+#define EEPROM_FORMAT           0           // 1 to clear entire flash data space
+
+// minimize these to reduce memory consumption:
+#define MAXLEN_PATNAME          32          // max length for name of pattern
+#define MAXLEN_PATSTR           1000        // must be long enough for all patterns
+#define NUM_PLUGIN_TRACKS       16          // must be enough for largest pattern
+#define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
+#define DEV_PLUGINS             1           // we can support additional device plugins
+#define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
+
+#include "mydevices.h" // put device specific settings here
 
 // template for your own settings:
 /*
@@ -54,28 +65,9 @@ See license.txt for the terms of this license.
       //#define COM_SERIAL              1           // serial over COM
 */
 
-// surpress warnings for undefined symbols
-#if !defined(WIFI_SOFTAP)
-#define WIFI_SOFTAP             0
-#endif
-#if !defined(BLE_ESP32)
-#define BLE_ESP32               0
-#endif
-#if !defined(COM_SERIAL)
-#define COM_SERIAL              0
-#endif
-#if !defined(PIXELS_APA)
-#define PIXELS_APA              0
-#elif !defined(SPI_SETTINGS_FREQ)
-#define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
-#endif
-
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
+#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
 #endif
-
-extern void MsgFormat(const char *fmtstr, ...);
-
 #if DEBUG_OUTPUT
 #undef F
 #define F(x) x
@@ -88,32 +80,38 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define DBG(x)
 #define DBGOUT(x)
 #endif
-
-#define PIXELNUT_VERSION        20          // 2.0 - this is a rework of the 1st version
-
-// to initilize the flash, set this to 1 to clear the EEPROM; must be 0 for normal operation
-#define EEPROM_FORMAT           0           // 1 to clear entire flash data space
+extern void MsgFormat(const char *fmtstr, ...);
 
 // these are defaults for particular global settings:
+
+#if !defined(MAX_BRIGHTNESS)
 #define MAX_BRIGHTNESS          100         // default is to allow for maximum brightness
-#define PIXEL_OFFSET            0           // start drawing at the first pixel
-
-#define MSECS_WAIT_WIFI         20000       // msecs to wait for WiFi connection (if used)
-
-#if defined(__arm__) && defined(__MK20DX256__)
-#define TEENSY_32               1
 #endif
 
-// minimize these to reduce memory consumption:
-#define MAXLEN_PATNAME          32          // max length for name of pattern
-#define MAXLEN_PATSTR           1000        // must be long enough for all patterns
-#define NUM_PLUGIN_TRACKS       16          // must be enough for largest pattern
-#define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
-#define DEV_PLUGINS             1           // we can support additional device plugins
-#define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
+#if !defined(PIXEL_OFFSET)
+#define PIXEL_OFFSET            0           // start drawing at the first pixel
+#endif
+
+#if !defined(DEV_PATTERNS)
+#define DEV_PATTERNS            1           // use internal device patterns
+#endif
+
+#if !defined(MSECS_WAIT_WIFI)
+#define MSECS_WAIT_WIFI         20000       // msecs to wait for WiFi connection (if used)
+#endif
 
 #if !defined(APIN_SEED) && !defined(ESP32)  // ESP32 has random number generator
 #define APIN_SEED               A0          // default pin for seeding randomizer
+#endif
+
+#if !defined(PIXELS_APA)
+#define PIXELS_APA              0
+#elif !defined(SPI_SETTINGS_FREQ)
+#define SPI_SETTINGS_FREQ       4000000     // use fastest speed by default
+#endif
+
+#if defined(__arm__) && defined(__MK20DX256__)
+#define TEENSY_32               1
 #endif
 
 #if defined(__arm__) && defined(APIN_MICROPHONE)
@@ -123,6 +121,17 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define PLUGIN_SPECTRA          0
 #endif
 
+// surpress warnings for undefined symbols
+#if !defined(WIFI_SOFTAP)
+#define WIFI_SOFTAP             0
+#endif
+#if !defined(BLE_ESP32)
+#define BLE_ESP32               0
+#endif
+#if !defined(COM_SERIAL)
+#define COM_SERIAL              0
+#endif
+
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // default name of device
 #define MAXLEN_DEVICE_NAME      32          // maxlen for device name
@@ -130,7 +139,4 @@ extern void MsgFormat(const char *fmtstr, ...);
 #define CLIENT_APP              1           // have external application
 #else
 #define CLIENT_APP              0           // no external application
-#endif
-#if !defined(DEV_PATTERNS)
-#define DEV_PATTERNS            0
 #endif
