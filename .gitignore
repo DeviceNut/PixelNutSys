@@ -2,5 +2,6 @@
 .vscode
 *.bin
 lib
+platformio.ini
 workspace.code-workspace
 src/mydevices.h
