@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "main.h"
 #include "main/flash.h"
@@ -56,7 +56,7 @@ private:
   char replyStr[1000]; // long enough for all segments
 
   bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
-  bool ConnectWiFi(void);               // attempts to connect to WiFi
+  bool ConnectWiFi(int msecs);          // attempts to connect to WiFi
   bool ConnectMqtt(void);               // attempts to connect to Mqtt
   void ConnectOTA(void);                // connects to OTA if present
 
@@ -69,57 +69,34 @@ private:
 
 #include "wifi-mqtt-code.h"
 
-bool WiFiMqtt::ConnectWiFi(void)
+bool WiFiMqtt::ConnectWiFi(int msecs)
 {
-  uint32_t tout = millis() + MSECS_WAIT_WIFI;
+  DBGOUT(("Wifi checking status..."));
+
+  uint32_t tout = millis() + msecs;
   while (millis() < tout)
   {
-    DBGOUT(("Wifi check status..."));
-
-    if (WiFi.status() == WL_CONNECTED)
+    if (WIFI_TEST(WiFi))
     {
       strcpy(localIP, WiFi.localIP().toString().c_str());
       MakeMqttStrs(); // uses deviceName and localIP
-
       DBGOUT(("WiFi ready at: %s", localIP));
-      DBGOUT(("  Hostname=%s", WiFi.getHostname()));
+
+      DBGOUT(("OTA connect..."));
+      ConnectOTA();
+
+      DBGOUT(("Mqtt client setup..."));
+      mqttClient.setClient(wifiClient);
+      mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
+      mqttClient.setCallback(CallbackMqtt);
+
       return true;
     }
 
     BlinkStatusLED(1, 0);
   }
 
-  DBGOUT(("WiFi Connect Failed"));
-  BlinkStatusLED(1, 0);
-  return false;
-}
-
-bool WiFiMqtt::ConnectMqtt(void)
-{
-  if (!MQTT_TEST(mqttClient))
-  {
-    DBGOUT(("Mqtt connecting..."));
-
-    // this crash/reboots if no broker found FIXME??
-    if (mqttClient.connect(deviceName))
-    {
-      mqttClient.setClient(wifiClient);
-      mqttClient.setServer(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT);
-      mqttClient.setCallback(CallbackMqtt);
-
-      DBGOUT(("Mqtt subscribe: %s", devnameTopic));
-      mqttClient.subscribe(devnameTopic);
-    }
-  }
-
-  if (MQTT_TEST(mqttClient))
-  {
-    mqttClient.publish(MQTT_TOPIC_NOTIFY, notifyStr, false);
-    return true;
-  }
-
-  DBGOUT(("Mqtt Connect Failed: state=%s", mqttClient.state()));
-  BlinkStatusLED(1, 0);
+  DBGOUT(("WiFi connect failed!"));
   return false;
 }
 
@@ -164,8 +141,6 @@ void WiFiMqtt::setup(void)
   FlashGetDevName(deviceName);
   MakeHostName(); // uses deviceName
 
-  ConnectOTA();
-
   DBGOUT(("---------------------------------------"));
   DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
 
@@ -179,7 +154,8 @@ void WiFiMqtt::setup(void)
   DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
   DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
 
-  CheckConnections(true); // initial connection attempt
+  if (!CheckConnections(true)) // initial connection attempt
+    ErrorHandler(3, 1, false);
 
   DBGOUT(("---------------------------------------"));
 }
@@ -188,8 +164,10 @@ void WiFiMqtt::loop(void)
 {
   ArduinoOTA.handle();
 
-  if (CheckConnections(false))
-    mqttClient.loop();
+  if (!CheckConnections(false))
+    BlinkStatusLED(1, 0);
+
+  else mqttClient.loop();
 }
 
 #endif // WIFI_MQTT

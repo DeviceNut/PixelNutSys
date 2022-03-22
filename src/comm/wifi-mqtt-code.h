@@ -10,6 +10,8 @@ CustomCode *pCustomCode = &wifiMQTT;
 
 bool WiFiMqtt::CheckConnections(bool firstime)
 {
+  int msecs = MSECS_WAIT_WIFI;
+
   if (!firstime)
   {
     if (msecsRetryNotify <= millis())
@@ -23,9 +25,11 @@ bool WiFiMqtt::CheckConnections(bool firstime)
       else haveMqtt = MQTT_TEST(mqttClient);
     }
     else return (haveWiFi && haveMqtt);
+
+    msecs = MSECS_CONNECT_RETRY; // don't hold up loop when retrying
   }
 
-  if (!haveWiFi && ConnectWiFi())
+  if (!haveWiFi && ConnectWiFi(msecs))
     haveWiFi = true;
 
   haveMqtt = haveWiFi && ConnectMqtt();
@@ -33,6 +37,29 @@ bool WiFiMqtt::CheckConnections(bool firstime)
   msecsRetryNotify = millis() + MSECS_CONNECT_PUB;
 
   return (haveWiFi && haveMqtt);
+}
+
+bool WiFiMqtt::ConnectMqtt(void)
+{
+  if (!MQTT_TEST(mqttClient))
+  {
+    DBGOUT(("Mqtt connecting..."));
+
+    if (mqttClient.connect(deviceName))
+    {
+      DBGOUT(("Mqtt subscribe: %s", devnameTopic));
+      mqttClient.subscribe(devnameTopic);
+    }
+  }
+
+  if (MQTT_TEST(mqttClient))
+  {
+    mqttClient.publish(MQTT_TOPIC_NOTIFY, notifyStr);
+    return true;
+  }
+
+  DBGOUT(("Mqtt connect failed!"));
+  return false;
 }
 
 void CallbackMqtt(char* topic, byte* message, unsigned int msglen)

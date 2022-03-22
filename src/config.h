@@ -75,7 +75,7 @@ See license.txt for the terms of this license.
 #define DBGOUT(x) MsgFormat x
 #define DEBUG_SIGNON            "PixelNut!"
 #define SERIAL_BAUD_RATE        115200      // *must* match this in serial monitor
-#define MSECS_WAIT_SERIAL       5000        // msecs to wait for serial monitor, or 0
+#define MSECS_WAIT_SERIAL       7000        // msecs to wait for serial monitor, or 0
 #else
 #define DBG(x)
 #define DBGOUT(x)
@@ -97,7 +97,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #endif
 
 #if !defined(MSECS_WAIT_WIFI)
-#define MSECS_WAIT_WIFI         20000       // msecs to wait for WiFi connection (if used)
+#define MSECS_WAIT_WIFI         5000        // msecs to wait for original WiFi connection
 #endif
 
 #if !defined(APIN_SEED) && !defined(ESP32)  // ESP32 has random number generator

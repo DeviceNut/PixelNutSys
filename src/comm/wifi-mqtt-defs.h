@@ -32,4 +32,5 @@ See license.txt for the terms of this license.
 #define STRLEN_SEPARATOR      1
 
 #define MAXLEN_DEVICE_IPSTR   15    // aaa.bbb.ccc.ddd
-#define MSECS_CONNECT_PUB     1000  // msecs between connection retries and MQtt publishes
+#define MSECS_CONNECT_PUB     1500  // msecs between MQtt publishes
+#define MSECS_CONNECT_RETRY   1500  // msecs between connection retries

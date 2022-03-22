@@ -56,7 +56,7 @@ private:
   char replyStr[1000]; // long enough for all segments
 
   bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
-  bool ConnectWiFi(void);               // attempts to connect to WiFi
+  bool ConnectWiFi(int msecs);          // attempts to connect to WiFi
   bool ConnectMqtt(void);               // attempts to connect to Mqtt
 
   void MakeHostName(void);
@@ -68,7 +68,7 @@ private:
 
 #include "wifi-mqtt-code.h"
 
-bool WiFiMqtt::ConnectWiFi(void)
+bool WiFiMqtt::ConnectWiFi(int msecs)
 {
   DBGOUT(("WiFi connecting..."));
   WiFi.connect();
@@ -78,11 +78,11 @@ bool WiFiMqtt::ConnectWiFi(void)
   WiFi.clearCredentials();
   WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
 
-  uint32_t tout = millis() + MSECS_WAIT_WIFI;
+  uint32_t tout = millis() + msecs;
   while (millis() < tout)
   {
     DBGOUT(("WiFi test ready..."));
-    if (WIFI_TEST(WiFi))
+    if (WIFI_TEST(WiFi)) // does not return right away if fails
     {
       strcpy(localIP, WiFi.localIP().toString().c_str());
       MakeMqttStrs(); // uses deviceName and localIP
@@ -94,32 +94,7 @@ bool WiFiMqtt::ConnectWiFi(void)
     BlinkStatusLED(1, 0);
   }
 
-  DBGOUT(("WiFi Connect Failed"));
-  BlinkStatusLED(1, 0);
-  return false;
-}
-
-bool WiFiMqtt::ConnectMqtt(void)
-{
-  if (!MQTT_TEST(mqttClient))
-  {
-    DBGOUT(("Mqtt connecting..."));
-
-    if (mqttClient.connect(deviceName))
-    {
-      DBGOUT(("Mqtt subscribe: %s", devnameTopic));
-      mqttClient.subscribe(devnameTopic);
-    }
-  }
-
-  if (MQTT_TEST(mqttClient))
-  {
-    mqttClient.publish(MQTT_TOPIC_NOTIFY, notifyStr);
-    return true;
-  }
-
-  DBGOUT(("Mqtt Connect Failed"));
-  BlinkStatusLED(1, 0);
+  DBGOUT(("WiFi connect failed!"));
   return false;
 }
 
@@ -133,15 +108,18 @@ void WiFiMqtt::setup(void)
   DBGOUT(("Mqtt Device: %s", deviceName));
   DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
 
-  CheckConnections(true); // initial connection attempt
+  if (!CheckConnections(true)) // initial connection attempt
+    ErrorHandler(3, 1, false);
 
   DBGOUT(("---------------------------------------"));
 }
 
 void WiFiMqtt::loop(void)
 {
-  if (CheckConnections(false))
-    mqttClient.loop();
+  if (!CheckConnections(false))
+    BlinkStatusLED(1, 0);
+
+  else mqttClient.loop();
 }
 
 #endif // WIFI_MQTT
