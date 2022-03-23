@@ -12,8 +12,6 @@ See license.txt for the terms of this license.
 
 #if defined(PARTICLE) && WIFI_MQTT
 
-#include "MQTT.h" // specific to Photon
-
 #include "wifi-mqtt-defs.h"
 
 SYSTEM_MODE(MANUAL); // prevent connecting to the Particle Cloud
@@ -29,11 +27,6 @@ protected:
 
 WiFiMqtt_Particle wifiMqtt;
 CustomCode *pCustomCode = &wifiMqtt;
-
-#define WIFI_TEST(w)  (w.ready())
-#define MQTT_TEST(m)  (m.isConnected())
-
-#include "wifi-mqtt-code.h"
 
 bool WiFiMqtt_Particle::ConnectWiFi(int msecs)
 {

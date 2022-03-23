@@ -33,9 +33,22 @@ See license.txt for the terms of this license.
 #define MSECS_CONNECT_PUB     1500  // msecs between MQtt publishes
 #define MSECS_CONNECT_RETRY   1500  // msecs between connection retries
 
-#if defined(PARTICLE)
 extern void CallbackMqtt(char* topic, byte* message, unsigned int msglen);
+
+#if defined(PARTICLE)
+#include "MQTT.h" // specific to Photon
 static MQTT mqttClient(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT, MAXLEN_PATSTR+100, CallbackMqtt);
+#define WIFI_TEST(w)  (w.ready())
+#define MQTT_TEST(m)  (m.isConnected())
+#endif
+
+#if defined(ESP32)
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <PubSubClient.h>
+static PubSubClient mqttClient;
+#define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
+#define MQTT_TEST(m)  (m.connected())
 #endif
 class WiFiMqtt : public CustomCode
 {
@@ -52,10 +65,6 @@ public:
   void sendReply(char *instr);
 
 protected:
-
-   #if defined(ESP32)
-   PubSubClient mqttClient;
-   #endif
 
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
 

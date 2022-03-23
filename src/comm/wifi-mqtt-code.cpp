@@ -5,6 +5,15 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+
+#include "main.h"
+
+#if WIFI_MQTT
+
+#include "main/flash.h"
+#include "wifi-mqtt-defs.h"
+
 bool WiFiMqtt::CheckConnections(bool firstime)
 {
   int msecs = MSECS_WAIT_WIFI;
@@ -90,7 +99,7 @@ void WiFiMqtt::MakeHostName(void)
   strcpy(hostName, PREFIX_DEVICE_NAME);
   char *str = hostName + strlen(hostName);
 
-  for (int i = 0; i < strlen(deviceName); ++i)
+  for (size_t i = 0; i < strlen(deviceName); ++i)
   {
     char ch = deviceName[i];
     if (ch != ' ') *str++ = ch;
@@ -142,3 +151,5 @@ void WiFiMqtt::setName(char *name)
   msecsRetryNotify = 0;
   #endif
 }
+
+#endif // WIFI_MQTT

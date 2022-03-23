@@ -8,16 +8,13 @@ See license.txt for the terms of this license.
 #define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
-#include "main/flash.h"
 
 #if defined(ESP32) && WIFI_MQTT
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <PubSubClient.h>
-#include <ArduinoOTA.h>
-
+#include "main/flash.h"
 #include "wifi-mqtt-defs.h"
+
+#include <ArduinoOTA.h>
 
 class WiFiMqtt_Esp32 : public WiFiMqtt
 {
@@ -32,11 +29,6 @@ protected:
 
 WiFiMqtt_Esp32 wifiMqtt;
 CustomCode *pCustomCode = &wifiMqtt;
-
-#define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
-#define MQTT_TEST(m)  (m.connected())
-
-#include "wifi-mqtt-code.h"
 
 bool WiFiMqtt_Esp32::ConnectWiFi(int msecs)
 {
