@@ -5,7 +5,7 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "main/flash.h"
@@ -19,57 +19,26 @@ See license.txt for the terms of this license.
 
 #include "wifi-mqtt-defs.h"
 
-class WiFiMqtt : public CustomCode
+class WiFiMqtt_Esp32 : public WiFiMqtt
 {
-public:
-
-  #if EEPROM_FORMAT
-  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
-  #endif
-
-  void setup(void);
-  void loop(void);
-
-  void setName(char *name);
-  void sendReply(char *instr);
-
-private:
+protected:
 
   WiFiClient wifiClient;
-  PubSubClient mqttClient;
 
-  char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
+  bool ConnectWiFi(int msecs); // attempts to connect to WiFi
 
-  // topic to subscribe to, with device name
-  char devnameTopic[sizeof(MQTT_TOPIC_COMMAND) + MAXLEN_DEVICE_NAME + 1];
-  // string sent to the MQTT_TOPIC_NOTIFY topic
-  char notifyStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
-
-  bool haveWiFi = false;
-  bool haveMqtt = false;
-  uint32_t msecsRetryNotify = 0; // next time to send notify string
-
-  // creates the topic name for sending cmds
-  // needs to be public to be used in callback
-  char deviceName[MAXLEN_DEVICE_NAME + 1];
-  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
-  char replyStr[1000]; // long enough for all segments
-
-  bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
-  bool ConnectWiFi(int msecs);          // attempts to connect to WiFi
-  bool ConnectMqtt(void);               // attempts to connect to Mqtt
-  void ConnectOTA(void);                // connects to OTA if present
-
-  void MakeHostName(void);
-  void MakeMqttStrs(void);
+  void ConnectOTA(void); // check for OTA code updates
 };
+
+WiFiMqtt_Esp32 wifiMqtt;
+CustomCode *pCustomCode = &wifiMqtt;
 
 #define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
 #define MQTT_TEST(m)  (m.connected())
 
 #include "wifi-mqtt-code.h"
 
-bool WiFiMqtt::ConnectWiFi(int msecs)
+bool WiFiMqtt_Esp32::ConnectWiFi(int msecs)
 {
   DBGOUT(("Wifi checking status..."));
 
@@ -100,7 +69,7 @@ bool WiFiMqtt::ConnectWiFi(int msecs)
   return false;
 }
 
-void WiFiMqtt::ConnectOTA(void)
+void WiFiMqtt_Esp32::ConnectOTA(void)
 {
   ArduinoOTA
     .onStart([]()

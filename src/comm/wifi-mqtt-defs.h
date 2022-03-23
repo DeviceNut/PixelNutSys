@@ -5,8 +5,6 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#include "mydevices.h"
-
 /*****************************************************************************************
  Protocol used with MQTT:
 
@@ -34,3 +32,54 @@ See license.txt for the terms of this license.
 #define MAXLEN_DEVICE_IPSTR   15    // aaa.bbb.ccc.ddd
 #define MSECS_CONNECT_PUB     1500  // msecs between MQtt publishes
 #define MSECS_CONNECT_RETRY   1500  // msecs between connection retries
+
+#if defined(PARTICLE)
+extern void CallbackMqtt(char* topic, byte* message, unsigned int msglen);
+static MQTT mqttClient(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT, MAXLEN_PATSTR+100, CallbackMqtt);
+#endif
+class WiFiMqtt : public CustomCode
+{
+public:
+
+  #if EEPROM_FORMAT
+  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
+  #endif
+
+  void setup(void);
+  void loop(void);
+
+  void setName(char *name);
+  void sendReply(char *instr);
+
+protected:
+
+   #if defined(ESP32)
+   PubSubClient mqttClient;
+   #endif
+
+  char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
+
+  // topic to subscribe to, with device name
+  char devnameTopic[sizeof(MQTT_TOPIC_COMMAND) + MAXLEN_DEVICE_NAME + 1];
+
+  // string sent to the MQTT_TOPIC_NOTIFY topic
+  char notifyStr[MAXLEN_DEVICE_IPSTR + STRLEN_SEPARATOR + MAXLEN_DEVICE_NAME + 1];
+
+  bool haveWiFi = false;
+  bool haveMqtt = false;
+  uint32_t msecsRetryNotify = 0; // next time to retry connections or send notify string
+
+  // creates the topic name for sending cmds
+  // needs to be public to be used in callback
+  char deviceName[MAXLEN_DEVICE_NAME + 1];
+  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
+  char replyStr[1000]; // long enough for all segments
+
+  bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
+  bool ConnectMqtt(void);               // attempts to connect to Mqtt
+
+  virtual bool ConnectWiFi(int msecs)=0; // attempts to connect to WiFi
+
+  void MakeHostName(void);
+  void MakeMqttStrs(void);
+};

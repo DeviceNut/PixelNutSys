@@ -5,9 +5,6 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-WiFiMqtt wifiMQTT;
-CustomCode *pCustomCode = &wifiMQTT;
-
 bool WiFiMqtt::CheckConnections(bool firstime)
 {
   int msecs = MSECS_WAIT_WIFI;
