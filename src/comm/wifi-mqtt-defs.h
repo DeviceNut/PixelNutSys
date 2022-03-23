@@ -46,7 +46,6 @@ static MQTT mqttClient(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT, MAXLEN_PATSTR+100, 
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
-static PubSubClient mqttClient;
 #define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
 #define MQTT_TEST(m)  (m.connected())
 #endif
@@ -66,6 +65,8 @@ public:
 
 protected:
 
+ WiFiClient wifiClient;
+ PubSubClient mqttClient;
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
 
   // topic to subscribe to, with device name

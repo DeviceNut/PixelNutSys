@@ -5,11 +5,11 @@ Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
-#define DEBUG_OUTPUT 0 // 1 enables debugging this file
+#define DEBUG_OUTPUT 1 // 1 enables debugging this file
 
 #include "main.h"
 
-#if WIFI_MQTT
+#if WIFI_MQTT_NOT
 
 #include "main/flash.h"
 #include "wifi-mqtt-defs.h"
