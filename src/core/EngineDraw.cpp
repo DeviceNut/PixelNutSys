@@ -111,7 +111,7 @@ bool PixelNutEngine::updateEffects(void)
   bool rollover = (msTimeUpdate > time);
   msTimeUpdate = time;
 
-  RepeatTriger(rollover); //check if need to generate a trigger
+  RepeatTriger(); //check if need to generate a trigger
 
   // first have any redraw effects that are ready draw into its own buffers...
 

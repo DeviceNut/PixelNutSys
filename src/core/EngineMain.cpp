@@ -60,14 +60,10 @@ void PixelNutEngine::TriggerLayer(PluginLayer *pLayer, byte force)
 }
 
 // internal: check for any automatic triggering
-void PixelNutEngine::RepeatTriger(bool rollover)
+void PixelNutEngine::RepeatTriger(void)
 {
   for (int i = 0; i <= indexLayerStack; ++i) // for each plugin layer
   {
-    // just always reset trigger time after rollover event
-    if (rollover && (pluginLayers[i].trigType & TrigTypeBit_Repeating))
-      pluginLayers[i].trigTimeMsecs = msTimeUpdate;
-
     // if repeat triggering is set and have count (or infinite) and time has expired
     if (!pluginLayers[i].mute &&
         (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&

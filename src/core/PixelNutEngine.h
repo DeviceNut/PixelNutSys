@@ -212,7 +212,7 @@ protected:
   void OverridePropVals(PluginTrack *pTrack);
 
   void TriggerLayer(PluginLayer *pLayer, byte force);
-  void RepeatTriger(bool rollover);
+  void RepeatTriger(void);
 
   void ShiftStack(bool dolayer, int isrc, int idst, int iend);
 
