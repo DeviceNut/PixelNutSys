@@ -281,10 +281,10 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
                               (pluginLayers[curlayer].trigRepOffset +
                                pluginLayers[curlayer].trigRepRange+1)));
 
-            DBGOUT((F("  RepeatTrigger: layer=%d offset=%u range=%d count=%d force=%d"), curlayer,
+            DBGOUT((F("  RepeatTrigger: layer=%d count=%d offset=%u range=%d force=%d"), curlayer,
+                      pluginLayers[curlayer].trigRepCount,
                       pluginLayers[curlayer].trigRepOffset,
                       pluginLayers[curlayer].trigRepRange,
-                      pluginLayers[curlayer].trigRepCount,
                       pluginLayers[curlayer].randForce ? -1 : pluginLayers[curlayer].trigForce));
           }
           else pluginLayers[curlayer].trigType &= ~TrigTypeBit_Repeating;

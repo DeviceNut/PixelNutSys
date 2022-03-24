@@ -183,6 +183,9 @@ void PixelNutEngine::BeginPluginLayer(PluginLayer *pLayer)
     if (force < 0) force = random(0, MAX_FORCE_VALUE+1);
     TriggerLayer(pLayer, force);
   }
+
+  if (pLayer->trigType & TrigTypeBit_Repeating)
+    pLayer->trigDnCounter = pLayer->trigRepCount;
 }
 
 // Return false if unsuccessful for any reason.

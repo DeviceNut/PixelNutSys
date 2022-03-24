@@ -74,9 +74,9 @@ void PixelNutEngine::RepeatTriger(bool rollover)
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
         (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
     {
-      DBGOUT((F("RepeatTrigger: offset=%u range=%d counts=%d:%d"),
-                pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange,
-                pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter));
+      DBGOUT((F("RepeatTrigger: counts=%d:%d offset=%u range=%d"),
+                pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter,
+                pluginLayers[i].trigRepOffset, pluginLayers[i].trigRepRange));
 
       byte force = (pluginLayers[i].randForce) ?
                       random(0, MAX_FORCE_VALUE+1) :
