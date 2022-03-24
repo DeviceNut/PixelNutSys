@@ -185,7 +185,14 @@ void PixelNutEngine::BeginPluginLayer(PluginLayer *pLayer)
   }
 
   if (pLayer->trigType & TrigTypeBit_Repeating)
+  {
     pLayer->trigDnCounter = pLayer->trigRepCount;
+
+    pLayer->trigTimeMsecs = pixelNutSupport.getMsecs() +
+        (1000 * random(pLayer->trigRepOffset,
+                      (pLayer->trigRepOffset +
+                       pLayer->trigRepRange+1)));
+  }
 }
 
 // Return false if unsuccessful for any reason.

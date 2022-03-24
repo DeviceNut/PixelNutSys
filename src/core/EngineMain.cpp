@@ -68,7 +68,7 @@ void PixelNutEngine::RepeatTriger(void)
     if (!pluginLayers[i].mute &&
         (pluginLayers[i].trigType & TrigTypeBit_Repeating) &&
         (pluginLayers[i].trigDnCounter || !pluginLayers[i].trigRepCount) &&
-        (pluginLayers[i].trigTimeMsecs <= msTimeUpdate))
+        (pluginLayers[i].trigTimeMsecs <= pixelNutSupport.getMsecs()))
     {
       DBGOUT((F("RepeatTrigger: counts=%d:%d offset=%u range=%d"),
                 pluginLayers[i].trigRepCount, pluginLayers[i].trigDnCounter,
@@ -80,7 +80,7 @@ void PixelNutEngine::RepeatTriger(void)
 
       TriggerLayer((pluginLayers + i), force);
 
-      pluginLayers[i].trigTimeMsecs = msTimeUpdate +
+      pluginLayers[i].trigTimeMsecs = pixelNutSupport.getMsecs() +
           (1000 * random(pluginLayers[i].trigRepOffset,
                         (pluginLayers[i].trigRepOffset +
                         pluginLayers[i].trigRepRange+1)));
