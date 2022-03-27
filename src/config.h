@@ -66,7 +66,7 @@ See license.txt for the terms of this license.
 */
 
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
+#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
 #endif
 #if DEBUG_OUTPUT
 #undef F

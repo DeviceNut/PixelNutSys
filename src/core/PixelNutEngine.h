@@ -204,7 +204,7 @@ protected:
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 
   bool externPropMode = false;                  // true to allow external control of properties
-  byte externValueHue;                         // externally set values property values
+  byte externValueHue;                          // externally set values property values
   byte externPcentWhite;
   byte externPcentCount;
 
