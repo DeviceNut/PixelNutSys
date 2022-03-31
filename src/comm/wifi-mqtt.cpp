@@ -21,7 +21,7 @@ See license.txt for the terms of this license.
 
 *****************************************************************************************/
 
-#define DEBUG_OUTPUT 1 // 1 enables debugging this file
+#define DEBUG_OUTPUT 0 // 1 enables debugging this file
 
 #include "main.h"
 #include "main/flash.h"
