@@ -6,9 +6,7 @@ See license.txt for the terms of this license.
 
 #include "main.h"
 #include "main/flash.h"
-#if !defined(PARTICLE)
 #include <EEPROM.h>
-#endif
 
 #if (FLASHOFF_PINFO_END > EEPROM_BYTES)
 #error("Not enough flash space to store external pattern strings");
@@ -136,7 +134,13 @@ void FlashSetPatNum(byte pattern) { FlashSetValue(FLASHOFF_SDATA_PATNUM, pattern
 
 void FlashSetBright() { FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, pPixelNutEngine->getBrightPercent());  FlashDone(); }
 void FlashSetDelay()  { FlashSetValue(FLASHOFF_SDATA_PC_DELAY,  pPixelNutEngine->getDelayPercent());   FlashDone(); }
-void FlashSetFirst()  { FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,  pPixelNutEngine->getFirstPosition());  FlashDone(); }
+void FlashSetFirst()
+{
+  uint16_t val = pPixelNutEngine->getFirstPosition();
+  FlashSetValue(FLASHOFF_SDATA_FIRSTPOS,   val&0xff);
+  FlashSetValue(FLASHOFF_SDATA_FIRSTPOS+1, val>>8);
+  FlashDone();
+}
 
 void FlashSetXmode(bool enable) { FlashSetValue(FLASHOFF_SDATA_XT_MODE, enable);  FlashDone(); }
 

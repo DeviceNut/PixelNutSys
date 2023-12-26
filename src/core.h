@@ -6,15 +6,9 @@
 
 #pragma once
 
-#if defined(PARTICLE)
-#include <Particle.h>
-#include <math.h>
-#else
 #include <Arduino.h>
-#endif
 
 #include "config.h" // app configuration
-
 #include "core/PixelNutSupport.h"
 #include "core/PixelNutPlugin.h"
 #include "core/PixelNutEngine.h"

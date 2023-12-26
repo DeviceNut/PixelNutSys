@@ -83,7 +83,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
     {
       switch (cmd[0])
       {
-        case 'M': // sets/clears mute/solor states for track/layer ("M" same as "M1")
+        case 'M': // sets/clears mute/solo states for track/layer ("M" same as "M1")
         {
           short value = GetNumValue(cmd+1, (ENABLEBIT_MUTE | ENABLEBIT_SOLO));
           if (value < 0) value = ENABLEBIT_MUTE;
@@ -161,7 +161,7 @@ PixelNutEngine::Status PixelNutEngine::execCmdStr(char *cmdstr)
           pixelNutSupport.makeColorVals(pdraw);
           break;
         }
-        case 'D': // drawing delay ("D" sets default value)
+        case 'D': // percent drawing delay ("D" sets default value)
         {
           pdraw->pcentDelay = (byte)GetNumValue(cmd+1, DEF_PCENTDELAY, MAX_PERCENTAGE);
           //DBGOUT((F("  Delay=%d%%"), pdraw->pcentDelay));

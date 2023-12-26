@@ -39,14 +39,6 @@ extern void CallbackMqtt(char* topic, byte* message, unsigned int msglen);
 #define MQTT_TEST(m)  (m.connected())
 #endif
 
-#if defined(PARTICLE)
-#include <MQTT.h> // specific to Photon
-static MQTT mqttClient(MQTT_BROKER_IPADDR, MQTT_BROKER_PORT, MAXLEN_PATSTR+100, CallbackMqtt);
-SYSTEM_MODE(MANUAL); // prevent connecting to the Particle Cloud
-#define WIFI_TEST(w)  (w.ready())
-#define MQTT_TEST(m)  (m.isConnected())
-#endif
-
 #define MQTT_TOPIC_NOTIFY     "PixelNut/Notify"
 #define MQTT_TOPIC_COMMAND    "PixelNut/Cmd/" // + name
 #define MQTT_TOPIC_REPLY      "PixelNut/Reply"
@@ -209,38 +201,6 @@ void WiFiMqtt::ConnectOTA(void)
 }
 #endif
 
-#if defined(PARTICLE)
-bool WiFiMqtt::ConnectWiFi(int msecs)
-{
-  DBGOUT(("WiFi connecting..."));
-  WiFi.connect();
-
-  DBGOUT(("WiFi set credentials..."));
-  WiFi.setHostname(hostName);
-  WiFi.clearCredentials();
-  WiFi.setCredentials(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
-
-  uint32_t tout = millis() + msecs;
-  while (millis() < tout)
-  {
-    DBGOUT(("WiFi test ready..."));
-    if (WIFI_TEST(WiFi)) // does not return right away if fails
-    {
-      strcpy(localIP, WiFi.localIP().toString().c_str());
-      MakeMqttStrs(); // uses deviceName and localIP
-
-      DBGOUT(("WiFi ready at: %s", localIP));
-      return true;
-    }
-
-    BlinkStatusLED(1, 0);
-  }
-
-  DBGOUT(("WiFi connect failed!"));
-  return false;
-}
-#endif
-
 bool WiFiMqtt::ConnectMqtt(void)
 {
   if (!MQTT_TEST(mqttClient))
@@ -366,24 +326,6 @@ void WiFiMqtt::setup(void)
   DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
   DBGOUT(("  MaxBufSize=%d", MQTT_MAX_PACKET_SIZE));
   DBGOUT(("  KeepAliveSecs=%d", MQTT_KEEPALIVE));
-
-  if (!CheckConnections(true)) // initial connection attempt
-    ErrorHandler(3, 1, false);
-
-  DBGOUT(("---------------------------------------"));
-}
-#endif
-
-#if defined(PARTICLE)
-void WiFiMqtt::setup(void)
-{
-  FlashGetDevName(deviceName);
-  MakeHostName(); // uses deviceName
-
-  DBGOUT(("---------------------------------------"));
-  DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
-  DBGOUT(("Mqtt Device: %s", deviceName));
-  DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));
 
   if (!CheckConnections(true)) // initial connection attempt
     ErrorHandler(3, 1, false);

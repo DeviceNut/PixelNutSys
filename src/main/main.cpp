@@ -31,9 +31,7 @@ CustomCode *pCustomCode = &customcode;
 #endif
 
 #if PIXELS_APA
-#if !defined(PARTICLE)
 #include <SPI.h>
-#endif
 SPISettings spiSettings(SPI_SETTINGS_FREQ, MSBFIRST, SPI_MODE0);
 PixelValOrder pixorder = {2,1,0}; // mapping of (RGB) to (BRG) for APA102
 #else

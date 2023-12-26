@@ -152,7 +152,7 @@ void PixelNutSupport::getPixel(PixelNutHandle handle, uint16_t pos, byte *ptr_r,
     *ptr_r = ppixs[pPixOrder->r];
     *ptr_g = ppixs[pPixOrder->g];
     *ptr_b = ppixs[pPixOrder->b];
-   }
+  }
 }
 
 void PixelNutSupport::setPixel(PixelNutHandle handle, uint16_t pos, byte r, byte g, byte b, float scale)

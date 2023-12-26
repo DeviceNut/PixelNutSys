@@ -112,7 +112,6 @@ void ExecAppCmd(char* instr)
       pCustomCode->sendReply((char*)"{");
 
       pCustomCode->sendReply( jsonNum(outstr, "ispaused",   !doUpdate) );
-
       pCustomCode->sendReply( jsonNum(outstr, "nstrands",   STRAND_COUNT) );
       pCustomCode->sendReply( jsonNum(outstr, "maxstrlen",  MAXLEN_PATSTR) );
       pCustomCode->sendReply( jsonNum(outstr, "numlayers",  NUM_PLUGIN_LAYERS) );
@@ -161,7 +160,6 @@ void ExecAppCmd(char* instr)
 
       for (int i = 0; i < codePatterns; ++i)
       {
-
         pCustomCode->sendReply( jsonStr(outstr, "name", devPatNames[i]) );
         pCustomCode->sendReply( jsonStr(outstr, "desc", devPatDesc[i]) );
 
