@@ -29,10 +29,9 @@ See license.txt for the terms of this license.
 #define FLASHOFF_SDATA_PC_DELAY     2
 #define FLASHOFF_SDATA_FIRSTPOS     3  // 2 bytes
 #define FLASHOFF_SDATA_XT_MODE      5
-#define FLASHOFF_SDATA_XT_HUE       6
-#define FLASHOFF_SDATA_XT_WHT       7
-#define FLASHOFF_SDATA_XT_CNT       8
-// Note: byte 9 is unused
+#define FLASHOFF_SDATA_XT_HUE       6  // 2 bytes
+#define FLASHOFF_SDATA_XT_WHT       8
+#define FLASHOFF_SDATA_XT_CNT       9
 
 #if CLIENT_APP
 #define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
@@ -70,7 +69,7 @@ extern void FlashSetDelay();
 extern void FlashSetFirst();
 extern void FlashSetPatNum(byte pattern);
 extern void FlashSetXmode(bool enable);
-extern void FlashSetExterns(byte hue, byte wht, byte cnt);
+extern void FlashSetExterns(uint16_t hue, byte wht, byte cnt);
 extern void FlashStartup(void);
 #if EEPROM_FORMAT
 extern void FlashFormat(void);

@@ -34,10 +34,10 @@ public:
     //pixelNutSupport.msgFormat(F("ColorModify1: force=%d%% hue=%d white=%d"),
     //    (int)(pcentforce*100), pdraw->dvalueHue, pdraw->pcentWhite);
  
-    uint16_t addhue = (uint16_t)(pcentforce * MAX_DVALUE_HUE / 10);
+    uint16_t addhue = (uint16_t)(pcentforce * (MAX_DVALUE_HUE+1) / 10);
     if (!addhue) addhue = 1;
     pdraw->dvalueHue += addhue;
-    pdraw->dvalueHue %= (MAX_DVALUE_HUE + 1);
+    pdraw->dvalueHue %= (MAX_DVALUE_HUE+1);
 
     uint16_t addwhite = (uint16_t)(pcentforce * MAX_PERCENTAGE / 10);
     if (!addwhite) addwhite = 1;

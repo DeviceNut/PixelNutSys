@@ -144,9 +144,10 @@ void FlashSetFirst()
 
 void FlashSetXmode(bool enable) { FlashSetValue(FLASHOFF_SDATA_XT_MODE, enable);  FlashDone(); }
 
-void FlashSetExterns(byte hue, byte wht, byte cnt)
+void FlashSetExterns(uint16_t hue, byte wht, byte cnt)
 {
-  FlashSetValue(FLASHOFF_SDATA_XT_HUE, hue);
+  FlashSetValue(FLASHOFF_SDATA_XT_HUE,   (hue & 0xff));
+  FlashSetValue(FLASHOFF_SDATA_XT_HUE+1, (hue >> 8));
   FlashSetValue(FLASHOFF_SDATA_XT_WHT, wht);
   FlashSetValue(FLASHOFF_SDATA_XT_CNT, cnt);
   FlashDone();
@@ -185,10 +186,12 @@ void FlashStartup(void)
   pPixelNutEngine->setDelayPercent(delay);
   pPixelNutEngine->setFirstPosition(fpos);
 
-  pPixelNutEngine->setPropertyMode(FlashGetValue(FLASHOFF_SDATA_XT_MODE));
-  pPixelNutEngine->setColorProperty(FlashGetValue(FLASHOFF_SDATA_XT_HUE),
-                                    FlashGetValue(FLASHOFF_SDATA_XT_WHT));
-  pPixelNutEngine->setCountProperty(FlashGetValue(FLASHOFF_SDATA_XT_CNT));
+  uint16_t hue = FlashGetValue(FLASHOFF_SDATA_XT_HUE) +
+                (FlashGetValue(FLASHOFF_SDATA_XT_HUE+1) << 8);
+
+  pPixelNutEngine->setPropertyMode(      FlashGetValue(FLASHOFF_SDATA_XT_MODE));
+  pPixelNutEngine->setColorProperty(hue, FlashGetValue(FLASHOFF_SDATA_XT_WHT));
+  pPixelNutEngine->setCountProperty(     FlashGetValue(FLASHOFF_SDATA_XT_CNT));
 
   FlashDone();
 }

@@ -62,7 +62,7 @@ public:
   // or ExtControlBit_PcentWhite bits. These values can be individually controlled. The
   // 'hue_value' is a value from 0...MAX_DVALUE_HUE, and the 'white_percent' value
   // is a percentage from 0...MAX_PERCENTANGE.
-  void setColorProperty(byte hue_value, byte white_percent);
+  void setColorProperty(uint16_t hue_value, byte white_percent);
 
   // Sets the pixel count property for tracks that have set the ExtControlBit_PixCount bit.
   // The 'pixcount_percent' value is a percentage from 0...MAX_PERCENTAGE.
@@ -74,10 +74,10 @@ public:
   void setPropertyMode(bool enable);
 
   // Retrieves the external property mode settings
-  bool getPropertyMode()  { return externPropMode;   }
-  byte getPropertyHue()   { return externValueHue;  }
-  byte getPropertyWhite() { return externPcentWhite; }
-  byte getPropertyCount() { return externPcentCount; }
+  bool      getPropertyMode()  { return externPropMode;   }
+  uint16_t  getPropertyHue()   { return externValueHue;  }
+  byte      getPropertyWhite() { return externPcentWhite; }
+  byte      getPropertyCount() { return externPcentCount; }
 
   // Triggers effect layers with a range value of 0..MAX_FORCE_VALUE.
   // Must be enabled with the "I" command for each effect layer to be effected.
@@ -94,9 +94,6 @@ public:
 
   // Updates current effect: returns true if the pixels have changed and should be redisplayed.
   virtual bool updateEffects(void);
-
-  // creates command string from currently running pattern
-  bool makeCmdStr(char *cmdstr, int maxlen);
 
   // Used to access main display buffer and related parameters.
   byte *pDrawPixels;    // current pixel buffer to draw into or display
@@ -171,7 +168,7 @@ protected:
   }
   PluginLayer; // defines each layer of effect plugin
 
-  typedef struct ATTR_PACKED _PluginTrack // 24-26 bytes + pixelbuffer
+  typedef struct ATTR_PACKED _PluginTrack // 26-28 bytes + pixelbuffer
   {
     PluginLayer *pLayer;                        // pointer to layer for this track
 
@@ -204,11 +201,11 @@ protected:
   byte *pDisplayPixels;                         // pointer to actual output display pixels
 
   bool externPropMode = false;                  // true to allow external control of properties
-  byte externValueHue;                          // externally set values property values
+  uint16_t externValueHue;                      // externally set values property values
   byte externPcentWhite;
   byte externPcentCount;
 
-  void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byte dvalueHue, byte pcentWhite);
+  void RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t dvalueHue, byte pcentWhite);
   void OverridePropVals(PluginTrack *pTrack);
 
   void TriggerLayer(PluginLayer *pLayer, byte force);
@@ -218,13 +215,11 @@ protected:
 
   Status MakeNewPlugin(uint16_t iplugin, PixelNutPlugin **ppPlugin);
   void InitPluginTrack(PluginTrack *pTrack, PluginLayer *pLayer);
-  void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack,
-                          PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
+  void InitPluginLayer(PluginLayer *pLayer, PluginTrack *pTrack, PixelNutPlugin *pPlugin, uint16_t iplugin, bool redraw);
   void BeginPluginLayer(PluginLayer *pLayer);
 
   void ShowAllStacks(void);
 
-  void UpdateSourceTriggers(void);
   void UpdateLayerPtrInTracks(void);
   void UpdateTrackPtrInLayers(void);
 

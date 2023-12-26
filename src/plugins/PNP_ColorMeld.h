@@ -67,7 +67,7 @@ public:
     }
     else
     {
-           if (curHue < endHue) curHue = (curHue + 1) % (MAX_DVALUE_HUE + 1);
+           if (curHue < endHue) curHue = (curHue + 1) % (MAX_DVALUE_HUE+1);
       else if (curHue > endHue) curHue -= 1;
 
       if (curWhite != endWhite)

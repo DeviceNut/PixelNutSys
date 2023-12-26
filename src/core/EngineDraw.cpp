@@ -15,7 +15,7 @@ void PixelNutEngine::setPropertyMode(bool enable)
   externPropMode = enable;
 }
 
-void PixelNutEngine::setColorProperty(byte hue_value, byte white_percent)
+void PixelNutEngine::setColorProperty(uint16_t hue_value, byte white_percent)
 {
   externValueHue = pixelNutSupport.clipValue(hue_value, 0, MAX_DVALUE_HUE);
   externPcentWhite = pixelNutSupport.clipValue(white_percent, 0, MAX_PERCENTAGE);
@@ -69,7 +69,7 @@ void PixelNutEngine::OverridePropVals(PluginTrack *pTrack)
 }
 
 // internal: restore property values to previous values
-void PixelNutEngine::RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, byte dvalueHue, byte pcentWhite)
+void PixelNutEngine::RestorePropVals(PluginTrack *pTrack, uint16_t pixCount, uint16_t dvalueHue, byte pcentWhite)
 {
   if (pTrack->pLayer->mute) return;
 
@@ -144,7 +144,7 @@ bool PixelNutEngine::updateEffects(void)
         pfilter->pPlugin->nextstep(this, &pTrack->draw);
 
     short pixCount = 0;
-    byte dvalueHue = 0;
+    uint16_t dvalueHue = 0;
     byte pcentWhite = 0;
 
     if (externPropMode)

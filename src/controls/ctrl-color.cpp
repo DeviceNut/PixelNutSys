@@ -16,7 +16,7 @@ UIDeviceAnalog pc_white(APIN_WHITE_POT, 0, MAX_PERCENTAGE);
 
 static void SetColorProp(void)
 {
-  byte hue_val = pc_hue.newValue;
+  uint16_t hue_val = pc_hue.newValue;
   byte white_val = pc_white.newValue;
   DBGOUT((F("Setting hue = %d and white = %d"), hue_val, white_val));
   pPixelNutEngine->setColorProperty(hue_val, white_val);

@@ -1,13 +1,13 @@
 // What Effect Does:
 //
-//    Directly sets the current color hue from the force value when triggered. As the force increases
-//    the color hue changes from red->green->blue. A value of 0 sets the color to red, as does the maximum.
+//    Directly sets the current color hue from the force value when triggered. As the force increases the
+//    color hue changes from red->green->blue->red. A value of 0 sets the color to red, as does the maximum.
 //
 //    The whiteness and brightness are unaffected.
 //
 // Calling trigger():
 //
-//    Sets the color hue with the force value scaled to degrees.
+//    Sets the color hue with the force value scaled to number of hues.
 //
 // Calling nextstep():
 //

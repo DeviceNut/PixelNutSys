@@ -18,7 +18,7 @@
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
 #define MAX_PIXEL_VALUE           255     // max value for pixel
 #define MAX_LAYER_VALUE           255     // max number of layers in pattern
-#define MAX_DVALUE_HUE            255     // hue value is 0-255
+#define MAX_DVALUE_HUE            359     // hue value is 0-255
 #define MAX_FORCE_VALUE           255     // max value for force
 #define MAX_PLUGIN_VALUE          32000   // max value for plugin
 
@@ -55,22 +55,23 @@ public:
   // and the Plugins to draw into pixel buffers and handle trigger events.
 
   // properties that can be modified at any time by commands/plugins:
-  typedef struct ATTR_PACKED // 16 bytes
+  typedef struct ATTR_PACKED // 18 bytes
   {
     uint16_t pixStart;          // start of pixel draw range (from 0)
     uint16_t pixLen;            // length of pixels to drawn (1-max)
     uint16_t pixCount;          // pixel count property (from 1)
 
+    uint16_t dvalueHue;         // hue in degrees (0-MAX_DVALUE_HUE)
     byte pcentBright;           // percent brightness (0-MAX_PERCENTAGE)
     byte pcentDelay;            // determines delay after each redraw
-
-    byte dvalueHue;             // hue in degrees (0-MAX_DVALUE_HUE)
     byte pcentWhite;            // percent whiteness (0-MAX_PERCENTAGE)
     byte r,g,b;                 // RGB calculated from (hue,white,bright)
 
     bool goBackwards;           // direction of drawing (true for end-to-start)
     bool pixOrValues;           // whether pixels overwrite or are combined
     bool noRepeating;           // true for one-shot, else continuous
+
+    uint8_t filler;
   }
   DrawProps; // defines properties used in drawing an effect
 
