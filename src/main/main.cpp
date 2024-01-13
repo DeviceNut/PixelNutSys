@@ -45,7 +45,7 @@ PixelNutEngine *pPixelNutEngine; // pointer to current engine
 
 static int pixcounts[] = PIXEL_COUNTS;
 static byte pinnums[] = PIXEL_PINS;
-#define PIXEL_BYTES 3 // this is fixed
+#define PIXEL_BYTES 3 // fixed for all pixels
 
 #if DEBUG_OUTPUT
 #warning("Debug mode is enabled")
@@ -169,28 +169,30 @@ void setup()
   // alloc arrays, turn off pixels, init patterns
   for (int i = 0; i < STRAND_COUNT; ++i)
   {
-    if (!pixelNutEngines[i].init(pixcounts[i], PIXEL_BYTES, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS, PIXEL_OFFSET))
-    {
-      DBGOUT((F("Failed to initialize pixel engine, strand=%d"), i));
-      ErrorHandler(2, PixelNutEngine::Status_Error_Memory, true);
-    }
-
     #if !PIXELS_APA
+    // NOTE: for some reason!! this MUST be before pixelNutEngines.init() below
     neoPixels[i] = new NeoPixelShow(pinnums[i]);
     if (neoPixels[i] == NULL)
     {
       DBGOUT((F("Alloc failed for neopixel class, strand=%d"), i));
       ErrorHandler(1, 0, true);
     }
+    #endif
+
     #if defined(ESP32)
     // crashes if pin isn't set correctly
-    if (!neoPixels[i]->rmtInit(i, pixelNutEngines[i].pixelBytes))
+    if (!neoPixels[i]->rmtInit(i, (pixcounts[i] * PIXEL_BYTES)))
     {
       DBGOUT((F("Alloc failed for RMT data, strand=%d"), i));
       ErrorHandler(1, 0, true);
     }
     #endif
-    #endif // PIXELS_APA
+
+    if (!pixelNutEngines[i].init(pixcounts[i], PIXEL_BYTES, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS, PIXEL_OFFSET))
+    {
+      DBGOUT((F("Failed to initialize pixel engine, strand=%d"), i));
+      ErrorHandler(2, PixelNutEngine::Status_Error_Memory, true);
+    }
 
     pPixelNutEngine = &pixelNutEngines[i];
     ShowPixels(i); // turn off pixels
@@ -210,7 +212,7 @@ void setup()
   FlashSetStrand(0); // always start on first strand
   pPixelNutEngine = &pixelNutEngines[0];
 
-  pCustomCode->setup();   // custom initialization here
+  pCustomCode->setup(); // custom initialization here
 
   #if defined(ESP32)
   randomSeed(esp_random()); // should be called after BLE/WiFi started
@@ -219,10 +221,10 @@ void setup()
   randomSeed(analogRead(APIN_SEED));
   #endif
 
+  pCustomCode->sendReply((char*)"<Reboot>"); // signal client
+
   BlinkStatusLED(0, 2); // indicates success
   DBGOUT((F("** Setup complete **")));
-
-  pCustomCode->sendReply((char*)"<Reboot>"); // signal client
 }
 
 void loop()

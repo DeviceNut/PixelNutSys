@@ -125,7 +125,6 @@ void ExecAppCmd(char* instr)
       #endif
       pCustomCode->sendReply( jsonArrayStart(outstr, "strands") );
 
-      int pixcounts[] = PIXEL_COUNTS;
       int curstrand = FlashGetStrand();
 
       for (int i = 0; i < STRAND_COUNT; ++i)
@@ -133,7 +132,7 @@ void ExecAppCmd(char* instr)
         FlashSetStrand(i);
         pPixelNutEngine = &pixelNutEngines[i];
 
-        pCustomCode->sendReply( jsonNum(outstr, "pixels",   pixcounts[i]) );
+        pCustomCode->sendReply( jsonNum(outstr, "pixels",   pPixelNutEngine->numPixels) );
         pCustomCode->sendReply( jsonNum(outstr, "bright",   pPixelNutEngine->getBrightPercent()) );
         pCustomCode->sendReply( jsonNum(outstr, "delay",    pPixelNutEngine->getDelayPercent()) );
         pCustomCode->sendReply( jsonNum(outstr, "first",    pPixelNutEngine->getFirstPosition()) );

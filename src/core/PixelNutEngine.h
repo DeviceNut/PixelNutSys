@@ -98,7 +98,7 @@ public:
   // Used to access main display buffer and related parameters.
   byte *pDrawPixels;    // current pixel buffer to draw into or display
   uint16_t numPixels;   // number of pixels in output buffer
-  uint16_t pixelBytes;  // total bytes in for all pixels
+  uint16_t pixelBytes;  // total bytes for all pixels
 
 protected:
 
