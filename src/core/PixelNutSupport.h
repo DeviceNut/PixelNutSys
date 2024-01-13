@@ -18,7 +18,7 @@
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
 #define MAX_PIXEL_VALUE           255     // max value for pixel
 #define MAX_LAYER_VALUE           255     // max number of layers in pattern
-#define MAX_DVALUE_HUE            359     // hue value is 0-255
+#define MAX_DVALUE_HUE            359     // max value for hue
 #define MAX_FORCE_VALUE           255     // max value for force
 #define MAX_PLUGIN_VALUE          32000   // max value for plugin
 

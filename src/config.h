@@ -1,13 +1,13 @@
 // Set project specific configuration defines here.
 /*
-Copyright (c) 2022, Greg de Valois
+Copyright (c) 2024, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
 
 #pragma once
 
-#define PIXELNUT_VERSION        20          // 2.0 - this is a rework of the 1st version
+#define PIXELNUT_VERSION        21          // 2.0+ - this is a rework of the 1st version
 
 // IMPORTANT NOTE:
 // When first flashing a new device, you need to compile and flash with
@@ -66,7 +66,7 @@ See license.txt for the terms of this license.
 */
 
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
+#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
 #endif
 #if DEBUG_OUTPUT
 #undef F
@@ -122,11 +122,11 @@ extern void MsgFormat(const char *fmtstr, ...);
 #endif
 
 // surpress warnings for undefined symbols
-#if !defined(WIFI_SOFTAP)
-#define WIFI_SOFTAP             0
-#endif
 #if !defined(BLE_ESP32)
 #define BLE_ESP32               0
+#endif
+#if !defined(WIFI_SOFTAP)
+#define WIFI_SOFTAP             0
 #endif
 #if !defined(COM_SERIAL)
 #define COM_SERIAL              0

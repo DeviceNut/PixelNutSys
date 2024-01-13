@@ -43,8 +43,8 @@ PixelNutSupport pixelNutSupport = PixelNutSupport((GetMsecsTime)millis, &pixorde
 PixelNutEngine pixelNutEngines[STRAND_COUNT];
 PixelNutEngine *pPixelNutEngine; // pointer to current engine
 
-static byte pinnums[] = PIXEL_PINS;
 static int pixcounts[] = PIXEL_COUNTS;
+static byte pinnums[] = PIXEL_PINS;
 #define PIXEL_BYTES 3 // this is fixed
 
 #if DEBUG_OUTPUT
@@ -56,19 +56,25 @@ void DisplayConfiguration(void)
   #if DEBUG_OUTPUT
 
   char numstr[20];
-  char strcounts[100];
-  strcounts[0] = 0;
+  char pixstr[100];
+  char pinstr[100];
+  pixstr[0] = pinstr[0] = 0;
   for (int i = 0; i < STRAND_COUNT; ++i)
   {
     itoa(pixcounts[i], numstr, 10);
-    strcat(strcounts, numstr);
-    strcat(strcounts, " ");
+    strcat(pixstr, numstr);
+    strcat(pixstr, " ");
+
+    itoa(pinnums[i], numstr, 10);
+    strcat(pinstr, numstr);
+    strcat(pinstr, " ");
   }
 
   DBGOUT((F("Configuration:")));
   DBGOUT((F("  MAX_BRIGHTNESS       = %d"), MAX_BRIGHTNESS));
   DBGOUT((F("  STRAND_COUNT         = %d"), STRAND_COUNT));
-  DBGOUT((F("  PIXEL_COUNTS         = %s"), strcounts));
+  DBGOUT((F("  PIXEL_COUNTS         = %s"), pixstr));
+  DBGOUT((F("  PIXEL_PINS           = %s"), pinstr));
   DBGOUT((F("  MAXLEN_PATSTR        = %d"), MAXLEN_PATSTR));
   DBGOUT((F("  MAXLEN_PATNAME       = %d"), MAXLEN_PATNAME));
   DBGOUT((F("  DEV_PATTERNS         = %d"), DEV_PATTERNS));
@@ -94,10 +100,15 @@ void DisplayConfiguration(void)
 
 void ShowPixels(int index)
 {
+  int pcount = pixelNutEngines[index].numPixels;
   byte *ppix = pixelNutEngines[index].pDrawPixels;
 
+  // byte *p = ppix;
+  // for (int i = 0; i < pcount; ++i)
+  //   DBGOUT((F("%d.%d.%d"), *p++, *p++, *p++));
+  // DBGOUT((F("------------------")));
+
   #if PIXELS_APA
-  int count = pixelNutEngines[index].numPixels;
 
   digitalWrite(pinnums[index], LOW); // enable this strand
   SPI.beginTransaction(spiSettings);
@@ -105,7 +116,7 @@ void ShowPixels(int index)
   // 4 byte start-frame marker
   for (int i = 0; i < 4; i++) SPI.transfer(0x00);
 
-  for (int i = 0; i < count; ++i)
+  for (int i = 0; i < pcount; ++i)
   {
     SPI.transfer(0xFF);
     for (int j = 0; j < PIXEL_BYTES; j++) SPI.transfer(*ppix++);
@@ -115,7 +126,7 @@ void ShowPixels(int index)
   digitalWrite(pinnums[index], HIGH); // disable this strand
 
   #else
-  neoPixels[index]->show(ppix, pixcounts[index]*PIXEL_BYTES);
+  neoPixels[index]->show(ppix, pcount*PIXEL_BYTES);
   #endif
 }
 
@@ -185,7 +196,7 @@ void setup()
     ShowPixels(i); // turn off pixels
 
     FlashSetStrand(i);
-    FlashStartup();   // get curPattern and settings from flash, set engine properties
+    FlashStartup(); // get curPattern and settings from flash, set engine properties
 
     #if CLIENT_APP
     char cmdstr[MAXLEN_PATSTR+1];

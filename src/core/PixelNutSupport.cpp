@@ -44,7 +44,7 @@ static void HSVtoRGB(int hue, byte sat, byte val, byte *rptr, byte *gptr, byte *
 
   float s = (float)sat / MAX_PERCENTAGE;
   float v = (float)val / MAX_PERCENTAGE;
-  float h = (float)hue / MAX_DVALUE_HUE;
+  float h = (float)hue / (MAX_DVALUE_HUE+1);
   float q = (h * 360) / 60; // which 60 degree section
   float smod = q - (int)q; // saturation modifier 0..1
   float r, g, b; // values 0..1

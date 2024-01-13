@@ -260,11 +260,9 @@ bool PixelNutEngine::updateEffects(void)
       }
     }
 
-    /*
-    byte *p = pDisplayPixels;
-    for (int i = 0; i < numPixels; ++i)
-      DBGOUT((F("%d.%d.%d"), *p++, *p++, *p++));
-    */
+    // byte *p = pDisplayPixels;
+    // for (int i = 0; i < numPixels; ++i)
+    //   DBGOUT((F("%d.%d.%d"), *p++, *p++, *p++));
   }
 
   return doshow;
