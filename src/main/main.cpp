@@ -139,7 +139,6 @@ void setup()
 
   #if EEPROM_FORMAT
   FlashFormat(); // format entire EEPROM
-  pCustomCode->flash(); // custom flash handling
   ErrorHandler(0, 3, true);
   #endif
 

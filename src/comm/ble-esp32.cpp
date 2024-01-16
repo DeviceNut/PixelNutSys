@@ -33,9 +33,8 @@ public:
   void setName(char *name);
   void sendReply(char *instr);
 
-  char deviceName[MAXLEN_DEVICE_NAME + 1];
-
   bool isConnected = false;
+  char deviceName[MAXLEN_DEVICE_NAME + 1];
 
   char queueStrs[MAXNUM_QSTRS][MAXLEN_PATSTR+1] = {};
   int queueHead = 0;
@@ -65,10 +64,11 @@ class ServerCallbacks: public BLEServerCallbacks
   {
     DBGOUT(("BLE Disconnect"));
     bleEsp32.isConnected = false;
+    BLEDevice::startAdvertising();
   }
 };
 
-class CharCallbacks: public BLECharacteristicCallbacks
+class RXcallbacks: public BLECharacteristicCallbacks
 {
   void onWrite(BLECharacteristic *pCharacteristic)
   {
@@ -88,7 +88,7 @@ class CharCallbacks: public BLECharacteristicCallbacks
         return;
     }
     strcpy(instr, blestr);
-    DBGOUT(("BLE read: \"%s\"", instr));
+    // DBGOUT(("BLE read: \"%s\"", instr));
 
     while (*instr) // while more string to parse
     {
@@ -155,18 +155,17 @@ void BleEsp32::setup(void)
   DBGOUT((F("Setting up BLE...")));
 
   BLEDevice::init(str);
+  // BLEDevice::setMTU(500);
 
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new ServerCallbacks());
   pService = pServer->createService(SERVICE_UUID_UART);
 
-  pTxChar = pService->createCharacteristic(CHAR_UUID_UART_TX,
-						              BLECharacteristic::PROPERTY_NOTIFY);
+  pTxChar = pService->createCharacteristic(CHAR_UUID_UART_TX, BLECharacteristic::PROPERTY_NOTIFY);
   pTxChar->addDescriptor(new BLE2902());
 
-  pRxChar = pService->createCharacteristic(CHAR_UUID_UART_RX,
-											    BLECharacteristic::PROPERTY_WRITE);
-  pRxChar->setCallbacks(new CharCallbacks());
+  pRxChar = pService->createCharacteristic(CHAR_UUID_UART_RX, BLECharacteristic::PROPERTY_WRITE);
+  pRxChar->setCallbacks(new RXcallbacks());
 
   pService->start();
 
@@ -207,7 +206,7 @@ void BleEsp32::sendReply(char *instr)
       slen -= copylen;
       pstr += copylen;
 
-      //DBGOUT(("BLE send chunk: \"%s\"", outstr));
+      // DBGOUT(("BLE send chunk: \"%s\"", outstr));
 
       if (!*pstr) strcat(outstr, "\n");
 

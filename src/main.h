@@ -11,10 +11,6 @@ See license.txt for the terms of this license.
 class CustomCode
 {
 public:
-  #if EEPROM_FORMAT
-  virtual void flash(void) {}
-  #endif
-
   // called during setup()
   virtual void setup(void) {}
   

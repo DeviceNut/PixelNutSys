@@ -155,7 +155,18 @@ void FlashSetExterns(uint16_t hue, byte wht, byte cnt)
 
 void FlashStartup(void)
 {
+  bool doinit = false;
+
   FlashStart();
+
+  char deviceName[MAXLEN_DEVICE_NAME + 1];
+  FlashGetDevName(deviceName);
+  if (!deviceName[0])
+  {
+    DBGOUT(("Set device name: %s", DEFAULT_DEVICE_NAME));
+    FlashSetDevName((char*)DEFAULT_DEVICE_NAME);
+    doinit = true;
+  }
 
   #if DEV_PATTERNS
   curPattern = FlashGetValue(FLASHOFF_SDATA_PATNUM);
@@ -165,17 +176,17 @@ void FlashStartup(void)
   #endif
 
   byte bright = FlashGetValue(FLASHOFF_SDATA_PC_BRIGHT);
-  if (!bright || (bright > MAX_BRIGHTNESS))
+  if ((bright > MAX_BRIGHTNESS) || (doinit && !bright))
   {
-    DBGOUT((F("Resetting bright: %d => %d %%"), bright, MAX_BRIGHTNESS));
-    FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, bright=MAX_BRIGHTNESS);
+    DBGOUT((F("Resetting bright: %d => %d %%"), bright, DEF_PERCENTAGE));
+    FlashSetValue(FLASHOFF_SDATA_PC_BRIGHT, bright=DEF_PERCENTAGE);
   }
 
   byte delay = FlashGetValue(FLASHOFF_SDATA_PC_DELAY);
-  if (delay > MAX_PERCENTAGE)
+  if ((delay > MAX_PERCENTAGE) || (doinit && !delay))
   {
-    DBGOUT((F("Resetting delay: %d => %d %%"), delay, MAX_PERCENTAGE));
-    FlashSetValue(FLASHOFF_SDATA_PC_DELAY, delay=MAX_PERCENTAGE);
+    DBGOUT((F("Resetting delay: %d => %d %%"), delay, DEF_PERCENTAGE));
+    FlashSetValue(FLASHOFF_SDATA_PC_DELAY, delay=DEF_PERCENTAGE);
   }
 
   int16_t fpos = FlashGetValue(FLASHOFF_SDATA_FIRSTPOS);

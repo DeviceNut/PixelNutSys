@@ -54,10 +54,6 @@ class WiFiMqtt : public CustomCode
 {
 public:
 
-  #if EEPROM_FORMAT
-  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
-  #endif
-
   void setup(void);
   void loop(void);
 
@@ -87,14 +83,15 @@ private:
   // creates the topic name for sending cmds
   // needs to be public to be used in callback
   char deviceName[MAXLEN_DEVICE_NAME + 1];
-  char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
   char replyStr[1000]; // long enough for all segments
 
   bool CheckConnections(bool firstime); // returns true if both WiFi/Mqtt connected
   bool ConnectWiFi(int msecs);          // attempts to connect to WiFi
   bool ConnectMqtt(void);               // attempts to connect to Mqtt
 
-  void MakeHostName(void);
+  // char hostName[strlen(PREFIX_DEVICE_NAME) + MAXLEN_DEVICE_NAME + 1];
+  // void MakeHostName(void);
+
   void MakeMqttStrs(void);
 };
 
@@ -250,18 +247,18 @@ void CallbackMqtt(char* topic, byte* message, unsigned int msglen)
   else { DBGOUT(("MQTT message too long: %d bytes", msglen)); }
 }
 
-void WiFiMqtt::MakeHostName(void)
-{
-  strcpy(hostName, PREFIX_DEVICE_NAME);
-  char *str = hostName + strlen(hostName);
+// void WiFiMqtt::MakeHostName(void)
+// {
+//   strcpy(hostName, PREFIX_DEVICE_NAME);
+//   char *str = hostName + strlen(hostName);
 
-  for (int i = 0; i < strlen(deviceName); ++i)
-  {
-    char ch = deviceName[i];
-    if (ch != ' ') *str++ = ch;
-  }
-  *str = 0;
-}
+//   for (int i = 0; i < strlen(deviceName); ++i)
+//   {
+//     char ch = deviceName[i];
+//     if (ch != ' ') *str++ = ch;
+//   }
+//   *str = 0;
+// }
 
 void WiFiMqtt::MakeMqttStrs(void)
 {
@@ -312,7 +309,7 @@ void WiFiMqtt::setName(char *name)
 void WiFiMqtt::setup(void)
 {
   FlashGetDevName(deviceName);
-  MakeHostName(); // uses deviceName
+  // MakeHostName(); // uses deviceName
 
   DBGOUT(("---------------------------------------"));
   DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
@@ -320,7 +317,7 @@ void WiFiMqtt::setup(void)
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  WiFi.setHostname(hostName);
+  // WiFi.setHostname(hostName); // unnecessary?
 
   DBGOUT(("Mqtt Device: %s", deviceName));
   DBGOUT(("Mqtt Broker: %s:%d", MQTT_BROKER_IPADDR, MQTT_BROKER_PORT));

@@ -16,15 +16,9 @@ See license.txt for the terms of this license.
 #include <WiFiClient.h>
 #include <WiFiAP.h>
 
-extern void CheckExecCmd(char *instr); // defined in main.h
-
 class WiFiSoftAp : public CustomCode
 {
 public:
-
-  #if EEPROM_FORMAT
-  void flash(void) { setName((char*)DEFAULT_DEVICE_NAME); }
-  #endif
 
   void setup(void);
   void loop(void);
@@ -42,8 +36,6 @@ private:
   IPAddress ipAddr = IPAddress(192, 168, 0, 1);
 
   char replyString[1000]; // long enough for maximum ?, ?S, ?P output strings
-
-  void ServerConnection(void);
 };
 
 WiFiSoftAp wifiSAP;

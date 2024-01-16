@@ -67,7 +67,7 @@ static char* jsonArrayStart(char* outstr, const char* name)
   return outstr;
 }
 
-static char* jsonArraydEnd(char* outstr)
+static char* jsonArrayEnd(char* outstr)
 {
   sprintf(outstr, "],");
   return outstr;
@@ -152,7 +152,7 @@ void ExecAppCmd(char* instr)
       FlashSetStrand(curstrand); // restore current strand
       pPixelNutEngine = &pixelNutEngines[curstrand];
 
-      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+      pCustomCode->sendReply( jsonArrayEnd(outstr) );
 
       #if DEV_PATTERNS
       pCustomCode->sendReply( jsonArrayStart(outstr, "patterns") );
@@ -167,7 +167,7 @@ void ExecAppCmd(char* instr)
         pCustomCode->sendReply(outstr);
       }
 
-      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+      pCustomCode->sendReply( jsonArrayEnd(outstr) );
       #endif
 
       #if DEV_PLUGINS
@@ -188,7 +188,7 @@ void ExecAppCmd(char* instr)
         pCustomCode->sendReply(outstr);
       }
 
-      pCustomCode->sendReply( jsonArraydEnd(outstr) );
+      pCustomCode->sendReply( jsonArrayEnd(outstr) );
       #endif
 
       // this ends the main object

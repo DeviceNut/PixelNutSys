@@ -7,7 +7,7 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#define PIXELNUT_VERSION        21          // 2.0+ - this is a rework of the 1st version
+#define PIXELNUT_VERSION        22          // 2.0+ - this is a rework of the 1st version
 
 // IMPORTANT NOTE:
 // When first flashing a new device, you need to compile and flash with
@@ -135,7 +135,7 @@ extern void MsgFormat(const char *fmtstr, ...);
 #if (BLE_ESP32 || WIFI_MQTT || WIFI_SOFTAP || COM_SERIAL)
 #define DEFAULT_DEVICE_NAME     "PixelNutDevice" // default name of device
 #define MAXLEN_DEVICE_NAME      32          // maxlen for device name
-#define PREFIX_DEVICE_NAME      "P!"        // for name to be recognized
+#define PREFIX_DEVICE_NAME      "P!!"       // for name to be recognized
 #define CLIENT_APP              1           // have external application
 #else
 #define CLIENT_APP              0           // no external application

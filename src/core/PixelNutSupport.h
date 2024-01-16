@@ -16,6 +16,7 @@
 
 // maximum values for properties:
 #define MAX_PERCENTAGE            100     // max percent value (0..100)
+#define DEF_PERCENTAGE            50      // default percentage (brightness/delay)
 #define MAX_PIXEL_VALUE           255     // max value for pixel
 #define MAX_LAYER_VALUE           255     // max number of layers in pattern
 #define MAX_DVALUE_HUE            359     // max value for hue
