@@ -71,7 +71,6 @@ void DisplayConfiguration(void)
   }
 
   DBGOUT((F("Configuration:")));
-  DBGOUT((F("  MAX_BRIGHTNESS       = %d"), MAX_BRIGHTNESS));
   DBGOUT((F("  STRAND_COUNT         = %d"), STRAND_COUNT));
   DBGOUT((F("  PIXEL_COUNTS         = %s"), pixstr));
   DBGOUT((F("  PIXEL_PINS           = %s"), pinstr));
@@ -98,15 +97,13 @@ void DisplayConfiguration(void)
   #endif
 }
 
+// int count = 3;
+// uint32_t *rmtptr = 0;
+
 void ShowPixels(int index)
 {
   int pcount = pixelNutEngines[index].numPixels;
   byte *ppix = pixelNutEngines[index].pDrawPixels;
-
-  // byte *p = ppix;
-  // for (int i = 0; i < pcount; ++i)
-  //   DBGOUT((F("%d.%d.%d"), *p++, *p++, *p++));
-  // DBGOUT((F("------------------")));
 
   #if PIXELS_APA
 
@@ -126,7 +123,33 @@ void ShowPixels(int index)
   digitalWrite(pinnums[index], HIGH); // disable this strand
 
   #else
+
+  // --count;
+  // if (count >= 0)
+  // {
+  //   DBGOUT((F("ShowPixels:")));
+  //   byte *p = ppix;
+  //   for (int i = 0; i < pcount; ++i)
+  //     DBGOUT((F("%02x.%02x.%02x"), *p++, *p++, *p++));
+  //   DBGOUT((F("--------")));
+  // }
+  // else return;
+
   neoPixels[index]->show(ppix, pcount*PIXEL_BYTES);
+
+  // if (count >= 0)
+  // {
+  //   DBGOUT((F("rmtptr=%08X"), rmtptr));
+  //   uint32_t *p2 = rmtptr;
+  //   for (int i = 0; i < pcount; ++i)
+  //   {
+  //     for (int i = 0; i < PIXEL_BYTES; ++i)
+  //       DBGOUT((F("%08x.%08x.%08x.%08x.%08x.%08x.%08x.%08x"), *p2++, *p2++, *p2++, *p2++, *p2++, *p2++, *p2++, *p2++));
+
+  //     DBGOUT((F("---")));
+  //   }
+  //   DBGOUT((F("------------------")));
+  // }
   #endif
 }
 
@@ -169,7 +192,7 @@ void setup()
   for (int i = 0; i < STRAND_COUNT; ++i)
   {
     #if !PIXELS_APA
-    // NOTE: for some reason!! this MUST be before pixelNutEngines.init() below
+    // DBGOUT((F("Alloc neopoxelshow...")));
     neoPixels[i] = new NeoPixelShow(pinnums[i]);
     if (neoPixels[i] == NULL)
     {
@@ -180,13 +203,15 @@ void setup()
 
     #if defined(ESP32)
     // crashes if pin isn't set correctly
-    if (!neoPixels[i]->rmtInit(i, (pixcounts[i] * PIXEL_BYTES)))
+    // DBGOUT((F("Alloc RMT buffer...")));
+    if (!neoPixels[i]->rmtInit(i, (pixcounts[i] * PIXEL_BYTES))) //, &rmtptr))
     {
       DBGOUT((F("Alloc failed for RMT data, strand=%d"), i));
       ErrorHandler(1, 0, true);
     }
     #endif
 
+    // DBGOUT((F("Alloc pixelnut engines...")));
     if (!pixelNutEngines[i].init(pixcounts[i], PIXEL_BYTES, NUM_PLUGIN_LAYERS, NUM_PLUGIN_TRACKS, PIXEL_OFFSET))
     {
       DBGOUT((F("Failed to initialize pixel engine, strand=%d"), i));
@@ -244,4 +269,6 @@ void loop()
     for (int i = 0; i < STRAND_COUNT; ++i)
       if (pixelNutEngines[i].updateEffects())
         ShowPixels(i);
+
+  // if (!doUpdate) count = 3;
 }

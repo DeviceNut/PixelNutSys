@@ -27,17 +27,15 @@ void SetupDBG(void)
 {
   Serial.begin(SERIAL_BAUD_RATE);
 
+  #if !defined(ESP32)
   #if (MSECS_WAIT_SERIAL > 0)
   uint32_t tout = millis() + MSECS_WAIT_SERIAL;
-  #if defined(ESP32)
-  while (!Serial.available()) // wait for something sent
-  #else
   while (!Serial) // wait for serial monitor
-  #endif
   {
     BlinkStatusLED(0, 1);
     if (millis() > tout) break;
   }
+  #endif
   #endif
 
   // wait a tad longer, then send sign-on message
