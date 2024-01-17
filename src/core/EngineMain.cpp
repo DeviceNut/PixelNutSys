@@ -83,7 +83,7 @@ void PixelNutEngine::RepeatTriger(void)
       pluginLayers[i].trigTimeMsecs = pixelNutSupport.getMsecs() +
           (1000 * random(pluginLayers[i].trigRepOffset,
                         (pluginLayers[i].trigRepOffset +
-                        pluginLayers[i].trigRepRange+1)));
+                         pluginLayers[i].trigRepRange+1)));
 
       if (pluginLayers[i].trigDnCounter > 0) --pluginLayers[i].trigDnCounter;
     }
