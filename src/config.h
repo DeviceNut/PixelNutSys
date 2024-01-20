@@ -7,7 +7,7 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#define PIXELNUT_VERSION        22          // 2.0+ - this is a rework of the 1st version
+#define PIXELNUT_VERSION        23          // 2.0+ - this is a rework of the 1st version
 
 // IMPORTANT NOTE:
 // When first flashing a new device, you need to compile and flash with
@@ -66,7 +66,7 @@ See license.txt for the terms of this license.
 */
 
 #if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
+#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
 #endif
 #if DEBUG_OUTPUT
 #undef F
@@ -75,7 +75,7 @@ See license.txt for the terms of this license.
 #define DBGOUT(x) MsgFormat x
 #define DEBUG_SIGNON            "PixelNut!"
 #define SERIAL_BAUD_RATE        115200      // *must* match this in serial monitor
-#define MSECS_WAIT_SERIAL       7000        // msecs to wait for serial monitor, or 0
+#define MSECS_WAIT_SERIAL       2000        // msecs to wait for serial monitor, or 0
 #else
 #define DBG(x)
 #define DBGOUT(x)

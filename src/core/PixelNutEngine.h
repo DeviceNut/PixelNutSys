@@ -121,10 +121,10 @@ protected:
   #define ENABLEBIT_SOLO    2   // layer has solo enabled
 
   #define LAYER_BYTES       (sizeof(PluginLayer))
-  #define LAYER_INDEX(p)    (p - pluginLayers)
+  #define LAYER_INDEX(p)    (p - pluginLayers) // debug only
 
   #define TRACK_BYTES       (sizeof(PluginTrack) + pixelBytes)
-  #define TRACK_INDEX(p)    (((byte*)p - (byte*)pluginTracks)/TRACK_BYTES)
+  #define TRACK_INDEX(p)    (((byte*)p - (byte*)pluginTracks)/TRACK_BYTES) // debug only
   #define TRACK_MAKEPTR(i)  (PluginTrack*)((i * TRACK_BYTES) + (byte*)pluginTracks)
   #define TRACK_BUFFER(p)   ((byte*)(p + 1))
 

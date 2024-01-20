@@ -192,7 +192,7 @@ void setup()
   for (int i = 0; i < STRAND_COUNT; ++i)
   {
     #if !PIXELS_APA
-    // DBGOUT((F("Alloc neopoxelshow...")));
+    // DBGOUT((F("Alloc neopixelshow...")));
     neoPixels[i] = new NeoPixelShow(pinnums[i]);
     if (neoPixels[i] == NULL)
     {
@@ -233,8 +233,11 @@ void setup()
     #endif
   }
 
-  FlashSetStrand(0); // always start on first strand
-  pPixelNutEngine = &pixelNutEngines[0];
+  if (STRAND_COUNT > 1)
+  {
+    FlashSetStrand(0); // always start on first strand
+    pPixelNutEngine = &pixelNutEngines[0];
+  }
 
   pCustomCode->setup(); // custom initialization here
 
