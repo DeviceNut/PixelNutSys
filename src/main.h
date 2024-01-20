@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2024, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
