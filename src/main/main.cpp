@@ -176,14 +176,6 @@ void setup()
 
   DisplayConfiguration(); // Display configuration settings
 
-  SetupBrightControls();  // Setup any physical controls present
-  SetupDelayControls();
-  SetupEModeControls();
-  SetupColorControls();
-  SetupCountControls();
-  SetupTriggerControls();
-  SetupPatternControls();
-
   #if DEV_PATTERNS
   CountPatterns(); // have internal stored patterns
   #endif
@@ -220,6 +212,15 @@ void setup()
 
     pPixelNutEngine = &pixelNutEngines[i];
     ShowPixels(i); // turn off pixels
+
+    // sets engine properties, so must do for each strand
+    SetupBrightControls();  // Setup any physical controls present
+    SetupDelayControls();
+    SetupEModeControls();
+    SetupColorControls();
+    SetupCountControls();
+    SetupTriggerControls();
+    SetupPatternControls();
 
     FlashSetStrand(i);
     FlashStartup(); // get curPattern and settings from flash, set engine properties
@@ -274,4 +275,7 @@ void loop()
         ShowPixels(i);
 
   // if (!doUpdate) count = 3;
+
+  // int val = analogRead(32);
+  // DBGOUT((F("Analog read=%d"), val));
 }
