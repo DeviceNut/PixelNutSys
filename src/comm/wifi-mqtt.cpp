@@ -34,7 +34,7 @@ extern void CallbackMqtt(char* topic, byte* message, unsigned int msglen);
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
-#include <ArduinoOTA.h>
+// #include <ArduinoOTA.h>
 #define WIFI_TEST(w)  (w.status() == WL_CONNECTED)
 #define MQTT_TEST(m)  (m.connected())
 #endif
@@ -65,7 +65,7 @@ private:
   #if defined(ESP32)
   WiFiClient wifiClient;
   PubSubClient mqttClient;
-	void ConnectOTA(void); // over-the-air code update
+	// void ConnectOTA(void); // over-the-air code update
   #endif
 
   char localIP[MAXLEN_DEVICE_IPSTR];  // local IP address
@@ -143,8 +143,8 @@ bool WiFiMqtt::ConnectWiFi(int msecs)
       MakeMqttStrs(); // uses deviceName and localIP
       DBGOUT(("WiFi ready at: %s", localIP));
 
-      DBGOUT(("OTA connect..."));
-      ConnectOTA();
+      // DBGOUT(("OTA connect..."));
+      // ConnectOTA();
 
       DBGOUT(("Mqtt client setup..."));
       mqttClient.setClient(wifiClient);
@@ -161,41 +161,41 @@ bool WiFiMqtt::ConnectWiFi(int msecs)
   return false;
 }
 
-void WiFiMqtt::ConnectOTA(void)
-{
-  ArduinoOTA
-    .onStart([]()
-    {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
+// doesn't work anymore? FIXME?
+// void WiFiMqtt::ConnectOTA(void)
+// {
+//   ArduinoOTA
+//     .onStart([]()
+//     {
+//       String type;
+//       if (ArduinoOTA.getCommand() == U_FLASH)
+//            type = "sketch";
+//       else type = "filesystem"; // U_SPIFFS
 
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("OTA: Start updating " + type);
-    })
-    .onEnd([]()
-    {
-      Serial.println("\nOTA: End");
-    })
-    .onProgress([](unsigned int progress, unsigned int total)
-    {
-      Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
-    })
-    .onError([](ota_error_t error)
-    {
-      Serial.printf("OTA: Error[%u]: ", error);
+//       // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+//       Serial.println("OTA: Start - updating " + type);
+//     })
+//     .onEnd([]()
+//     {
+//       Serial.println("\nOTA: End");
+//     })
+//     .onProgress([](unsigned int progress, unsigned int total)
+//     {
+//       Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
+//     })
+//     .onError([](ota_error_t error)
+//     {
+//       Serial.printf("OTA: Error[%u]: ", error);
 
-           if (error == OTA_AUTH_ERROR)     Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR)    Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR)  Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR)  Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR)      Serial.println("End Failed");
-    });
+//            if (error == OTA_AUTH_ERROR)     Serial.println("Auth Failed");
+//       else if (error == OTA_BEGIN_ERROR)    Serial.println("Begin Failed");
+//       else if (error == OTA_CONNECT_ERROR)  Serial.println("Connect Failed");
+//       else if (error == OTA_RECEIVE_ERROR)  Serial.println("Receive Failed");
+//       else if (error == OTA_END_ERROR)      Serial.println("End Failed");
+//     });
 
-  ArduinoOTA.begin();
-}
+//   ArduinoOTA.begin();
+// }
 #endif
 
 bool WiFiMqtt::ConnectMqtt(void)
@@ -312,7 +312,8 @@ void WiFiMqtt::setup(void)
   // MakeHostName(); // uses deviceName
 
   DBGOUT(("---------------------------------------"));
-  DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
+  DBGOUT(("WiFi: %s", WIFI_CREDS_SSID));
+  // DBGOUT(("WiFi: %s as %s", WIFI_CREDS_SSID, hostName));
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_CREDS_SSID, WIFI_CREDS_PASS);
@@ -333,9 +334,9 @@ void WiFiMqtt::setup(void)
 
 void WiFiMqtt::loop(void)
 {
-	#if defined(ESP32)
-  ArduinoOTA.handle();
-	#endif
+	// #if defined(ESP32)
+  // ArduinoOTA.handle();
+	// #endif
 
   if (!CheckConnections(false))
     BlinkStatusLED(1, 0);
