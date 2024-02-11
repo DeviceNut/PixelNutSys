@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2024, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
@@ -37,30 +37,41 @@ void CountPatterns(void)
 
 void LoadCurPattern()
 {
-  if ((0 < curPattern) && (curPattern <= codePatterns))
-  {
-    char outstr[MAXLEN_PATSTR+1];
-    strcpy_P(outstr, devPatCmds[curPattern-1]);
-    DBGOUT((F("Retrieving device pattern #%d"), curPattern));
+  char cmdstr[MAXLEN_PATSTR+1];
 
-    pPixelNutEngine->clearStacks(); // clear stack to prepare for new pattern
-    ExecPattern(outstr);
+  pPixelNutEngine->clearStacks(); // clear stack to prepare for new pattern
+
+  if ((1 <= curPattern) && (curPattern <= codePatterns))
+  {
+    DBGOUT((F("Retrieving device pattern #%d"), curPattern));
+    strcpy_P(cmdstr, devPatCmds[curPattern-1]);
   }
+  else
+  {
+    // patterns are sent from external client and stored in flash
+    // the pattern number is meaningful only to the client, or if 0
+    // if using physical controls to select via calls below
+
+    DBGOUT((F("Retrieved external pattern #%d"), curPattern));
+    FlashGetPatStr(cmdstr); // get pattern string previously stored in flash
+  }
+
+  ExecPattern(cmdstr);
 }
 
 void GetNextPattern(void)
 {
-  // curPattern must be 1...codePatterns
-  if (++curPattern > codePatterns)
-    curPattern = 1;
+  // allow selecting stored external pattern as part of the cycle
+  if (curPattern > codePatterns) curPattern = 0; // 0 for extern
+  else ++curPattern;
 
   LoadCurPattern();
 }
 
 void GetPrevPattern(void)
 {
-  // curPattern must be 1...codePatterns
-  if (curPattern <= 1) curPattern = codePatterns;
+  // allow selecting stored external pattern as part of the cycle
+  if (!curPattern) curPattern = codePatterns;
   else --curPattern;
 
   LoadCurPattern();

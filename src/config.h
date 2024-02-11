@@ -7,7 +7,7 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#define PIXELNUT_VERSION        24          // 2.0+ - this is a rework of the 1st version
+#define PIXELNUT_VERSION        25          // 2.0+ - this is a rework of the 1st version
 
 // IMPORTANT NOTE:
 // When first flashing a new device, you need to compile and flash with

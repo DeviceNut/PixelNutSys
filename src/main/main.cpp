@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, Greg de Valois
+Copyright (c) 2024, Greg de Valois
 Software License Agreement (MIT License)
 See license.txt for the terms of this license.
 */
@@ -213,6 +213,9 @@ void setup()
     pPixelNutEngine = &pixelNutEngines[i];
     ShowPixels(i); // turn off pixels
 
+    FlashSetStrand(i);
+    FlashStartup(); // get curPattern and settings from flash, set engine properties
+
     // sets engine properties, so must do for each strand
     SetupBrightControls();  // Setup any physical controls present
     SetupDelayControls();
@@ -221,9 +224,6 @@ void setup()
     SetupCountControls();
     SetupTriggerControls();
     SetupPatternControls();
-
-    FlashSetStrand(i);
-    FlashStartup(); // get curPattern and settings from flash, set engine properties
 
     #if CLIENT_APP
     char cmdstr[MAXLEN_PATSTR+1];
@@ -273,9 +273,4 @@ void loop()
     for (int i = 0; i < STRAND_COUNT; ++i)
       if (pixelNutEngines[i].updateEffects())
         ShowPixels(i);
-
-  // if (!doUpdate) count = 3;
-
-  // int val = analogRead(32);
-  // DBGOUT((F("Analog read=%d"), val));
 }
