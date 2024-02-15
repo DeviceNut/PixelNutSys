@@ -105,7 +105,7 @@ protected:
   // default values for propertes and control settings:
   #define DEF_PCENTBRIGHT   MAX_PERCENTAGE
   #define DEF_PCENTDELAY    (MAX_PERCENTAGE/2)
-  #define DEF_DVALUE_HUE    192 // purple
+  #define DEF_DVALUE_HUE    270 // purple
   #define DEF_PCENTWHITE    0
   #define DEF_PCENTCOUNT    50
   #define DEF_BACKWARDS     false

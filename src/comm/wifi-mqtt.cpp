@@ -283,7 +283,6 @@ void WiFiMqtt::sendReply(char *instr)
 
 void WiFiMqtt::setName(char *name)
 {
-  #if !EEPROM_FORMAT
   if (haveMqtt)
   {
     DBGOUT(("Unsubscribe to: %s", devnameTopic));
@@ -292,17 +291,14 @@ void WiFiMqtt::setName(char *name)
     DBGOUT(("Disconnect from Mqtt..."));
     mqttClient.disconnect();
   }
-  #endif
 
   FlashSetDevName(name);
   strcpy(deviceName, name);
 
-  #if !EEPROM_FORMAT
   // re-connect with new name next loop
   MakeMqttStrs();
   DBGOUT(("Mqtt Device: %s", deviceName));
   msecsRetryNotify = 0;
-  #endif
 }
 
 #if defined(ESP32)

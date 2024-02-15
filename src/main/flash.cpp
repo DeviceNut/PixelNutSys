@@ -52,7 +52,7 @@ void FlashSetDevName(char *name)
 {
   DBGOUT((F("FlashSetDevName: \"%s\""), name));
 
-  for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
+  for (int i = FLASHLEN_ID; i < MAXLEN_DEVICE_NAME; ++i)
   {
     EEPROM.write(i, name[i]);
     if (!name[i]) break;
@@ -63,7 +63,7 @@ void FlashSetDevName(char *name)
 
 void FlashGetDevName(char *name)
 {
-  for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
+  for (int i = FLASHLEN_ID; i < MAXLEN_DEVICE_NAME; ++i)
   {
     name[i] = EEPROM.read(i);
     if(!name[i]) break;
@@ -159,9 +159,20 @@ void FlashStartup(void)
 
   FlashStart();
 
-  char deviceName[MAXLEN_DEVICE_NAME + 1];
-  FlashGetDevName(deviceName);
-  if (!deviceName[0])
+  char sysName[FLASHLEN_ID + 1];
+  for (int i = 0; i < FLASHLEN_ID; ++i) sysName[i] = EEPROM.read(i);
+  sysName[FLASHLEN_ID] = 0;
+
+  if (strncmp(sysName, FLASHSTR_ID, FLASHLEN_ID))
+  {
+    DBGOUT((F("Clearing flash memory: ID=\"%s\""), FLASHSTR_ID));
+    for (int i = 0; i < FLASHLEN_ID; ++i) EEPROM.write(i, FLASHSTR_ID[i]);
+    for (int i = FLASHLEN_ID; i < EEPROM_BYTES; ++i) EEPROM.write(i, 0);
+  }
+
+  char devName[MAXLEN_DEVICE_NAME + 1];
+  FlashGetDevName(devName);
+  if (!devName[0])
   {
     DBGOUT(("Set device name: %s", DEFAULT_DEVICE_NAME));
     FlashSetDevName((char*)DEFAULT_DEVICE_NAME);
@@ -170,8 +181,7 @@ void FlashStartup(void)
 
   #if DEV_PATTERNS
   curPattern = FlashGetValue(FLASHOFF_SDATA_PATNUM);
-  if (!curPattern || (curPattern > codePatterns))
-    curPattern = 1; // 1..codePatterns
+  if (!curPattern || (curPattern > codePatterns)) curPattern = 1; // 1..codePatterns
   DBGOUT((F("Flash: pattern=#%d"), curPattern));
   #endif
 

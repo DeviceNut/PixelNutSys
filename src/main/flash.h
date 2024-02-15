@@ -21,24 +21,28 @@ See license.txt for the terms of this license.
 #endif
 
 // for each strand:
-#define FLASHLEN_STRAND_DATA        10
+#define FLASHLEN_STRAND_DATA        12
 
 // offsets within each strand space:
-#define FLASHOFF_SDATA_PATNUM       0
-#define FLASHOFF_SDATA_PC_BRIGHT    1
-#define FLASHOFF_SDATA_PC_DELAY     2
-#define FLASHOFF_SDATA_FIRSTPOS     3  // 2 bytes
-#define FLASHOFF_SDATA_XT_MODE      5
-#define FLASHOFF_SDATA_XT_HUE       6  // 2 bytes
-#define FLASHOFF_SDATA_XT_WHT       8
-#define FLASHOFF_SDATA_XT_CNT       9
+#define FLASHOFF_SDATA_PIXELS       0   // 2 bytes - number of pixels (TODO)
+#define FLASHOFF_SDATA_PATNUM       2
+#define FLASHOFF_SDATA_PC_BRIGHT    3
+#define FLASHOFF_SDATA_PC_DELAY     4
+#define FLASHOFF_SDATA_FIRSTPOS     5  // 2 bytes
+#define FLASHOFF_SDATA_XT_MODE      7
+#define FLASHOFF_SDATA_XT_HUE       8  // 2 bytes
+#define FLASHOFF_SDATA_XT_WHT       10
+#define FLASHOFF_SDATA_XT_CNT       11
+
+#define FLASHSTR_ID                 "PNUT"
+#define FLASHLEN_ID                 4
 
 #if CLIENT_APP
-#define FLASHOFF_STRAND_DATA        MAXLEN_DEVICE_NAME
+#define FLASHOFF_STRAND_DATA        (FLASHLEN_ID + MAXLEN_DEVICE_NAME)
 #define FLASHLEN_PATNAME            MAXLEN_PATNAME
 #define FLASHLEN_PATSTR             MAXLEN_PATSTR
 #else
-#define FLASHOFF_STRAND_DATA        0
+#define FLASHOFF_STRAND_DATA        FLASHLEN_ID
 #define FLASHLEN_PATNAME            0
 #define FLASHLEN_PATSTR             0
 #endif

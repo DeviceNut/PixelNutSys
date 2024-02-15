@@ -7,15 +7,10 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#define PIXELNUT_VERSION        25          // 2.0+ - this is a rework of the 1st version
+#define PIXELNUT_VERSION        26          // 2.0+ - this is a rework of the 1st version
 
-// IMPORTANT NOTE:
-// When first flashing a new device, you need to compile and flash with
-// EEPROM_FORMAT set to 1, then compile and flash with it set to 0.
-// This clears the EEPROM, otherwise you'll be reading garbage values
-// for some important system settings which will likely prevent proper
-// operation.
 #define EEPROM_FORMAT           0           // 1 to clear entire flash data space
+// This shouldn't normaly be necessary, as it is done automatically the very first time
 
 // minimize these to reduce memory consumption:
 #define MAXLEN_PATNAME          32          // max length for name of pattern
@@ -24,6 +19,23 @@ See license.txt for the terms of this license.
 #define NUM_PLUGIN_LAYERS       128         // must be multiple of TRACKS
 #define DEV_PLUGINS             1           // we can support additional device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
+
+#if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
+#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
+#endif
+#if DEBUG_OUTPUT
+#undef F
+#define F(x) x
+#define DBG(x) x
+#define DBGOUT(x) MsgFormat x
+#define DEBUG_SIGNON            "PixelNut!"
+#define SERIAL_BAUD_RATE        115200      // *must* match this in serial monitor
+#define MSECS_WAIT_SERIAL       2000        // msecs to wait for serial monitor, or 0
+#else
+#define DBG(x)
+#define DBGOUT(x)
+#endif
+extern void MsgFormat(const char *fmtstr, ...);
 
 #include "mydevices.h" // put device specific settings here
 
@@ -64,23 +76,6 @@ See license.txt for the terms of this license.
       //#define WIFI_SOFTAP             1           // SoftAP over WiFi
       //#define COM_SERIAL              1           // serial over COM
 */
-
-#if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 0      // 1 to compile serial console debugging code
-#endif
-#if DEBUG_OUTPUT
-#undef F
-#define F(x) x
-#define DBG(x) x
-#define DBGOUT(x) MsgFormat x
-#define DEBUG_SIGNON            "PixelNut!"
-#define SERIAL_BAUD_RATE        115200      // *must* match this in serial monitor
-#define MSECS_WAIT_SERIAL       2000        // msecs to wait for serial monitor, or 0
-#else
-#define DBG(x)
-#define DBGOUT(x)
-#endif
-extern void MsgFormat(const char *fmtstr, ...);
 
 // these are defaults for particular global settings:
 
