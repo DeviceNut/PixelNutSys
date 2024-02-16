@@ -52,9 +52,9 @@ void FlashSetDevName(char *name)
 {
   DBGOUT((F("FlashSetDevName: \"%s\""), name));
 
-  for (int i = FLASHLEN_ID; i < MAXLEN_DEVICE_NAME; ++i)
+  for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
   {
-    EEPROM.write(i, name[i]);
+    EEPROM.write(FLASHLEN_ID + i, name[i]);
     if (!name[i]) break;
   }
 
@@ -63,9 +63,9 @@ void FlashSetDevName(char *name)
 
 void FlashGetDevName(char *name)
 {
-  for (int i = FLASHLEN_ID; i < MAXLEN_DEVICE_NAME; ++i)
+  for (int i = 0; i < MAXLEN_DEVICE_NAME; ++i)
   {
-    name[i] = EEPROM.read(i);
+    name[i] = EEPROM.read(FLASHLEN_ID + i);
     if(!name[i]) break;
   }
 
@@ -153,7 +153,7 @@ void FlashSetExterns(uint16_t hue, byte wht, byte cnt)
   FlashDone();
 }
 
-void FlashStartup(void)
+bool FlashStartup(void)
 {
   bool doinit = false;
 
@@ -168,13 +168,23 @@ void FlashStartup(void)
     DBGOUT((F("Clearing flash memory: ID=\"%s\""), FLASHSTR_ID));
     for (int i = 0; i < FLASHLEN_ID; ++i) EEPROM.write(i, FLASHSTR_ID[i]);
     for (int i = FLASHLEN_ID; i < EEPROM_BYTES; ++i) EEPROM.write(i, 0);
+
+    doinit = true;
   }
+
+  FlashDone();
+
+  return doinit;
+}
+
+void FlashInitStrand(bool doinit)
+{
+  FlashStart();
 
   char devName[MAXLEN_DEVICE_NAME + 1];
   FlashGetDevName(devName);
   if (!devName[0])
   {
-    DBGOUT(("Set device name: %s", DEFAULT_DEVICE_NAME));
     FlashSetDevName((char*)DEFAULT_DEVICE_NAME);
     doinit = true;
   }

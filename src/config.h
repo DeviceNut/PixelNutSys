@@ -7,7 +7,7 @@ See license.txt for the terms of this license.
 
 #pragma once
 
-#define PIXELNUT_VERSION        26          // 2.0+ - this is a rework of the 1st version
+#define PIXELNUT_VERSION        27          // 2.0+ - this is a rework of the 1st version
 
 #define EEPROM_FORMAT           0           // 1 to clear entire flash data space
 // This shouldn't normaly be necessary, as it is done automatically the very first time
@@ -20,8 +20,8 @@ See license.txt for the terms of this license.
 #define DEV_PLUGINS             1           // we can support additional device plugins
 #define PLUGIN_PLASMA           1           // uses Lissajious curves for effect
 
-#if !defined(DEBUG_OUTPUT)  // can also be defined in each source file
-#define DEBUG_OUTPUT 1      // 1 to compile serial console debugging code
+#if !defined(DEBUG_OUTPUT)                  // can also be defined in each source file
+#define DEBUG_OUTPUT            0           // 1 to compile serial console debugging code
 #endif
 #if DEBUG_OUTPUT
 #undef F

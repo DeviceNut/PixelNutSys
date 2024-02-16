@@ -165,6 +165,8 @@ void setup()
   ErrorHandler(0, 3, true);
   #endif
 
+  bool newflash = FlashStartup();
+
   #if PIXELS_APA
   for (int i = 0; i < STRAND_COUNT; ++i) // config chip select pins
   {
@@ -214,7 +216,7 @@ void setup()
     ShowPixels(i); // turn off pixels
 
     FlashSetStrand(i);
-    FlashStartup(); // get curPattern and settings from flash, set engine properties
+    FlashInitStrand(newflash); // get curPattern and settings from flash, set engine properties
 
     // sets engine properties, so must do for each strand
     SetupBrightControls();  // Setup any physical controls present

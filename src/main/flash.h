@@ -56,6 +56,7 @@ See license.txt for the terms of this license.
 #define EEPROM_FREE_START  FLASHOFF_PINFO_END
 #define EEPROM_FREE_BYTES  (EEPROM_BYTES - EEPROM_FREE_START)
 
+extern bool FlashStartup(void);
 extern void FlashSetValue(uint16_t offset, byte value);
 extern byte FlashGetValue(uint16_t offset);
 #if CLIENT_APP
@@ -66,6 +67,7 @@ extern void FlashGetPatStr(char *str);
 extern void FlashSetPatName(char *name);
 extern void FlashGetPatName(char *name);
 #endif
+extern void FlashInitStrand(bool doinit);
 extern byte FlashGetStrand(void);
 extern void FlashSetStrand(byte strandindex);
 extern void FlashSetBright();
@@ -74,7 +76,6 @@ extern void FlashSetFirst();
 extern void FlashSetPatNum(byte pattern);
 extern void FlashSetXmode(bool enable);
 extern void FlashSetExterns(uint16_t hue, byte wht, byte cnt);
-extern void FlashStartup(void);
 #if EEPROM_FORMAT
 extern void FlashFormat(void);
 #endif
